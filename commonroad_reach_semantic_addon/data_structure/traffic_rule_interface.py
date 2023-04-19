@@ -11,7 +11,7 @@ from commonroad_reach_semantic_addon.data_structure.semantic_model import Semant
 from commonroad_reach_semantic_addon.data_structure.traffic_rule import NoBackwardDrivingRule, NoOppositeDrivingRule, \
     LineMarkingRule, \
     TrafficLightRule, PriorityRule, RightBeforeLeftRule, LeftTurningRule
-import commonroad_reach_semantic_addon.utility.logger as util_logger
+import commonroad_reach.utility.logger as util_logger
 
 logger = logging.getLogger(__name__)
 

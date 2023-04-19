@@ -7,7 +7,7 @@ from commonroad_reach_semantic_addon.data_structure.reach.reach_interface import
 from commonroad_reach_semantic_addon.data_structure.traffic_rule_interface import TrafficRuleInterface
 from commonroad_reach_semantic_addon.data_structure.kripke import KripkeStructure
 from commonroad_reach_semantic_addon.data_structure.automaton_graph import AutomatonGraph
-import commonroad_reach_semantic_addon.utility.logger as util_logger
+import commonroad_reach.utility.logger as util_logger
 
 logger = logging.getLogger(__name__)
 

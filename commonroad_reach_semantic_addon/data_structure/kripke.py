@@ -11,7 +11,7 @@ from commonroad_reach_semantic_addon.data_structure.reach.reach_node import Reac
 from commonroad_reach_semantic_addon.data_structure.proposition_holder import PropositionHolder
 from commonroad_reach_semantic_addon.utility import reach_operation as util_reach
 from commonroad_reach_semantic_addon.utility import spot as util_spot
-from commonroad_reach_semantic_addon.utility import logger as util_logger
+from commonroad_reach.utility import logger as util_logger
 
 logger = logging.getLogger(__name__)
 

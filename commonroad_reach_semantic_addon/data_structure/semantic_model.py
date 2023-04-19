@@ -21,7 +21,7 @@ from commonroad_reach_semantic_addon.data_structure.region import Region
 
 from commonroad_reach_semantic_addon.utility import reach_operation
 import commonroad_reach_semantic_addon.utility.region as util_region
-import commonroad_reach_semantic_addon.utility.logger as util_logger
+import commonroad_reach.utility.logger as util_logger
 
 logger = logging.getLogger(__name__)
 

@@ -4,7 +4,7 @@ import time
 from collections import defaultdict
 from typing import Set, List
 
-import commonroad_reach_semantic_addon.utility.logger as util_logger
+import commonroad_reach.utility.logger as util_logger
 import commonroad_reach_semantic_addon.utility.spot as util_spot
 import networkx as nx
 import numpy as np
