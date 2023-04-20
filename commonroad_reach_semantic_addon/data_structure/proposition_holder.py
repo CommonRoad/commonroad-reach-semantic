@@ -1,12 +1,16 @@
+from __future__ import annotations
+
 import copy
 from collections import defaultdict
 from functools import lru_cache
-from typing import Set
+from typing import Set, Dict
 
 from commonroad_reach_semantic_addon.data_structure.proposition import PropositionGroup as PG
 
 
 class PropositionHolder:
+    dict_group_to_set_propositions: Dict[PG, Set[str]]
+
     def __init__(self, set_propositions: Set[str] = None, group=None):
         self.dict_group_to_set_propositions = defaultdict(set)
         self.set_propositions = {"true"}
@@ -52,17 +56,24 @@ class PropositionHolder:
         return self.dict_group_to_set_propositions[group]
 
     def add_propositions(self, propositions: Set[str], group: PG):
-        for proposition in propositions:
-            self.add_proposition(proposition, group)
+        self.dict_group_to_set_propositions[group].update(propositions)
+
+        if group == PG.TEMPORARY:
+            self.set_propositions_temporary.update(propositions)
+        else:
+            self.set_propositions.update(propositions)
 
     def add_proposition(self, proposition: str, group: PG):
         self.dict_group_to_set_propositions[group].add(proposition)
 
-        if not group == PG.TEMPORARY:
+        if group == PG.TEMPORARY:
+            self.set_propositions_temporary.add(proposition)
+        else:
             self.set_propositions.add(proposition)
 
-        else:
-            self.set_propositions_temporary.add(proposition)
+    def merge(self, other: PropositionHolder):
+        for group, props in other.dict_group_to_set_propositions.items():
+            self.add_propositions(props, group)
 
 
 class MultiStepPropositionHolder:
