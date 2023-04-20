@@ -1,37 +1,37 @@
 import logging
 from typing import List
 
-from commonroad_reach.data_structure.configuration import Configuration
+import commonroad_reach.utility.logger as util_logger
 from commonroad_reach.data_structure.collision_checker import CollisionChecker
+from commonroad_reach.data_structure.configuration import Configuration
 from commonroad_reach.data_structure.reach.reach_polygon import ReachPolygon
 from commonroad_reach.data_structure.reach.reach_set import ReachableSet
 from commonroad_reach.utility import reach_operation
-import commonroad_reach.utility.logger as util_logger
 
+from commonroad_reach_semantic_addon.data_structure.proposition import PropositionGroup as PropGroup
+from commonroad_reach_semantic_addon.data_structure.proposition_holder import PropositionHolder
 from commonroad_reach_semantic_addon.data_structure.reach.semantic_reach_node import SemanticReachNode
+from commonroad_reach_semantic_addon.data_structure.semantic_model import SemanticModel
 
 logger = logging.getLogger(__name__)
 
 
 class PySemanticReachableSet(ReachableSet):
     """
-    Reachable set computation with Python backend.
+    Reachable set computation considering temporal constraints with Python backend.
     """
 
-    def __init__(self, config: Configuration):
+    def __init__(self, config: Configuration, semantic_model: SemanticModel):
         super().__init__(config)
-        self.dict_step_to_drivable_area[self.step_start] = self._construct_initial_drivable_area()
+        self.semantic_model = semantic_model
         self.dict_step_to_reachable_set[self.step_start] = self._construct_initial_reachable_set()
+        self.dict_step_to_drivable_area[self.step_start] = reach_operation.project_propagated_sets_to_position_domain(
+            self.dict_step_to_reachable_set[self.step_start])
+        self._label_initial_state()
         self._initialize_zero_state_polygons()
         self.collision_checker = CollisionChecker(self.config)
 
-        logger.debug("PyReachableSet initialized.")
-
-    def _construct_initial_drivable_area(self) -> List[ReachPolygon]:
-        tuple_vertices = reach_operation.generate_tuple_vertices_position_rectangle_initial(self.config)
-        # TODO: labeling
-
-        return [ReachPolygon.from_rectangle_vertices(*tuple_vertices)]
+        logger.debug("PySemanticReachableSet initialized.")
 
     def _construct_initial_reachable_set(self) -> List[SemanticReachNode]:
         tuple_vertices_polygon_lon, tuple_vertices_polygon_lat = \
@@ -39,9 +39,46 @@ class PySemanticReachableSet(ReachableSet):
 
         polygon_lon = ReachPolygon.from_rectangle_vertices(*tuple_vertices_polygon_lon)
         polygon_lat = ReachPolygon.from_rectangle_vertices(*tuple_vertices_polygon_lat)
-        # TODO: labeling
 
         return [SemanticReachNode(polygon_lon, polygon_lat, self.config.planning.step_start)]
+
+    def _label_initial_state(self):
+        for drivable_area, reachable_set in zip(self.dict_step_to_drivable_area[self.step_start],
+                                                self.dict_step_to_reachable_set[self.step_start]):
+            propositions = self._obtain_propositions_for_rectangle(drivable_area, self.step_start)
+            reachable_set.proposition_holder.merge(propositions)
+        self.semantic_model.label_traffic_propositions(self.step_start,
+                                                       self.dict_step_to_reachable_set[self.step_start])
+
+    def _obtain_propositions_for_rectangle(self, rectangle: ReachPolygon, step: int) -> PropositionHolder:
+        """
+        Returns the propositions of the given rectangle.
+
+        Intersects the rectangle with regions and position intervals.
+        """
+        proposition_holder = PropositionHolder()
+        # retrieve propositions from the intersecting lanelet region
+        for region in self.semantic_model.list_regions:
+            if region.polygon_cvln.intersects(rectangle):
+                for group, set_propositions in region.dict_group_to_propositions_at_step(step).items():
+                    proposition_holder.add_propositions(set_propositions, group)
+                break
+
+        # retrieve vehicle-related propositions from position intervals
+        list_intervals_lon = self.semantic_model.dict_step_to_position_intervals[step]["lon"]
+        list_intervals_lat = self.semantic_model.dict_step_to_position_intervals[step]["lat"]
+
+        for interval_lon in list_intervals_lon:
+            if interval_lon.intersects(rectangle.p_lon_min, rectangle.p_lon_max):
+                proposition_holder.add_propositions(interval_lon.set_propositions, PropGroup.POSITION)
+                break
+
+        for interval_lat in list_intervals_lat:
+            if interval_lat.intersects(rectangle.p_lat_min, rectangle.p_lat_max):
+                proposition_holder.add_propositions(interval_lat.set_propositions, PropGroup.POSITION)
+                break
+
+        return proposition_holder
 
     def _initialize_zero_state_polygons(self):
         """

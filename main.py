@@ -4,6 +4,7 @@ from commonroad_reach.data_structure.reach.reach_interface import ReachableSetIn
 from commonroad_reach.utility import visualization as util_visual
 
 from commonroad_reach_semantic_addon.data_structure.reach.semantic_reach_set_py import PySemanticReachableSet
+from commonroad_reach_semantic_addon.data_structure.semantic_model import SemanticModel
 
 
 def main():
@@ -22,7 +23,7 @@ def main():
 
     # ==== compute reachable sets using reachability interface
     reach_interface = ReachableSetInterface(config)
-    reach_interface._reach = PySemanticReachableSet(config)
+    reach_interface._reach = PySemanticReachableSet(config, SemanticModel(config))
     reach_interface.compute_reachable_sets()
 
     # ==== plot computation results
