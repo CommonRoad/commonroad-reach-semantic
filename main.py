@@ -3,12 +3,14 @@ from commonroad_reach.data_structure.configuration_builder import ConfigurationB
 from commonroad_reach.data_structure.reach.reach_interface import ReachableSetInterface
 from commonroad_reach.utility import visualization as util_visual
 
+from commonroad_reach_semantic_addon.data_structure.reach.semantic_reach_set_py import PySemanticReachableSet
+
 
 def main():
     # ==== specify scenario
     # name_scenario = "DEU_Test-1_1_T-1"
     # name_scenario = "ZAM_Over-1_1"
-    name_scenario = "_ARG_Carcarana-1_1_T-1"
+    name_scenario = "ARG_Carcarana-1_1_T-1"
     # name_scenario = "USA_US101-6_1_T-1"
     # name_scenario = "ZAM_Intersection-1_1_T-1"
 
@@ -20,6 +22,7 @@ def main():
 
     # ==== compute reachable sets using reachability interface
     reach_interface = ReachableSetInterface(config)
+    reach_interface._reach = PySemanticReachableSet(config)
     reach_interface.compute_reachable_sets()
 
     # ==== plot computation results
