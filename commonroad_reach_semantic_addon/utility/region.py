@@ -4,10 +4,11 @@ from typing import Dict, List
 from shapely.errors import TopologicalError
 from shapely.geometry import Polygon, MultiPolygon
 
-from commonroad_reach_semantic_addon.data_structure.reach.reach_polygon import ReachPolygon
+from commonroad_reach.data_structure.reach.reach_polygon import ReachPolygon
+import commonroad_reach.utility.general as util_general
+
 from commonroad_reach_semantic_addon.data_structure.region import Region
 import commonroad_reach_semantic_addon.utility.geometry as util_geometry
-import commonroad_reach_semantic_addon.utility.general as util_general
 
 
 def detect_intersecting_lanelets(set_lanelets_related):

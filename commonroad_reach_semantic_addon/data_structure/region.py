@@ -7,10 +7,10 @@ from commonroad.scenario.intersection import IntersectionIncomingElement
 from commonroad.scenario.lanelet import LaneletNetwork, LaneletType, Lanelet
 from commonroad.scenario.traffic_sign import TrafficSignIDZamunda
 from commonroad_dc.pycrccosy import CurvilinearCoordinateSystem
+from commonroad_reach.data_structure.reach.reach_polygon import ReachPolygon
 
-from commonroad_reach_semantic_addon.data_structure.configuration import Configuration
+from commonroad_reach.data_structure.configuration import Configuration
 from commonroad_reach_semantic_addon.data_structure.proposition_holder import MultiStepPropositionHolder
-from commonroad_reach_semantic_addon.data_structure.reach.reach_polygon import ReachPolygon
 from commonroad_reach_semantic_addon.data_structure.road_network import RoadNetwork
 from commonroad_reach_semantic_addon.data_structure.vehicle import Vehicle
 from commonroad_reach_semantic_addon.data_structure.proposition import Proposition as P
@@ -702,8 +702,8 @@ class Region:
                     p_lon_max_new = min(p_lon_max, p_lon_min + (idx_partition + 1) * self.length_aabb_max)
 
                     polygon_partition = ReachPolygon.from_rectangle_vertices(
-                        p_lon_min_new, p_lat_min, p_lon_max_new, p_lat_max).buffer(+0.01)
-                    polygon_partition = polygon_partition.intersection(polygon.buffer(+0.01))
+                        p_lon_min_new, p_lat_min, p_lon_max_new, p_lat_max).shapely_object.buffer(+0.01)
+                    polygon_partition = polygon_partition.intersection(polygon.shapely_object.buffer(+0.01))
 
                     if not polygon_partition.is_empty:
                         list_polygons_temp.append(polygon_partition)
@@ -728,8 +728,8 @@ class Region:
                     p_lat_max_new = min(p_lat_max, p_lat_min + (idx_partition + 1) * self.length_aabb_max)
 
                     polygon_partition = ReachPolygon.from_rectangle_vertices(
-                        p_lon_min, p_lat_min_new, p_lon_max, p_lat_max_new).buffer(+0.01)
-                    polygon_partition = polygon_partition.intersection(polygon.buffer(+0.01))
+                        p_lon_min, p_lat_min_new, p_lon_max, p_lat_max_new).shapely_object.buffer(+0.01)
+                    polygon_partition = polygon_partition.intersection(polygon.shapely_object.buffer(+0.01))
 
                     if not polygon_partition.is_empty:
                         list_polygons_final.append(polygon_partition)
