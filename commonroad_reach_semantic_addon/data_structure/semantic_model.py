@@ -19,7 +19,7 @@ from commonroad_reach_semantic_addon.data_structure.proposition import Propositi
 from commonroad_reach_semantic_addon.data_structure.proposition import PropositionGroup as PG
 from commonroad_reach_semantic_addon.data_structure.region import Region
 
-from commonroad_reach.utility import reach_operation
+import commonroad_reach_semantic_addon.utility.reach_operation as reach_operation
 import commonroad_reach_semantic_addon.utility.region as util_region
 import commonroad_reach.utility.logger as util_logger
 
