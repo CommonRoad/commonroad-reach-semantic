@@ -9,7 +9,7 @@ from commonroad.scenario.traffic_sign import TrafficSignIDZamunda
 from commonroad_dc.pycrccosy import CurvilinearCoordinateSystem
 from commonroad_reach.data_structure.reach.reach_polygon import ReachPolygon
 
-from commonroad_reach.data_structure.configuration import Configuration
+from commonroad_reach_semantic_addon.data_structure.semantic_configuration import SemanticConfiguration
 from commonroad_reach_semantic_addon.data_structure.proposition_holder import MultiStepPropositionHolder
 from commonroad_reach_semantic_addon.data_structure.road_network import RoadNetwork
 from commonroad_reach_semantic_addon.data_structure.vehicle import Vehicle
@@ -26,7 +26,7 @@ class Region:
        2. polygon in curvilinear coordinate system
        3. optional: a list of axis-aligned bounding boxes
     """
-    config: Configuration
+    config: SemanticConfiguration
     step_end: int
     road_network: RoadNetwork
     lanelet_network: LaneletNetwork
@@ -41,12 +41,12 @@ class Region:
     dict_id_lanelet_to_polygon_cart: dict
 
     @classmethod
-    def initialize(cls, config: Configuration, road_network: RoadNetwork, set_lanelets_route_related: Set[Lanelet]):
+    def initialize(cls, config: SemanticConfiguration, road_network: RoadNetwork, set_lanelets_route_related: Set[Lanelet]):
         cls.config = config
         cls.step_end = config.planning.step_start + config.planning.steps_computation
         cls.road_network = road_network
         cls.lanelet_network = road_network.lanelet_network
-        cls.incoming_element_route = config.planning.incoming_element_route
+        cls.incoming_element_route = config.semantic_model.incoming_element_route
         cls.discard_region_small = config.semantic_model.discard_region_small
         cls.area_polygon_desired_min = config.semantic_model.area_polygon_desired_min
         cls.buffer_polygon = config.semantic_model.buffer_polygon
