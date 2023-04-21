@@ -29,5 +29,8 @@ ego:
   # maximum engine power in m/s^2
   a_max: 8.0
 
+  # field of view in meters
+  fov: 200
+
 other:
   <<: *physical_parameters

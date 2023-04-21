@@ -13,7 +13,7 @@ from commonroad.scenario.trajectory import State
 from commonroad_dc.pycrccosy import CurvilinearCoordinateSystem
 from commonroad_route_planner.route import Route
 
-from commonroad_reach.data_structure.configuration import Configuration
+from commonroad_reach_semantic_addon.data_structure.semantic_configuration import SemanticConfiguration
 from commonroad_reach_semantic_addon.data_structure.reach.semantic_reach_node import SemanticReachNode
 from commonroad_reach_semantic_addon.data_structure.road_network import Lane, RoadNetwork
 import commonroad_reach.utility.coordinate_system as util_cosy
@@ -103,14 +103,14 @@ class Vehicle:
     Ref: attributes projected onto the reference path of the planned route
     Ego: attributes projected onto the reference path of the lane of the vehicle
     """
-    config: Configuration
+    config: SemanticConfiguration
     CLCS_ref: CurvilinearCoordinateSystem
     lanelet_network: LaneletNetwork
     road_network: RoadNetwork
     radius_inflation: float
 
     @classmethod
-    def initialize(cls, config: Configuration, road_network: RoadNetwork):
+    def initialize(cls, config: SemanticConfiguration, road_network: RoadNetwork):
         cls.config = config
         cls.CLCS_ref = config.planning.CLCS
         cls.lanelet_network = config.scenario.lanelet_network
@@ -537,7 +537,7 @@ class Vehicle:
         """
         Transforms a CommonRoad obstacle into a Vehicle object.
         """
-        use_sonia = cls.config.planning.use_sonia and isinstance(obstacle, DynamicObstacle)
+        use_sonia = cls.config.semantic_model.use_sonia and isinstance(obstacle, DynamicObstacle)
         dict_step_to_sonia_extrema = {}
 
         # extract properties for static obstacles

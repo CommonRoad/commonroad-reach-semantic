@@ -9,7 +9,7 @@ from commonroad.scenario.obstacle import DynamicObstacle
 from commonroad.scenario.traffic_sign import TrafficLightDirection, TrafficLightState
 
 # from commonroad_reach_semantic_addon import pycrreachs
-from commonroad_reach.data_structure.configuration import Configuration
+from commonroad_reach_semantic_addon.data_structure.semantic_configuration import SemanticConfiguration
 from commonroad_reach_semantic_addon.data_structure.reach.semantic_reach_node import SemanticReachNode
 from commonroad_reach_semantic_addon.data_structure.road_network import RoadNetwork
 # from commonroad_reach_semantic_addon.data_structure.sonia_interface import SONIAInterface
@@ -31,7 +31,7 @@ class SemanticModel:
     Class to represent the semantic model of a given CommonRoad scenario.
     """
 
-    def __init__(self, config: Configuration):
+    def __init__(self, config: SemanticConfiguration):
         """
         Steps:
             1. create a smaller lanelet network and build a road network from it
@@ -248,7 +248,7 @@ class SemanticModel:
         """
         Vehicle.initialize(self.config, self.road_network)
 
-        if self.config.planning.use_sonia:
+        if self.config.semantic_model.use_sonia:
             # self.scenario_with_sonia, self.dict_sonia_prediction = self._obtain_sonia_prediction()
             logger.error("SONIA not connected yet")
 
@@ -444,7 +444,7 @@ class SemanticModel:
                 region.proposition_holder.add_proposition(P.in_intersection(), PG.POSITION)
 
         # in successor lanelets of the incoming element
-        direction_outgoing = self.config.planning.direction_outgoing
+        direction_outgoing = self.config.semantic_model.direction_outgoing
         if not direction_outgoing:
             return None
 
@@ -473,7 +473,7 @@ class SemanticModel:
             # corresponding successor lanelets of the incoming element.
             if incoming_element_route.left_of == incoming_element_vehicle.incoming_id:
                 set_ids_lanelets_effective = incoming_element_route.incoming_lanelets.union(
-                    eval(f"incoming_element_route.successors_{self.config.planning.direction_outgoing}"))
+                    eval(f"incoming_element_route.successors_{self.config.semantic_model.direction_outgoing}"))
 
                 for region in self.list_regions:
                     if region.set_ids_lanelets.intersection(set_ids_lanelets_effective):
@@ -605,7 +605,7 @@ class SemanticModel:
         """
         Determines the traffic priorities for regions and vehicles.
         """
-        if self.config.planning.incoming_element_route:
+        if self.config.semantic_model.incoming_element_route:
             # vehicles
             for vehicle in self.list_vehicles:
                 vehicle.determine_priorities(dict_traffic_sign_to_priorities)
@@ -719,7 +719,7 @@ class SemanticModel:
         Labels propagated sets with propositions related to causes braking to other vehicles.
         """
         # only compute if there is an intersection
-        if not self.config.planning.incoming_element_route:
+        if not self.config.semantic_model.incoming_element_route:
             return list_propagated_sets
 
         for propagated_set in list_propagated_sets:
