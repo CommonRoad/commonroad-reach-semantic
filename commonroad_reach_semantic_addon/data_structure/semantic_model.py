@@ -12,7 +12,7 @@ from commonroad.scenario.traffic_sign import TrafficLightDirection, TrafficLight
 from commonroad_reach.data_structure.configuration import Configuration
 from commonroad_reach_semantic_addon.data_structure.reach.semantic_reach_node import SemanticReachNode
 from commonroad_reach_semantic_addon.data_structure.road_network import RoadNetwork
-from commonroad_reach_semantic_addon.data_structure.sonia_interface import SONIAInterface
+# from commonroad_reach_semantic_addon.data_structure.sonia_interface import SONIAInterface
 from commonroad_reach_semantic_addon.data_structure.vehicle import Vehicle
 from commonroad_reach_semantic_addon.data_structure.position_interval import PositionInterval
 from commonroad_reach_semantic_addon.data_structure.proposition import Proposition as P
@@ -249,7 +249,8 @@ class SemanticModel:
         Vehicle.initialize(self.config, self.road_network)
 
         if self.config.planning.use_sonia:
-            self.scenario_with_sonia, self.dict_sonia_prediction = self._obtain_sonia_prediction()
+            # self.scenario_with_sonia, self.dict_sonia_prediction = self._obtain_sonia_prediction()
+            logger.error("SONIA not connected yet")
 
         list_obstacles_relevant = self._retrieve_relevant_obstacles(fov=self.config.vehicle.ego.fov)
         self._add_obstacles_to_lanelets(list_obstacles_relevant)
@@ -258,17 +259,17 @@ class SemanticModel:
 
         logger.info("Vehicles created.")
 
-    def _obtain_sonia_prediction(self):
-        """
-        Returns a new scenario with automata prediction.
-        """
-        util_logger.print_and_log_info(logger, "* Computing SONIA Prediction...")
-        sonia_interface = SONIAInterface(self.config)
-        sonia_interface.predict_occupancies()
-        dict_sonia_prediction = sonia_interface.postprocess_prediction()
-        sonia_interface.deregister_scenario()
-
-        return sonia_interface.scenario, dict_sonia_prediction
+    # def _obtain_sonia_prediction(self):
+    #     """
+    #     Returns a new scenario with automata prediction.
+    #     """
+    #     util_logger.print_and_log_info(logger, "* Computing SONIA Prediction...")
+    #     sonia_interface = SONIAInterface(self.config)
+    #     sonia_interface.predict_occupancies()
+    #     dict_sonia_prediction = sonia_interface.postprocess_prediction()
+    #     sonia_interface.deregister_scenario()
+    #
+    #     return sonia_interface.scenario, dict_sonia_prediction
 
     def _retrieve_relevant_obstacles(self, fov=200, bound_with_circle=True):
         """
@@ -531,6 +532,7 @@ class SemanticModel:
                 for step in range(self.step_end + 1):
                     for dir_region in list_directions:
                         for dir_vehicle in list_directions:
+                            # TODO: get rid of eval
                             if eval(f"region.set_ids_lanelets_outgoing_{dir_region}").intersection(
                                     eval(f"vehicle.{dir_vehicle}_outgoings_at_step(step)")):
                                 proposition = eval(f"P.{dir_region}_out_same_as_{dir_vehicle}_out(vehicle.id_vehicle)")
