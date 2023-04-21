@@ -796,7 +796,7 @@ class SemanticModel:
 
         for propagated_set in list_propagated_set:
             colliding = False
-            set_propositions = propagated_set.set_propositions()
+            set_propositions = propagated_set.set_propositions
             for proposition in set_propositions:
                 # check if it is aligned with and besides a vehicle
                 if P.aligned_with() in proposition:

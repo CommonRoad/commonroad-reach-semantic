@@ -211,8 +211,8 @@ class TrafficRuleInterface:
         set_propositions_forbidden = self.dict_step_to_propositions_forbidden[step]
 
         list_propagated_sets_keep = [propagated_set for propagated_set in list_propagated_sets
-                                     if propagated_set.set_propositions().issuperset(set_propositions_mandatory)]
+                                     if propagated_set.set_propositions.issuperset(set_propositions_mandatory)]
         list_propagated_sets_keep = [propagated_set for propagated_set in list_propagated_sets_keep
-                                     if propagated_set.set_propositions().isdisjoint(set_propositions_forbidden)]
+                                     if propagated_set.set_propositions.isdisjoint(set_propositions_forbidden)]
 
         return list_propagated_sets_keep
