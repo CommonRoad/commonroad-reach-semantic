@@ -3,7 +3,7 @@ from collections import defaultdict
 from typing import Union, Dict, List, Set, Optional
 
 import numpy as np
-from commonroad_reach_semantic_addon import pycrreachs
+# from commonroad_reach_semantic_addon import pycrreachs
 from commonroad.geometry.shape import Shape, Rectangle
 from commonroad.scenario.intersection import IntersectionIncomingElement
 from commonroad.scenario.lanelet import LaneletNetwork
@@ -13,10 +13,10 @@ from commonroad.scenario.trajectory import State
 from commonroad_dc.pycrccosy import CurvilinearCoordinateSystem
 from commonroad_route_planner.route import Route
 
-from commonroad_reach_semantic_addon.data_structure.configuration import Configuration
-from commonroad_reach_semantic_addon.data_structure.reach.reach_node import ReachNode
+from commonroad_reach.data_structure.configuration import Configuration
+from commonroad_reach_semantic_addon.data_structure.reach.semantic_reach_node import SemanticReachNode
 from commonroad_reach_semantic_addon.data_structure.road_network import Lane, RoadNetwork
-import commonroad_reach_semantic_addon.utility.coordinate_system as util_cosy
+import commonroad_reach.utility.coordinate_system as util_cosy
 import commonroad_reach_semantic_addon.utility.vehicle as util_vehicle
 
 
@@ -264,8 +264,8 @@ class Vehicle:
 
         return set()
 
-    def retrieve_p_lon_node_ego(self, node: Union[ReachNode, pycrreachs.ReachNode]):
-        if isinstance(node, ReachNode):
+    def retrieve_p_lon_node_ego(self, node: Union[SemanticReachNode]):
+        if isinstance(node, SemanticReachNode):
             bounds = node.position_rectangle.bounds
 
         else:
@@ -277,11 +277,11 @@ class Vehicle:
 
         return list_p_lon_node
 
-    def behind_node_at_step(self, step: int, node: ReachNode) -> bool:
+    def behind_node_at_step(self, step: int, node: SemanticReachNode) -> bool:
         """Returns True if vehicle is behind the base set."""
         return True if self.front_distance_to_node_at_step(step, node) > 0 else False
 
-    def braking_caused_by_node_at_step(self, step: int, node: Union[ReachNode, pycrreachs.ReachNode]) -> bool:
+    def braking_caused_by_node_at_step(self, step: int, node: Union[SemanticReachNode]) -> bool:
         """
         Returns whether the vehicle should brake hard due to the reach node.
         """
@@ -291,7 +291,7 @@ class Vehicle:
 
         return small_distance and brake_hard
 
-    def front_distance_to_node_at_step(self, step: int, node: Union[ReachNode, pycrreachs.ReachNode]) -> float:
+    def front_distance_to_node_at_step(self, step: int, node: Union[SemanticReachNode]) -> float:
         """
         Returns the front distance of the vehicle to the base set.
 
@@ -311,7 +311,7 @@ class Vehicle:
             p_lon_min_node_ego = min(list_p_lon_node_ego) - self.radius_inflation
             return p_lon_min_node_ego - p_lon_max_ego
 
-    def should_brake_hard_due_to_node_at_step(self, step: int, node: Union[ReachNode, pycrreachs.ReachNode]) -> bool:
+    def should_brake_hard_due_to_node_at_step(self, step: int, node: Union[SemanticReachNode]) -> bool:
         """
         Returns whether the vehicle should brake harder than the predefined threshold due to the reach node.
         """
