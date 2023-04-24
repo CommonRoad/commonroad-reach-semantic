@@ -54,7 +54,7 @@ reachable_set:
 traffic_rules:
   activated_rules:
     # rules to be concretized
-#    - NoBackwardDrivingRule
+    - NoBackwardDrivingRule
     - NoOppositeDrivingRule
     - LineMarkingRule
     - TrafficLightRule
