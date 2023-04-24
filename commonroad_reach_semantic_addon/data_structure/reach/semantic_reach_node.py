@@ -6,6 +6,7 @@ from typing import Set
 from commonroad_reach.data_structure.reach.reach_node import ReachNode
 from commonroad_reach.pycrreach import ReachPolygon
 
+from commonroad_reach_semantic_addon.data_structure.proposition import Proposition as Prop
 from commonroad_reach_semantic_addon.data_structure.proposition_holder import PropositionHolder
 
 
@@ -28,6 +29,20 @@ class SemanticReachNode(ReachNode):
     @property
     def set_propositions_without_temporary(self) -> Set[str]:
         return self.proposition_holder.propositions(include_temporary=False)
+
+    def collides_with_vehicle(self) -> bool:
+        """
+        Check if the reachable set collides with a vehicle based on the assigned propositions.
+        :return: True if and only if the reachable set collides with another vehicle
+        """
+        for proposition in self.set_propositions:
+            # check if it is aligned with and besides a vehicle
+            if Prop.aligned_with() in proposition:
+                id_vehicle = int(proposition.split("_")[1][1:])
+
+                if Prop.beside(id_vehicle) in self.set_propositions:
+                    return True
+        return False
 
     def clone(self) -> SemanticReachNode:
         """

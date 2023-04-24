@@ -1,27 +1,26 @@
-import warnings
 import logging
-from typing import List, Dict, Union
+import warnings
 from collections import defaultdict
+from typing import List, Dict, Union
 
+import commonroad_reach.utility.logger as util_logger
 import numpy as np
 from commonroad.scenario.lanelet import LaneletNetwork, LaneletType
 from commonroad.scenario.obstacle import DynamicObstacle
 from commonroad.scenario.traffic_sign import TrafficLightDirection, TrafficLightState
 
-# from commonroad_reach_semantic_addon import pycrreachs
-from commonroad_reach_semantic_addon.data_structure.semantic_configuration import SemanticConfiguration
-from commonroad_reach_semantic_addon.data_structure.reach.semantic_reach_node import SemanticReachNode
-from commonroad_reach_semantic_addon.data_structure.road_network import RoadNetwork
-# from commonroad_reach_semantic_addon.data_structure.sonia_interface import SONIAInterface
-from commonroad_reach_semantic_addon.data_structure.vehicle import Vehicle
+import commonroad_reach_semantic_addon.utility.reach_operation as reach_operation
+import commonroad_reach_semantic_addon.utility.region as util_region
 from commonroad_reach_semantic_addon.data_structure.position_interval import PositionInterval
 from commonroad_reach_semantic_addon.data_structure.proposition import Proposition as P
 from commonroad_reach_semantic_addon.data_structure.proposition import PropositionGroup as PG
+from commonroad_reach_semantic_addon.data_structure.reach.semantic_reach_node import SemanticReachNode
 from commonroad_reach_semantic_addon.data_structure.region import Region
-
-import commonroad_reach_semantic_addon.utility.reach_operation as reach_operation
-import commonroad_reach_semantic_addon.utility.region as util_region
-import commonroad_reach.utility.logger as util_logger
+from commonroad_reach_semantic_addon.data_structure.road_network import RoadNetwork
+# from commonroad_reach_semantic_addon import pycrreachs
+from commonroad_reach_semantic_addon.data_structure.semantic_configuration import SemanticConfiguration
+# from commonroad_reach_semantic_addon.data_structure.sonia_interface import SONIAInterface
+from commonroad_reach_semantic_addon.data_structure.vehicle import Vehicle
 
 logger = logging.getLogger(__name__)
 
@@ -449,8 +448,9 @@ class SemanticModel:
             return None
 
         for region in self.list_regions:
+            # TODO: get rid of eval
             if region.set_ids_lanelets.intersection(
-                    eval(f"self.config.planning.incoming_element_route.successors_{direction_outgoing}")):
+                    eval(f"self.config.semantic_model.incoming_element_route.successors_{direction_outgoing}")):
                 region.proposition_holder.add_proposition(eval(f"P.in_{direction_outgoing}_successor()"), PG.POSITION)
 
     def _label_region_vehicle_intersection_incoming_propositions(self):
@@ -731,6 +731,44 @@ class SemanticModel:
 
         return list_propagated_sets
 
+    def split_wrt_regions(self, step: int, reachable_set: SemanticReachNode) -> List[SemanticReachNode]:
+        """
+        Splits a reachable set w.r.t lanelet regions.
+
+        Steps:
+            1. Intersect reachable set in the position domain with lanelet regions
+            2. Over-approximate and restore to axis-aligned rectangles
+        """
+        list_sets_split = []
+        # iterate through regions intersecting with the reachable set
+        for region in self.list_regions:
+            # first compute intersection with bounding box
+            # --> exact intersection is more expensive, so we only want to compute it if necessary?
+            # there is no possibility of intersection
+            if not region.intersects(reachable_set.position_rectangle.bounds, coordinate_system="CVLN"):
+                continue
+
+            # there is a possibility of intersection
+            # TODO: Find out, why there was a try-except for Exception here
+            polygon_intersection = region.polygon_cvln.intersection(reachable_set.position_rectangle)
+
+            # empty intersection
+            if polygon_intersection.is_empty:
+                continue
+
+            # over-approximate by restoring the intersected polygon to axis-aligned rectangle
+            bounds_polygon_intersection = polygon_intersection.bounds
+
+            # clone the propagated set and split in the position domain, update the propositions
+            # TODO: Find out, why there was a try-except for AttributeError here
+            reachable_set_new = reachable_set.clone()
+            reachable_set_new.intersect_in_position_domain(*bounds_polygon_intersection)
+            reachable_set_new = self.update_propositions_with_region(reachable_set_new, region, step)
+
+            list_sets_split.append(reachable_set_new)
+
+        return list_sets_split
+
     def update_propositions_with_region(self, propagated_set: Union[SemanticReachNode],
                                         region: Union[Region], step: int):
         """
@@ -763,6 +801,42 @@ class SemanticModel:
 
         return propagated_set
 
+    def split_wrt_position_intervals(self, step: int,
+                                      reachable_set: SemanticReachNode) -> List[SemanticReachNode]:
+        """
+        Splits the reachable set w.r.t position intervals.
+        """
+
+        list_intervals_lon: List[PositionInterval] = self.dict_step_to_position_intervals[step]["lon"]
+        list_intervals_lat: List[PositionInterval] = self.dict_step_to_position_intervals[step]["lat"]
+
+        list_reachable_sets_split_lon = []
+        for interval_lon in list_intervals_lon:
+            # propagated set intersects with the longitudinal interval
+            if interval_lon.intersects(reachable_set.p_lon_min, reachable_set.p_lon_max):
+                propagated_set_split = reach_operation.split_reach_node_to_interval(reachable_set, interval_lon, "lon")
+                if propagated_set_split:
+                    list_reachable_sets_split_lon.append(propagated_set_split)
+
+            # early termination, since the rest of intervals will definitely not intersect with the base set
+            elif interval_lon.p_min > reachable_set.polygon_lon.p_max:
+                break
+
+        list_reachable_sets_split = []
+        for propagated in list_reachable_sets_split_lon:
+            for interval_lat in list_intervals_lat:
+                # propagated set intersects with the lateral interval
+                if interval_lat.intersects(propagated.p_lat_min, propagated.p_lat_max):
+                    propagated_set_split = reach_operation.split_reach_node_to_interval(propagated, interval_lat, "lat")
+                    if propagated_set_split:
+                        list_reachable_sets_split.append(propagated_set_split)
+
+                # early termination, since the rest of intervals will definitely not intersect with the base set
+                elif interval_lat.p_min > propagated.polygon_lat.p_max:
+                    break
+
+        return list_reachable_sets_split
+
     @staticmethod
     def obtain_lanelet_transition_propositions(propagated_set: Union[SemanticReachNode]):
         """
@@ -772,7 +846,7 @@ class SemanticModel:
         # retrieve lanelet propositions from the source
         if isinstance(propagated_set, SemanticReachNode):
             set_propositions_position_source = \
-                propagated_set.source_propagation[0].proposition_holder.propositions_in_group(group=PG.POSITION)
+                propagated_set.source_propagation.proposition_holder.propositions_in_group(group=PG.POSITION)
 
         else:
             set_propositions_position_source = \
@@ -788,30 +862,6 @@ class SemanticModel:
                     set_propositions.add(P.lanelet_transition(id_lanelet_source, id_lanelet_base_set))
 
         return set_propositions
-
-    @staticmethod
-    def discard_colliding_nodes(list_propagated_set: List[SemanticReachNode]) -> List[SemanticReachNode]:
-        """
-        Returns a list of propagated sets that do not collide with vehicles.
-        """
-        list_nodes_keep = []
-
-        for propagated_set in list_propagated_set:
-            colliding = False
-            set_propositions = propagated_set.set_propositions
-            for proposition in set_propositions:
-                # check if it is aligned with and besides a vehicle
-                if P.aligned_with() in proposition:
-                    id_vehicle = int(proposition.split("_")[1][1:])
-
-                    if P.beside(id_vehicle) in set_propositions:
-                        colliding = True
-                        break
-
-            if not colliding:
-                list_nodes_keep.append(propagated_set)
-
-        return list_nodes_keep
 
     @staticmethod
     def call_python_dummy(step, node):

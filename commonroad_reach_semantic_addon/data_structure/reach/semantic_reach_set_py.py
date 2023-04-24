@@ -1,17 +1,21 @@
+import itertools
 import logging
+from collections import defaultdict
 from typing import List
 
 import commonroad_reach.utility.logger as util_logger
 from commonroad_reach.data_structure.collision_checker import CollisionChecker
-from commonroad_reach.data_structure.configuration import Configuration
 from commonroad_reach.data_structure.reach.reach_polygon import ReachPolygon
 from commonroad_reach.data_structure.reach.reach_set import ReachableSet
 from commonroad_reach.utility import reach_operation
 
+import commonroad_reach_semantic_addon.utility.reach_operation as semantic_reach_operation
 from commonroad_reach_semantic_addon.data_structure.proposition import PropositionGroup as PropGroup
 from commonroad_reach_semantic_addon.data_structure.proposition_holder import PropositionHolder
 from commonroad_reach_semantic_addon.data_structure.reach.semantic_reach_node import SemanticReachNode
+from commonroad_reach_semantic_addon.data_structure.semantic_configuration import SemanticConfiguration
 from commonroad_reach_semantic_addon.data_structure.semantic_model import SemanticModel
+from commonroad_reach_semantic_addon.data_structure.traffic_rule_interface import TrafficRuleInterface
 
 logger = logging.getLogger(__name__)
 
@@ -21,12 +25,20 @@ class PySemanticReachableSet(ReachableSet):
     Reachable set computation considering temporal constraints with Python backend.
     """
 
-    def __init__(self, config: Configuration, semantic_model: SemanticModel):
+    config: SemanticConfiguration
+
+    def __init__(self, config: SemanticConfiguration, semantic_model: SemanticModel,
+                 rule_interface: TrafficRuleInterface):
         super().__init__(config)
         self.semantic_model = semantic_model
+        self.rule_interface = rule_interface
         self.dict_step_to_reachable_set[self.step_start] = self._construct_initial_reachable_set()
         self.dict_step_to_drivable_area[self.step_start] = reach_operation.project_propagated_sets_to_position_domain(
             self.dict_step_to_reachable_set[self.step_start])
+
+        self.dict_step_to_propositions_to_drivable_area = dict()
+        self.dict_step_to_propositions_to_propagated_set = dict()
+
         self._label_initial_state()
         self._initialize_zero_state_polygons()
         self.collision_checker = CollisionChecker(self.config)
@@ -43,6 +55,9 @@ class PySemanticReachableSet(ReachableSet):
         return [SemanticReachNode(polygon_lon, polygon_lat, self.config.planning.step_start)]
 
     def _label_initial_state(self):
+        """
+        Assigns proposition labels to initial reachable sets and drivable areas.
+        """
         for drivable_area, reachable_set in zip(self.dict_step_to_drivable_area[self.step_start],
                                                 self.dict_step_to_reachable_set[self.step_start]):
             propositions = self._obtain_propositions_for_rectangle(drivable_area, self.step_start)
@@ -123,6 +138,7 @@ class PySemanticReachableSet(ReachableSet):
 
         Steps:
             1. Propagate each node of the reachable set from the previous step, resulting in propagated base sets.
+            2. Split and label propagated sets according to relevant atomic propositions.
             2. Project base sets onto the position domain to obtain position rectangles.
             3. Merge, repartition and check collisions for these rectangles. The order depends on the configuration.
         """
@@ -133,54 +149,44 @@ class PySemanticReachableSet(ReachableSet):
             self.dict_step_to_propagated_set[step] = list()
             return None
 
-        list_propagated_set = self._propagate_reachable_set(reachable_set_previous)
+        propagated_sets = self._propagate_reachable_set(reachable_set_previous)
 
-        # TODO: splitting and labeling
+        # split w.r.t regions and position intervals
+        propagated_sets = itertools.chain.from_iterable(
+            self.semantic_model.split_wrt_regions(step, propagated_set) for propagated_set in propagated_sets)
+        propagated_sets = itertools.chain.from_iterable(
+            self.semantic_model.split_wrt_position_intervals(step, propagated_set) for propagated_set in
+            propagated_sets)
 
-        list_rectangles_projected = reach_operation.project_propagated_sets_to_position_domain(list_propagated_set)
+        # discard the ones colliding with vehicles
+        propagated_sets = (propagated_set for propagated_set in propagated_sets if
+                           not propagated_set.collides_with_vehicle())
 
-        mode_repartition = self.config.reachable_set.mode_repartition
-        size_grid = self.config.reachable_set.size_grid
-        size_grid_2nd = self.config.reachable_set.size_grid_2nd
-        radius_terminal_split = self.config.reachable_set.radius_terminal_split
+        # examine whether the propagated sets satisfy TPL specifications
+        propagated_sets = self.rule_interface.examine_tpl_specifications(step, list(propagated_sets))
 
-        # TODO: this should be the only spot where the propositions of the reachable sets matter
-        # TODO: we must not merge sets with different propositions
-        # repartition, then collision check
-        if mode_repartition == 1:
-            list_rectangles_repartitioned = \
-                reach_operation.create_repartitioned_rectangles(list_rectangles_projected, size_grid)
-            drivable_area = reach_operation.check_collision_and_split_rectangles(self.collision_checker, step,
-                                                                                 list_rectangles_repartitioned,
-                                                                                 radius_terminal_split)
+        # update traffic propositions of the propagated sets
+        propagated_sets = self.semantic_model.label_traffic_propositions(step, propagated_sets)
 
-        # collision check, then repartition
-        elif mode_repartition == 2:
-            list_rectangles_collision_free = \
-                reach_operation.check_collision_and_split_rectangles(self.collision_checker, step,
-                                                                     list_rectangles_projected,
-                                                                     radius_terminal_split)
-            drivable_area = reach_operation.create_repartitioned_rectangles(list_rectangles_collision_free,
-                                                                            size_grid)
+        # partition propagated sets by their propositions
+        dict_propositions_to_propagated_set = defaultdict(list)
+        for propagated_set in propagated_sets:
+            dict_propositions_to_propagated_set[propagated_set.proposition_holder].append(propagated_set)
 
-        # repartition, collision check, then repartition again
-        elif mode_repartition == 3:
-            list_rectangles_repartitioned = reach_operation.create_repartitioned_rectangles(list_rectangles_projected,
-                                                                                            size_grid)
+        # merge, collision check, and repartition propagated sets partitioned by their propositions,
+        # because we must not merge sets with different propositions
+        dict_propositions_to_drivable_area = dict()
+        for propositions, propagated_sets_per_proposition in dict_propositions_to_propagated_set.items():
+            list_rectangles_projected = reach_operation.project_propagated_sets_to_position_domain(
+                propagated_sets_per_proposition)
+            dict_propositions_to_drivable_area[propositions] = self._collision_check_and_repartition(
+                list_rectangles_projected, step)
 
-            list_rectangles_collision_free = \
-                reach_operation.check_collision_and_split_rectangles(self.collision_checker, step,
-                                                                     list_rectangles_repartitioned,
-                                                                     radius_terminal_split)
-
-            drivable_area = reach_operation.create_repartitioned_rectangles(list_rectangles_collision_free,
-                                                                            size_grid_2nd)
-
-        else:
-            raise Exception("Invalid mode for repartition.")
-
-        self.dict_step_to_drivable_area[step] = drivable_area
-        self.dict_step_to_propagated_set[step] = list_propagated_set
+        self.dict_step_to_drivable_area[step] = list(
+            itertools.chain.from_iterable(dict_propositions_to_drivable_area.values()))
+        self.dict_step_to_propositions_to_drivable_area[step] = dict_propositions_to_drivable_area
+        self.dict_step_to_propositions_to_propagated_set[step] = dict_propositions_to_propagated_set
+        self.dict_step_to_propagated_set[step] = propagated_sets
 
     def _propagate_reachable_set(self, list_nodes: List[SemanticReachNode]) -> List[SemanticReachNode]:
         """
@@ -212,6 +218,47 @@ class PySemanticReachableSet(ReachableSet):
 
         return list_base_sets_propagated
 
+    def _collision_check_and_repartition(self, rectangles: List[ReachPolygon], step: int) -> List[ReachPolygon]:
+        mode_repartition = self.config.reachable_set.mode_repartition
+        size_grid = self.config.reachable_set.size_grid
+        size_grid_2nd = self.config.reachable_set.size_grid_2nd
+        radius_terminal_split = self.config.reachable_set.radius_terminal_split
+
+        # repartition, then collision check
+        if mode_repartition == 1:
+            list_rectangles_repartitioned = \
+                reach_operation.create_repartitioned_rectangles(rectangles, size_grid)
+            rectangles = reach_operation.check_collision_and_split_rectangles(self.collision_checker, step,
+                                                                              list_rectangles_repartitioned,
+                                                                              radius_terminal_split)
+
+        # collision check, then repartition
+        elif mode_repartition == 2:
+            list_rectangles_collision_free = \
+                reach_operation.check_collision_and_split_rectangles(self.collision_checker, step,
+                                                                     rectangles,
+                                                                     radius_terminal_split)
+            rectangles = reach_operation.create_repartitioned_rectangles(list_rectangles_collision_free,
+                                                                         size_grid)
+
+        # repartition, collision check, then repartition again
+        elif mode_repartition == 3:
+            list_rectangles_repartitioned = reach_operation.create_repartitioned_rectangles(rectangles,
+                                                                                            size_grid)
+
+            list_rectangles_collision_free = \
+                reach_operation.check_collision_and_split_rectangles(self.collision_checker, step,
+                                                                     list_rectangles_repartitioned,
+                                                                     radius_terminal_split)
+
+            rectangles = reach_operation.create_repartitioned_rectangles(list_rectangles_collision_free,
+                                                                         size_grid_2nd)
+
+        else:
+            raise Exception("Invalid mode for repartition.")
+
+        return rectangles
+
     def _compute_reachable_set_at_step(self, step):
         """
         Computes reachable set for the given step.
@@ -220,18 +267,32 @@ class PySemanticReachableSet(ReachableSet):
             1. construct reach nodes from drivable area and the propagated sets.
             2. update parent-child relationship of the nodes.
         """
-        propagated_set = self.dict_step_to_propagated_set[step]
-        drivable_area = self.dict_step_to_drivable_area[step]
+        dict_propositions_to_propagated_set = self.dict_step_to_propositions_to_propagated_set[step]
+        dict_propositions_to_drivable_area = self.dict_step_to_propositions_to_drivable_area[step]
 
-        if not drivable_area:
+        if not dict_propositions_to_drivable_area:
             self.dict_step_to_reachable_set[step] = list()
             return None
 
-        list_nodes = reach_operation.construct_reach_nodes(drivable_area, propagated_set)
+        # discard drivable area with small area if there are more than one node (this is subject to change)
+        num_drivable_area = sum(
+            [len(list_drivable) for list_drivable in dict_propositions_to_drivable_area.values()])
+        discard_small_node = (num_drivable_area > 1)
 
-        reachable_set = reach_operation.connect_children_to_parents(step, list_nodes)
+        dict_propositions_to_reachable_set = dict()
+        for proposition_holder, drivable_area in dict_propositions_to_drivable_area.items():
+            propagated_set = dict_propositions_to_propagated_set[proposition_holder]
 
-        self.dict_step_to_reachable_set[step] = reachable_set
+            list_nodes = semantic_reach_operation.construct_reach_nodes(drivable_area, propagated_set)
+            if discard_small_node:
+                list_nodes = semantic_reach_operation.discard_nodes_with_short_edge(list_nodes,
+                                                                                    self.config.reachable_set.length_edge_node_min)
+            if list_nodes:
+                reachable_set = reach_operation.connect_children_to_parents(step, list_nodes)
+                dict_propositions_to_reachable_set[proposition_holder] = reachable_set
+
+        self.dict_step_to_reachable_set[step] = list(
+            itertools.chain.from_iterable(dict_propositions_to_reachable_set.values()))
 
     def _reset_reachable_set_at_step(self, step: int, reachable_set: List[SemanticReachNode]):
         reachable_set_cur: List[SemanticReachNode] = self.dict_step_to_reachable_set[step]
