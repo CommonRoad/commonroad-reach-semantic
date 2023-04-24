@@ -5,8 +5,8 @@ from typing import Set, List
 import spot
 import numpy as np
 from commonroad.scenario.traffic_sign import TrafficSignIDZamunda
-from commonroad_reach_semantic_addon.data_structure.configuration import Configuration
-from commonroad_reach_semantic_addon.data_structure.reach.reach_node import ReachNode
+from commonroad_reach_semantic_addon.data_structure.semantic_configuration import SemanticConfiguration
+from commonroad_reach_semantic_addon.data_structure.reach.semantic_reach_node import SemanticReachNode
 from commonroad_reach_semantic_addon.data_structure.semantic_model import SemanticModel
 from commonroad_reach_semantic_addon.data_structure.traffic_rule import NoBackwardDrivingRule, NoOppositeDrivingRule, \
     LineMarkingRule, \
@@ -25,7 +25,7 @@ class TrafficRuleInterface:
     dict_traffic_rule_to_object = dict()
     dict_traffic_sign_to_priorities = dict()
 
-    def __init__(self, config: Configuration):
+    def __init__(self, config: SemanticConfiguration):
         if not self.initialized:
             self._initialize_dictionaries()
             self.initialized = True
@@ -203,7 +203,7 @@ class TrafficRuleInterface:
 
         logger.info("Mandatory and forbidden propositions extracted.")
 
-    def examine_tpl_specifications(self, step: int, list_propagated_sets: List[ReachNode]) -> List[ReachNode]:
+    def examine_tpl_specifications(self, step: int, list_propagated_sets: List[SemanticReachNode]) -> List[SemanticReachNode]:
         """
         Examines whether the given propagated sets satisfy the TPL specifications.
         """
