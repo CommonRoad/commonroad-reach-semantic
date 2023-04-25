@@ -5,13 +5,14 @@ from collections import defaultdict
 from typing import Set, List
 
 import commonroad_reach.utility.logger as util_logger
-import commonroad_reach_semantic_addon.utility.spot as util_spot
 import networkx as nx
 import numpy as np
+from commonroad_reach.data_structure.reach.reach_interface import ReachableSetInterface
+
+import commonroad_reach_semantic_addon.utility.spot as util_spot
 from commonroad_reach_semantic_addon.data_structure.automaton_graph import AutomatonNode
-from commonroad_reach_semantic_addon.data_structure.configuration import Configuration
 from commonroad_reach_semantic_addon.data_structure.kripke import KripkeNode
-from commonroad_reach_semantic_addon.data_structure.reach.reach_interface import ReachableSetInterface
+from commonroad_reach_semantic_addon.data_structure.semantic_configuration import SemanticConfiguration
 from commonroad_reach_semantic_addon.data_structure.spot_interface import SpotInterface
 
 logger = logging.getLogger(__name__)
@@ -185,7 +186,7 @@ class DrivingCorridorExtractor:
     cls_w_deviation: float = 1.5
 
     def __init__(self, spot_interface: SpotInterface):
-        self.config: Configuration = spot_interface.config
+        self.config: SemanticConfiguration = spot_interface.config
         self.spot_interface: SpotInterface = spot_interface
         self.reach_interface: ReachableSetInterface = spot_interface.reach_interface
         self.kripke_structure = spot_interface.kripke_structure

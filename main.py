@@ -2,6 +2,7 @@ import commonroad_reach.utility.logger as util_logger
 from commonroad_reach.data_structure.reach.reach_interface import ReachableSetInterface
 from commonroad_reach.utility import visualization as util_visual
 
+from commonroad_reach_semantic_addon.data_structure.driving_corridor_extractor import DrivingCorridorExtractor
 from commonroad_reach_semantic_addon.data_structure.reach.semantic_reach_set_py import PySemanticReachableSet
 from commonroad_reach_semantic_addon.data_structure.semantic_configuration_builder import SemanticConfigurationBuilder
 from commonroad_reach_semantic_addon.data_structure.semantic_model import SemanticModel
@@ -42,6 +43,11 @@ def main():
     spot_interface.translate_ltl_formulas()
     spot_interface.translate_reachability_graph()
     spot_interface.check()
+
+    # ==== instantiate a driving corridor extractor
+    dc_extractor = DrivingCorridorExtractor(spot_interface)
+    dc_extractor.extract_corridors(search=True)
+    corridor_optimal = dc_extractor.determine_optimal_corridor()
 
     # ==== plot computation results
     # util_visual.plot_collision_checker(reach_interface)
