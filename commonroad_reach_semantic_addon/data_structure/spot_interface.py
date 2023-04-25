@@ -1,13 +1,14 @@
-import time
 import logging
+import time
 from typing import List, Optional
 
-import spot
-from commonroad_reach_semantic_addon.data_structure.reach.reach_interface import ReachableSetInterface
-from commonroad_reach_semantic_addon.data_structure.traffic_rule_interface import TrafficRuleInterface
-from commonroad_reach_semantic_addon.data_structure.kripke import KripkeStructure
-from commonroad_reach_semantic_addon.data_structure.automaton_graph import AutomatonGraph
 import commonroad_reach.utility.logger as util_logger
+import spot
+from commonroad_reach.data_structure.reach.reach_interface import ReachableSetInterface
+
+from commonroad_reach_semantic_addon.data_structure.automaton_graph import AutomatonGraph
+from commonroad_reach_semantic_addon.data_structure.kripke import KripkeStructure
+from commonroad_reach_semantic_addon.data_structure.traffic_rule_interface import TrafficRuleInterface
 
 logger = logging.getLogger(__name__)
 

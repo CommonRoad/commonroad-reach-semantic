@@ -1,6 +1,8 @@
 import logging
 from typing import List, Optional
 
+import commonroad_reach.utility.reach_operation as regular_reach_operation
+import networkx as nx
 from commonroad.scenario.lanelet import Lanelet
 from commonroad_reach.data_structure.reach.reach_node import ReachNode
 from commonroad_reach.data_structure.reach.reach_polygon import ReachPolygon
@@ -146,3 +148,32 @@ def discard_nodes_with_short_edge(list_nodes: List[ReachNode], length: float):
         node for node in list_nodes
         if node.p_lon_max - node.p_lon_min >= length and node.p_lat_max - node.p_lat_min >= length
     ]
+
+
+# scaling factor to apply when determining whether two reachsets are connected
+# this helps to avoid numerical errors
+DIGITS = 2
+
+
+def determine_connected_components(list_nodes_reach):
+    """
+    Determines and returns the connected reachable sets in the position domain.
+    """
+    dict_adjacency = regular_reach_operation.connected_reachset_py(list_nodes_reach, DIGITS)
+
+    # adjacency list: list with tuples, e.g., (0, 1) represents that node 0 and node 1 are connected
+    set_tuples_adjacent = set()
+    for list_tuples_adjacent in dict_adjacency.values():
+        set_tuples_adjacent.update(set(list_tuples_adjacent))
+
+    list_lists_nodes_connected = list()
+    # create graph with nodes = reach nodes and edges = adjacency status
+    graph = nx.Graph()
+    graph.add_nodes_from(list(range(len(list_nodes_reach))))
+    graph.add_edges_from(set_tuples_adjacent)
+
+    for set_indices_nodes_reach_connected in nx.connected_components(graph):
+        list_nodes_reach_connected = [list_nodes_reach[idx] for idx in set_indices_nodes_reach_connected]
+        list_lists_nodes_connected.append(list_nodes_reach_connected)
+
+    return list_lists_nodes_connected
