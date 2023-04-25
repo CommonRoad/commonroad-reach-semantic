@@ -3,7 +3,7 @@ from collections import defaultdict
 from typing import Union, Dict, List, Set, Optional
 
 import numpy as np
-# from commonroad_reach_semantic_addon import pycrreachs
+# from commonroad_reach_semantic import pycrreachs
 from commonroad.geometry.shape import Shape, Rectangle
 from commonroad.scenario.intersection import IntersectionIncomingElement
 from commonroad.scenario.lanelet import LaneletNetwork
@@ -13,11 +13,11 @@ from commonroad.scenario.trajectory import State
 from commonroad_dc.pycrccosy import CurvilinearCoordinateSystem
 from commonroad_route_planner.route import Route
 
-from commonroad_reach_semantic_addon.data_structure.semantic_configuration import SemanticConfiguration
-from commonroad_reach_semantic_addon.data_structure.reach.semantic_reach_node import SemanticReachNode
-from commonroad_reach_semantic_addon.data_structure.road_network import Lane, RoadNetwork
+from commonroad_reach_semantic.data_structure.semantic_configuration import SemanticConfiguration
+from commonroad_reach_semantic.data_structure.reach.semantic_reach_node import SemanticReachNode
+from commonroad_reach_semantic.data_structure.road_network import Lane, RoadNetwork
 import commonroad_reach.utility.coordinate_system as util_cosy
-import commonroad_reach_semantic_addon.utility.vehicle as util_vehicle
+import commonroad_reach_semantic.utility.vehicle as util_vehicle
 
 
 class StateLongitudinal:

@@ -4,8 +4,8 @@ from typing import List
 from commonroad.scenario.lanelet import LineMarking
 from commonroad.scenario.traffic_sign import TrafficLightState, TrafficLightDirection
 
-from commonroad_reach_semantic_addon.data_structure.proposition import Proposition as P
-from commonroad_reach_semantic_addon.data_structure.semantic_model import SemanticModel
+from commonroad_reach_semantic.data_structure.proposition import Proposition as P
+from commonroad_reach_semantic.data_structure.semantic_model import SemanticModel
 
 
 class TrafficRule(metaclass=ABCMeta):

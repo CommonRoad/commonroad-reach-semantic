@@ -9,11 +9,11 @@ import networkx as nx
 import numpy as np
 from commonroad_reach.data_structure.reach.reach_interface import ReachableSetInterface
 
-import commonroad_reach_semantic_addon.utility.spot as util_spot
-from commonroad_reach_semantic_addon.data_structure.automaton_graph import AutomatonNode
-from commonroad_reach_semantic_addon.data_structure.kripke import KripkeNode
-from commonroad_reach_semantic_addon.data_structure.semantic_configuration import SemanticConfiguration
-from commonroad_reach_semantic_addon.data_structure.spot_interface import SpotInterface
+import commonroad_reach_semantic.utility.spot as util_spot
+from commonroad_reach_semantic.data_structure.automaton_graph import AutomatonNode
+from commonroad_reach_semantic.data_structure.kripke import KripkeNode
+from commonroad_reach_semantic.data_structure.semantic_configuration import SemanticConfiguration
+from commonroad_reach_semantic.data_structure.spot_interface import SpotInterface
 
 logger = logging.getLogger(__name__)
 

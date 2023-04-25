@@ -9,9 +9,9 @@ from commonroad_reach.data_structure.reach.reach_polygon import ReachPolygon
 from commonroad_reach.utility import geometry as util_geometry
 from commonroad_reach.utility import logger as util_logger
 
-from commonroad_reach_semantic_addon.data_structure.position_interval import PositionInterval
-from commonroad_reach_semantic_addon.data_structure.proposition import PropositionGroup as PropGroup
-from commonroad_reach_semantic_addon.data_structure.reach.semantic_reach_node import SemanticReachNode
+from commonroad_reach_semantic.data_structure.position_interval import PositionInterval
+from commonroad_reach_semantic.data_structure.proposition import PropositionGroup as PropGroup
+from commonroad_reach_semantic.data_structure.reach.semantic_reach_node import SemanticReachNode
 
 logger = logging.getLogger(__name__)
 

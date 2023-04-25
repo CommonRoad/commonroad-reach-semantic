@@ -7,14 +7,14 @@ from typing import List, Set, Optional, Dict, Union
 import buddy
 import numpy as np
 import spot
-# from commonroad_reach_semantic_addon import pycrreachs
+# from commonroad_reach_semantic import pycrreachs
 from commonroad_reach.data_structure.reach.reach_interface import ReachableSetInterface
 from commonroad_reach.utility import logger as util_logger
 
-from commonroad_reach_semantic_addon.data_structure.proposition_holder import PropositionHolder
-from commonroad_reach_semantic_addon.data_structure.reach.semantic_reach_node import SemanticReachNode
-from commonroad_reach_semantic_addon.utility import reach_operation as util_reach
-from commonroad_reach_semantic_addon.utility import spot as util_spot
+from commonroad_reach_semantic.data_structure.proposition_holder import PropositionHolder
+from commonroad_reach_semantic.data_structure.reach.semantic_reach_node import SemanticReachNode
+from commonroad_reach_semantic.utility import reach_operation as util_reach
+from commonroad_reach_semantic.utility import spot as util_spot
 
 logger = logging.getLogger(__name__)
 

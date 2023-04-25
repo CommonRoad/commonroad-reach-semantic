@@ -10,7 +10,7 @@ from commonroad_dc.pycrccosy import CurvilinearCoordinateSystem
 from commonroad_reach.data_structure.configuration import Configuration, ConfigurationBase, ReachableSetConfiguration
 from omegaconf import ListConfig, DictConfig
 
-import commonroad_reach_semantic_addon.utility.vehicle as util_vehicle
+import commonroad_reach_semantic.utility.vehicle as util_vehicle
 
 
 class SemanticConfiguration(Configuration):

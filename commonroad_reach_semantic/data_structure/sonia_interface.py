@@ -7,7 +7,7 @@ from commonroad.geometry.shape import Rectangle, Polygon, ShapeGroup
 from commonroad.prediction.prediction import Occupancy, SetBasedPrediction
 from commonroad.scenario.obstacle import DynamicObstacle, ObstacleType
 from commonroad.scenario.trajectory import State
-from commonroad_reach_semantic_addon.data_structure.configuration import Configuration
+from commonroad_reach_semantic.data_structure.configuration import Configuration
 
 
 class SONIAInterface:

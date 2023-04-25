@@ -3,7 +3,7 @@ import os
 from commonroad_reach.data_structure.configuration_builder import ConfigurationBuilder
 from omegaconf import OmegaConf
 
-from commonroad_reach_semantic_addon.data_structure.semantic_configuration import SemanticConfiguration
+from commonroad_reach_semantic.data_structure.semantic_configuration import SemanticConfiguration
 
 
 class SemanticConfigurationBuilder(ConfigurationBuilder):

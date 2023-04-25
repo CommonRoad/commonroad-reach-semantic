@@ -5,7 +5,7 @@ from collections import defaultdict
 from functools import lru_cache
 from typing import Set, Dict
 
-from commonroad_reach_semantic_addon.data_structure.proposition import PropositionGroup as PG
+from commonroad_reach_semantic.data_structure.proposition import PropositionGroup as PG
 
 
 class PropositionHolder:

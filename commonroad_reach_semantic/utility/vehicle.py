@@ -5,7 +5,7 @@ from commonroad.scenario.lanelet import Lanelet, LaneletType, LaneletNetwork
 from commonroad.scenario.obstacle import StaticObstacle, DynamicObstacle
 
 from commonroad_reach.data_structure.configuration import Configuration
-from commonroad_reach_semantic_addon.data_structure.road_network import RoadNetwork, Lane
+from commonroad_reach_semantic.data_structure.road_network import RoadNetwork, Lane
 
 
 def compute_acceleration(vel_pre: float, vel_cur: float, dt: float):

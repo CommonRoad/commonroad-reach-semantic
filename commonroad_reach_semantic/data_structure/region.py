@@ -9,13 +9,13 @@ from commonroad.scenario.traffic_sign import TrafficSignIDZamunda
 from commonroad_dc.pycrccosy import CurvilinearCoordinateSystem
 from commonroad_reach.data_structure.reach.reach_polygon import ReachPolygon
 
-from commonroad_reach_semantic_addon.data_structure.semantic_configuration import SemanticConfiguration
-from commonroad_reach_semantic_addon.data_structure.proposition_holder import MultiStepPropositionHolder
-from commonroad_reach_semantic_addon.data_structure.road_network import RoadNetwork
-from commonroad_reach_semantic_addon.data_structure.vehicle import Vehicle
-from commonroad_reach_semantic_addon.data_structure.proposition import Proposition as P
-from commonroad_reach_semantic_addon.data_structure.proposition import PropositionGroup as PG
-import commonroad_reach_semantic_addon.utility.geometry as util_geometry
+from commonroad_reach_semantic.data_structure.semantic_configuration import SemanticConfiguration
+from commonroad_reach_semantic.data_structure.proposition_holder import MultiStepPropositionHolder
+from commonroad_reach_semantic.data_structure.road_network import RoadNetwork
+from commonroad_reach_semantic.data_structure.vehicle import Vehicle
+from commonroad_reach_semantic.data_structure.proposition import Proposition as P
+from commonroad_reach_semantic.data_structure.proposition import PropositionGroup as PG
+import commonroad_reach_semantic.utility.geometry as util_geometry
 
 
 class Region:

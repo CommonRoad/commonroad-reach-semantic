@@ -7,8 +7,8 @@ from shapely.geometry import Polygon, MultiPolygon
 from commonroad_reach.data_structure.reach.reach_polygon import ReachPolygon
 import commonroad_reach.utility.general as util_general
 
-from commonroad_reach_semantic_addon.data_structure.region import Region
-import commonroad_reach_semantic_addon.utility.geometry as util_geometry
+from commonroad_reach_semantic.data_structure.region import Region
+import commonroad_reach_semantic.utility.geometry as util_geometry
 
 
 def detect_intersecting_lanelets(set_lanelets_related):
