@@ -128,8 +128,6 @@ def construct_reach_node(rectangle_drivable_area: ReachPolygon,
     if list_vertices_polygon_lon_new and list_vertices_polygon_lat_new:
         polygon_lon_new = ReachPolygon.from_polygon(ReachPolygon(list_vertices_polygon_lon_new).convex_hull)
         polygon_lat_new = ReachPolygon.from_polygon(ReachPolygon(list_vertices_polygon_lat_new).convex_hull)
-        # all identified adjacencies should have the same propositions,
-        # as we did not merge drivable areas with different propositions
         proposition_holder = list_propagated_set[0].proposition_holder.clone()
         reach_node = SemanticReachNode(polygon_lon_new, polygon_lat_new, proposition_holder=proposition_holder)
         reach_node.source_propagation = list_nodes_parent

@@ -283,6 +283,8 @@ class PySemanticReachableSet(ReachableSet):
             [len(list_drivable) for list_drivable in dict_propositions_to_drivable_area.values()])
         discard_small_node = (num_drivable_area > 1)
 
+        # work with the reachable sets partitioned by propositions here, because otherwise it could happen
+        # that we merge two reachable sets with different propositions when they intersect with the same drivable area
         dict_propositions_to_reachable_set = dict()
         for proposition_holder, drivable_area in dict_propositions_to_drivable_area.items():
             propagated_set = dict_propositions_to_propagated_set[proposition_holder]
