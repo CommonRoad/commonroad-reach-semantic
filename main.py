@@ -1,6 +1,5 @@
 import commonroad_reach.utility.logger as util_logger
 from commonroad_reach.data_structure.reach.reach_interface import ReachableSetInterface
-from commonroad_reach.utility import visualization as util_visual
 
 from commonroad_reach_semantic_addon.data_structure.driving_corridor_extractor import DrivingCorridorExtractor
 from commonroad_reach_semantic_addon.data_structure.reach.semantic_reach_set_py import PySemanticReachableSet
@@ -8,6 +7,7 @@ from commonroad_reach_semantic_addon.data_structure.semantic_configuration_build
 from commonroad_reach_semantic_addon.data_structure.semantic_model import SemanticModel
 from commonroad_reach_semantic_addon.data_structure.spot_interface import SpotInterface
 from commonroad_reach_semantic_addon.data_structure.traffic_rule_interface import TrafficRuleInterface
+from commonroad_reach_semantic_addon.utility import visualization as util_visual
 
 
 def main():
@@ -16,8 +16,8 @@ def main():
     # name_scenario = "ZAM_Over-1_1"
     # name_scenario = "ARG_Carcarana-1_1_T-1"
     # name_scenario = "USA_US101-6_1_T-1"
-    name_scenario = "ZAM_Intersection-1_1_T-1"
-    # name_scenario = "ZAM_Merge-1_1_T-1"
+    # name_scenario = "ZAM_Intersection-1_1_T-1"
+    name_scenario = "ZAM_Merge-1_1_T-1"
 
     # ==== build configuration
     config = SemanticConfigurationBuilder.build_configuration(name_scenario,
@@ -50,8 +50,10 @@ def main():
     corridor_optimal = dc_extractor.determine_optimal_corridor()
 
     # ==== plot computation results
-    # util_visual.plot_collision_checker(reach_interface)
-    util_visual.plot_scenario_with_reachable_sets(reach_interface)
+    util_visual.plot_scenario_with_regions(semantic_model, "CVLN")
+    util_visual.plot_scenario_with_reachable_sets(reach_interface, save_gif=True)
+    util_visual.plot_scenario_with_kripke_nodes(spot_interface, plot_accepting=True, save_gif=True)
+    util_visual.plot_scenario_with_driving_corridor(spot_interface, corridor_optimal, save_gif=True)
 
 
 if __name__ == "__main__":
