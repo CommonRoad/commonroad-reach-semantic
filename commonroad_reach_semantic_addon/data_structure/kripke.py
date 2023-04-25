@@ -567,21 +567,8 @@ class KripkeStructure:
 
             return dict_step_to_set_nodes_kripke
 
-    def reach_nodes_at_step(self, step: int, merge: bool = False):
-        return self.reach_interface.reachable_set_at_step(step, merge)
-
-    def query_kripke_node_by_id(self, id_node: int) -> Optional[KripkeNode]:
-        return self.dict_id_node_kripke_to_kripke_node[id_node]
-
-    def query_kripke_node_by_idx(self, idx_node: int) -> Optional[KripkeNode]:
-        return self.list_nodes_kripke[idx_node]
-
     def query_kripke_node_by_reach_node(self, node_reach: SemanticReachNode) -> Optional[KripkeNode]:
         return self.dict_reach_node_to_kripke_node[node_reach]
-
-    def query_kripke_nodes_by_step_and_proposition(self, step: int,
-                                                   proposition_holder: PropositionHolder) -> List[KripkeNode]:
-        return self.dict_step_to_propositions_to_kripke_nodes[step][proposition_holder]
 
     def query_kripke_node_by_step_and_proposition_formula(self, step: int,
                                                           formula_proposition) -> Optional[KripkeNode]:
