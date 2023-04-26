@@ -131,7 +131,7 @@ ReachPolygonPtr reach::propagate_polygon(ReachPolygonPtr const& polygon, ReachPo
     return polygon_propagated;
 }
 
-ReachNodePtr reach::split_reach_node_wrt_interval(ReachNodePtr const& node, PositionIntervalPtr const& interval,
+SemanticReachNodePtr reach::split_reach_node_wrt_interval(SemanticReachNodePtr const& node, PositionIntervalPtr const& interval,
                                                   string const& direction) {
     auto node_split = node->clone();
     node_split->proposition_holder.add_propositions(interval->set_propositions, PropositionGroup::POSITION);
@@ -163,7 +163,7 @@ ReachNodePtr reach::split_reach_node_wrt_interval(ReachNodePtr const& node, Posi
 
 
 vector<ReachPolygonPtr>
-reach::project_propagated_sets_to_position_domain(vector<ReachNodePtr> const& vec_propagated_set) {
+reach::project_propagated_sets_to_position_domain(vector<SemanticReachNodePtr> const& vec_propagated_set) {
     vector<ReachPolygonPtr> vec_rectangles_projected;
     vec_rectangles_projected.reserve(vec_propagated_set.size());
 
@@ -545,11 +545,11 @@ tuple<RectangleAABBPtr, RectangleAABBPtr> reach::split_rectangle_into_two(Rectan
 /// 1. examine the adjacency of drivable areas and the propagated sets. They are considered adjacent if they
 ///    overlap in the position domain.
 /// 2. create a node from each drivable area and its adjacent propagated sets.
-vector<ReachNodePtr> reach::construct_reach_nodes(vector<ReachPolygonPtr> const& drivable_area,
-                                                  vector<ReachNodePtr> const& vec_propagated_set,
+vector<SemanticReachNodePtr> reach::construct_reach_nodes(vector<ReachPolygonPtr> const& drivable_area,
+                                                  vector<SemanticReachNodePtr> const& vec_propagated_set,
                                                   int const& num_threads) {
 
-    vector<ReachNodePtr> reachable_set;
+    vector<SemanticReachNodePtr> reachable_set;
     reachable_set.reserve(drivable_area.size());
 
     vector<ReachPolygonPtr> vec_rectangles_propagated_sets;
@@ -565,7 +565,7 @@ vector<ReachNodePtr> reach::construct_reach_nodes(vector<ReachPolygonPtr> const&
 #pragma omp parallel num_threads(num_threads) default(none) shared(drivable_area, map_rectangle_adjacency, \
 vec_rectangles_drivable_area, vec_propagated_set, reachable_set)
     {
-        vector<ReachNodePtr> reachable_set_step_current_thread;
+        vector<SemanticReachNodePtr> reachable_set_step_current_thread;
         reachable_set_step_current_thread.reserve(drivable_area.size());
 
 #pragma omp for nowait
@@ -613,10 +613,10 @@ unordered_map<int, vector<int>> reach::create_adjacency_map(vector<ReachPolygonP
 /// Iterate through base sets that are adjacent to the drivable area, and cut the base sets down with position
 /// constraints from the drivable area. A non-empty intersected polygon imply that it is a valid base set and is
 /// considered as a parent of the rectangle (reachable from the node from which the base set is propagated).
-ReachNodePtr reach::construct_reach_node(ReachPolygonPtr const& rectangle_drivable_area,
-                                         vector<ReachNodePtr> const& vec_propagated_set,
+SemanticReachNodePtr reach::construct_reach_node(ReachPolygonPtr const& rectangle_drivable_area,
+                                         vector<SemanticReachNodePtr> const& vec_propagated_set,
                                          vector<int> const& vec_idx_propagated_sets_adjacent) {
-    vector<ReachNodePtr> vec_nodes_parent;
+    vector<SemanticReachNodePtr> vec_nodes_parent;
     vector<tuple<double, double>> vec_vertices_polygon_lon_new;
     vector<tuple<double, double>> vec_vertices_polygon_lat_new;
     auto proposition_holder = vec_propagated_set[0]->proposition_holder;
@@ -663,7 +663,7 @@ ReachNodePtr reach::construct_reach_node(ReachPolygonPtr const& rectangle_drivab
 
             // todo: check this later
             auto reach_node =
-                    make_shared<ReachNode>(-1, polygon_lon_new, polygon_lat_new, proposition_holder.clone());
+                    make_shared<SemanticReachNode>(-1, polygon_lon_new, polygon_lat_new, proposition_holder.clone());
             //reach_node->proposition_holder = proposition_holder->clone();
             reach_node->vec_nodes_source = vec_nodes_parent;
 
@@ -676,9 +676,9 @@ ReachNodePtr reach::construct_reach_node(ReachPolygonPtr const& rectangle_drivab
         return nullptr;
 }
 
-vector<ReachNodePtr> reach::discard_nodes_with_short_edge(vector<ReachNodePtr> const& vec_nodes,
+vector<SemanticReachNodePtr> reach::discard_nodes_with_short_edge(vector<SemanticReachNodePtr> const& vec_nodes,
                                                           float const& length_edge_node_min) {
-    vector<ReachNodePtr> vec_nodes_to_keep{};
+    vector<SemanticReachNodePtr> vec_nodes_to_keep{};
     for (auto const& node: vec_nodes) {
         auto length_lon = node->p_lon_max() - node->p_lon_min();
         auto length_lat = node->p_lat_max() - node->p_lat_min();
@@ -691,8 +691,8 @@ vector<ReachNodePtr> reach::discard_nodes_with_short_edge(vector<ReachNodePtr> c
     return vec_nodes_to_keep;
 }
 
-vector<ReachNodePtr> reach::connect_children_to_parents(int const& step,
-                                                        vector<ReachNodePtr> const& vec_nodes,
+vector<SemanticReachNodePtr> reach::connect_children_to_parents(int const& step,
+                                                        vector<SemanticReachNodePtr> const& vec_nodes,
                                                         int const& num_threads) {
     for (auto& node_child: vec_nodes) {
         node_child->step = step;

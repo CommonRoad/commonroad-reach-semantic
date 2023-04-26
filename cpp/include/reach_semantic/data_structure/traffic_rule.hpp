@@ -2,7 +2,7 @@
 
 #include "reach_semantic/utility/shared_include.hpp"
 #include "reach_semantic/data_structure/configuration.hpp"
-#include "reach_semantic/data_structure/reach/reach_node.hpp"
+#include "reach_semantic/data_structure/reach/semantic_reach_node.hpp"
 
 namespace reach {
 /// Class to hold adopted traffic rules
@@ -18,8 +18,8 @@ public:
     explicit TrafficRuleInterface(py::handle const& obj_traffic_rule_py);
 
     // Examines whether the given propagated sets satisfy the TPL specifications.
-    std::vector<ReachNodePtr>
-    examine_tpl_specifications(int const& step, std::vector<ReachNodePtr> const& vec_nodes_reach);
+    std::vector<SemanticReachNodePtr>
+    examine_tpl_specifications(int const& step, std::vector<SemanticReachNodePtr> const& vec_nodes_reach);
 };
 
 using TrafficRuleInterfacePtr = std::shared_ptr<TrafficRuleInterface>;

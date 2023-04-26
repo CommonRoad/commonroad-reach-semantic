@@ -1,20 +1,20 @@
 #include <utility>
-#include "reach_semantic/data_structure/reach/reach_node.hpp"
+#include "reach_semantic/data_structure/reach/semantic_reach_node.hpp"
 #include "reachset/utility/shared_using.hpp"
 
 using namespace reach;
 
-int ReachNode::cnt_id = 0;
+int SemanticReachNode::cnt_id = 0;
 
-ReachNode::ReachNode(int const& step, ReachPolygonPtr polygon_lon, ReachPolygonPtr polygon_lat,
+SemanticReachNode::SemanticReachNode(int const& step, ReachPolygonPtr polygon_lon, ReachPolygonPtr polygon_lat,
                      PropositionHolder proposition_holder,
-                     std::vector<std::shared_ptr<ReachNode>> const& vec_nodes_source) :
+                     std::vector<std::shared_ptr<SemanticReachNode>> const& vec_nodes_source) :
         step(step), polygon_lon(std::move(polygon_lon)), polygon_lat(std::move(polygon_lat)),
         proposition_holder(std::move(proposition_holder)), vec_nodes_source(vec_nodes_source) {
-    id = ReachNode::cnt_id++;
+    id = SemanticReachNode::cnt_id++;
 }
 
-bool ReachNode::add_parent_node(ReachNodePtr const& node_parent) {
+bool SemanticReachNode::add_parent_node(SemanticReachNodePtr const& node_parent) {
     if (std::none_of(vec_nodes_parent.cbegin(), vec_nodes_parent.cend(),
                      [&](auto const& node) { return node == node_parent; })) {
         vec_nodes_parent.emplace_back(node_parent);
@@ -25,7 +25,7 @@ bool ReachNode::add_parent_node(ReachNodePtr const& node_parent) {
 }
 
 
-bool ReachNode::remove_parent_node(ReachNodePtr const& node_parent) {
+bool SemanticReachNode::remove_parent_node(SemanticReachNodePtr const& node_parent) {
     auto it_end = std::remove(vec_nodes_parent.begin(), vec_nodes_parent.end(), node_parent);
     if (it_end != vec_nodes_parent.end()) {
         vec_nodes_parent.erase(it_end, vec_nodes_parent.end());
@@ -35,7 +35,7 @@ bool ReachNode::remove_parent_node(ReachNodePtr const& node_parent) {
     return false;
 }
 
-bool ReachNode::add_child_node(ReachNodePtr const& node_child) {
+bool SemanticReachNode::add_child_node(SemanticReachNodePtr const& node_child) {
     if (std::none_of(vec_nodes_child.cbegin(),
                      vec_nodes_child.cend(),
                      [&](auto const& node) { return node == node_child; })) {
@@ -46,7 +46,7 @@ bool ReachNode::add_child_node(ReachNodePtr const& node_child) {
     return false;
 }
 
-bool ReachNode::remove_child_node(ReachNodePtr const& node_child) {
+bool SemanticReachNode::remove_child_node(SemanticReachNodePtr const& node_child) {
     auto it_end = std::remove(vec_nodes_child.begin(), vec_nodes_child.end(), node_child);
     if (it_end != vec_nodes_child.end()) {
         vec_nodes_child.erase(it_end, vec_nodes_child.end());

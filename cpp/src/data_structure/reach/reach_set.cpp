@@ -60,12 +60,12 @@ void ReachableSet::_construct_initial_drivable_area_and_reachable_set() {
 
     // obtain initial propositions
     auto proposition_holder = obtain_propositions_for_rectangle(drivable_area_initial, 0);
-    auto node_initial = make_shared<ReachNode>(config->planning().step_start,
+    auto node_initial = make_shared<SemanticReachNode>(config->planning().step_start,
                                                polygon_lon,
                                                polygon_lat,
                                                proposition_holder);
 
-    node_initial = label_traffic_propositions(0, vector<ReachNodePtr>{node_initial})[0];
+    node_initial = label_traffic_propositions(0, vector<SemanticReachNodePtr>{node_initial})[0];
 
     map_step_to_propositions_to_drivable_area[0][proposition_holder].emplace_back(drivable_area_initial);
     map_step_to_propositions_to_reachable_set[0][proposition_holder].emplace_back(node_initial);
@@ -108,11 +108,11 @@ ReachableSet::obtain_propositions_for_rectangle(ReachPolygonPtr const& rectangle
     return proposition_holder;
 }
 
-vector<ReachNodePtr> ReachableSet::label_traffic_propositions(int const& step, vector<ReachNodePtr> vec_nodes) {
+vector<SemanticReachNodePtr> ReachableSet::label_traffic_propositions(int const& step, vector<SemanticReachNodePtr> vec_nodes) {
     try {
         auto vec_nodes_labeled =
                 semantic_model->obj_semantic_model_py.attr("label_traffic_propositions")(step, vec_nodes)
-                        .cast<vector<ReachNodePtr>>();
+                        .cast<vector<SemanticReachNodePtr>>();
 
         return vec_nodes_labeled;
     }
@@ -124,11 +124,11 @@ vector<ReachNodePtr> ReachableSet::label_traffic_propositions(int const& step, v
     }
 }
 
-//vector<ReachNodePtr> ReachableSet::examine_tpl_specifications(int const& step, vector<ReachNodePtr> vec_nodes) {
+//vector<SemanticReachNodePtr> ReachableSet::examine_tpl_specifications(int const& step, vector<SemanticReachNodePtr> vec_nodes) {
 //    try {
 //        auto vec_nodes_labeled =
 //                semantic_model->obj_semantic_model_py.attr("label_traffic_propositions")(step, vec_nodes)
-//                        .cast<vector<ReachNodePtr>>();
+//                        .cast<vector<SemanticReachNodePtr>>();
 //
 //        return vec_nodes_labeled;
 //    }
@@ -172,7 +172,7 @@ void ReachableSet::_compute_drivable_area_at_step(int const& step) {
         return;
     }
 
-    unordered_map<PropositionHolder, vector<ReachNodePtr>, PropositionHolder::HashFunction>
+    unordered_map<PropositionHolder, vector<SemanticReachNodePtr>, PropositionHolder::HashFunction>
             dict_proposition_holder_to_propagated_set{};
 
     // iterate through list of nodes with different sets of propositions
@@ -204,14 +204,14 @@ void ReachableSet::_compute_drivable_area_at_step(int const& step) {
 }
 
 
-vector<ReachNodePtr> ReachableSet::_propagate_reachable_set(vector<ReachNodePtr> const& vec_nodes) {
-    vector<ReachNodePtr> vec_base_sets_propagated;
+vector<SemanticReachNodePtr> ReachableSet::_propagate_reachable_set(vector<SemanticReachNodePtr> const& vec_nodes) {
+    vector<SemanticReachNodePtr> vec_base_sets_propagated;
     vec_base_sets_propagated.reserve(vec_nodes.size());
 
 #pragma omp parallel num_threads(config->reachable_set().num_threads) \
 default(none) shared(vec_nodes, vec_base_sets_propagated)
     {
-        vector<ReachNodePtr> vec_base_sets_propagated_thread;
+        vector<SemanticReachNodePtr> vec_base_sets_propagated_thread;
         vec_base_sets_propagated_thread.reserve(vec_nodes.size());
 
 #pragma omp for nowait
@@ -229,7 +229,7 @@ default(none) shared(vec_nodes, vec_base_sets_propagated)
                                                                 config->vehicle().ego.v_lat_min,
                                                                 config->vehicle().ego.v_lat_max);
 
-                auto propagated_set = make_shared<ReachNode>(node->step,
+                auto propagated_set = make_shared<SemanticReachNode>(node->step,
                                                              polygon_lon_propagated,
                                                              polygon_lat_propagated,
                                                              PropositionHolder());
@@ -251,12 +251,12 @@ default(none) shared(vec_nodes, vec_base_sets_propagated)
 /// *Steps*:
 /// 1. intersect propagated sets in the position domain with lanelet regions
 /// 2. over-approximate and restore to axis-aligned rectangles
-vector<ReachNodePtr> ReachableSet::_split_wrt_regions(int const& step, vector<ReachNodePtr> const& vec_nodes) {
+vector<SemanticReachNodePtr> ReachableSet::_split_wrt_regions(int const& step, vector<SemanticReachNodePtr> const& vec_nodes) {
     if (vec_nodes.empty()) {
         return {};
     }
 
-    vector<ReachNodePtr> vec_nodes_split = {};
+    vector<SemanticReachNodePtr> vec_nodes_split = {};
     // iterate through region and examine propagated sets that are intersecting with the region
     for (auto const& region: semantic_model->vec_regions) {
         for (auto const& node: vec_nodes) {
@@ -295,20 +295,20 @@ vector<ReachNodePtr> ReachableSet::_split_wrt_regions(int const& step, vector<Re
     return vec_nodes_split;
 }
 
-ReachNodePtr ReachableSet::update_propositions_with_region(ReachNodePtr const& node,
+SemanticReachNodePtr ReachableSet::update_propositions_with_region(SemanticReachNodePtr const& node,
                                                            RegionPtr const& region, int const& step) {
 
     return semantic_model->obj_semantic_model_py.attr("update_propositions_with_region")(node, region, step)
-            .cast<ReachNodePtr>();
+            .cast<SemanticReachNodePtr>();
 }
 
-vector<ReachNodePtr> ReachableSet::_split_wrt_intervals(int const& step, vector<ReachNodePtr> const& vec_nodes) {
+vector<SemanticReachNodePtr> ReachableSet::_split_wrt_intervals(int const& step, vector<SemanticReachNodePtr> const& vec_nodes) {
     if (vec_nodes.empty()) {
         return {};
     }
 
-    vector<ReachNodePtr> vec_nodes_split = {};
-    vector<ReachNodePtr> vec_nodes_split_lon{};
+    vector<SemanticReachNodePtr> vec_nodes_split = {};
+    vector<SemanticReachNodePtr> vec_nodes_split_lon{};
     auto vec_intervals_lon = semantic_model->map_step_to_position_intervals[step]["lon"];
     auto vec_intervals_lat = semantic_model->map_step_to_position_intervals[step]["lat"];
 
@@ -339,11 +339,11 @@ vector<ReachNodePtr> ReachableSet::_split_wrt_intervals(int const& step, vector<
     return vec_nodes_split;
 }
 
-vector<ReachNodePtr> ReachableSet::_discard_colliding_nodes(vector<ReachNodePtr> const& vec_nodes) {
+vector<SemanticReachNodePtr> ReachableSet::_discard_colliding_nodes(vector<SemanticReachNodePtr> const& vec_nodes) {
     try {
         auto vec_nodes_keep =
                 semantic_model->obj_semantic_model_py.attr("discard_colliding_nodes")(vec_nodes)
-                        .cast<vector<ReachNodePtr>>();
+                        .cast<vector<SemanticReachNodePtr>>();
 
         return vec_nodes_keep;
     }
@@ -357,7 +357,7 @@ vector<ReachNodePtr> ReachableSet::_discard_colliding_nodes(vector<ReachNodePtr>
 
 unordered_map<PropositionHolder, vector<ReachPolygonPtr>, PropositionHolder::HashFunction>
 ReachableSet::_compute_collision_free_drivable_area(int const& step,
-                                                    unordered_map<PropositionHolder, vector<ReachNodePtr>,
+                                                    unordered_map<PropositionHolder, vector<SemanticReachNodePtr>,
                                                             PropositionHolder::HashFunction> const&
                                                     map_propositions_to_drivable_area) {
     auto mode_repartition = config->reachable_set().mode_repartition;
@@ -501,7 +501,7 @@ void ReachableSet::_compute_reachable_set_at_step(int const& step) {
     }
     bool discard_small_node = (num_drivable_area > 1);
 
-    unordered_map<PropositionHolder, vector<ReachNodePtr>, PropositionHolder::HashFunction>
+    unordered_map<PropositionHolder, vector<SemanticReachNodePtr>, PropositionHolder::HashFunction>
             map_propositions_to_reachable_set{};
     for (auto const& [proposition_holder, drivable_area]: map_propositions_to_drivable_area) {
         auto propagated_set = map_propositions_to_propagated_set[proposition_holder];
@@ -543,7 +543,7 @@ void ReachableSet::_compute_reachable_set_at_step(int const& step) {
 //        }
 //        // discard nodes without a child
 //        vector<ReachPolygonPtr> vec_drivable_area_updated{};
-//        vector<ReachNodePtr> vec_reachable_set_updated{};
+//        vector<SemanticReachNodePtr> vec_reachable_set_updated{};
 //        for (int idx_node = 0; idx_node < vec_nodes.size(); idx_node++) {
 //            auto result = std::find(vec_idx_nodes_to_be_deleted.begin(),
 //                                    vec_idx_nodes_to_be_deleted.end(),
@@ -566,11 +566,11 @@ void ReachableSet::_compute_reachable_set_at_step(int const& step) {
 //    // cout << "\t#Nodes after pruning: \t" << cnt_nodes_after_pruning << endl;
 //}
 
-vector<ReachNodePtr> ReachableSet::_call_python_dummy(int const& step, vector<ReachNodePtr> const& vec_nodes) {
-    vector<ReachNodePtr> vec_nodes_new{};
+vector<SemanticReachNodePtr> ReachableSet::_call_python_dummy(int const& step, vector<SemanticReachNodePtr> const& vec_nodes) {
+    vector<SemanticReachNodePtr> vec_nodes_new{};
     for (auto const& node: vec_nodes) {
         vec_nodes_new.emplace_back(semantic_model->obj_semantic_model_py.attr("call_python_dummy")(step, node)
-                                           .cast<ReachNodePtr>());
+                                           .cast<SemanticReachNodePtr>());
     }
     return vec_nodes_new;
 }

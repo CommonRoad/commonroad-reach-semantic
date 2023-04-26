@@ -47,34 +47,34 @@ void export_reach_polygon(py::module& m) {
 }
 
 void export_reach_node(py::module& m) {
-    py::class_<ReachNode, shared_ptr<ReachNode >>(m, "ReachNode")
+    py::class_<SemanticReachNode, shared_ptr<SemanticReachNode >>(m, "SemanticReachNode")
             .def(py::init<>())
-            .def("p_lon_min", &ReachNode::p_lon_min)
-            .def("p_lon_max", &ReachNode::p_lon_max)
-            .def("p_lat_min", &ReachNode::p_lat_min)
-            .def("p_lat_max", &ReachNode::p_lat_max)
-            .def("v_lon_min", &ReachNode::v_lon_min)
-            .def("v_lon_max", &ReachNode::v_lon_max)
-            .def("v_lat_min", &ReachNode::v_lat_min)
-            .def("v_lat_max", &ReachNode::v_lat_max)
-            .def("position_rectangle", &ReachNode::position_rectangle)
-            .def("set_propositions", &ReachNode::set_propositions, py::arg("include_temporary") = true)
-            .def_readwrite("vec_nodes_parent", &ReachNode::vec_nodes_parent)
-            .def_readwrite("vec_nodes_child", &ReachNode::vec_nodes_child)
-            .def_readwrite("vec_nodes_source", &ReachNode::vec_nodes_source)
-            .def("add_lanelet_ids", &ReachNode::add_lanelet_ids)
-            .def_readonly("id", &ReachNode::id)
-            .def_readonly("step", &ReachNode::step)
-            .def_readonly("polygon_lon", &ReachNode::polygon_lon)
-            .def_readonly("polygon_lat", &ReachNode::polygon_lat)
-            .def_readwrite("proposition_holder", &ReachNode::proposition_holder)
-            .def_readwrite("set_ids_lanelets", &ReachNode::set_ids_lanelets)
-            .def("__repr__", [](ReachNode const& node) {
+            .def("p_lon_min", &SemanticReachNode::p_lon_min)
+            .def("p_lon_max", &SemanticReachNode::p_lon_max)
+            .def("p_lat_min", &SemanticReachNode::p_lat_min)
+            .def("p_lat_max", &SemanticReachNode::p_lat_max)
+            .def("v_lon_min", &SemanticReachNode::v_lon_min)
+            .def("v_lon_max", &SemanticReachNode::v_lon_max)
+            .def("v_lat_min", &SemanticReachNode::v_lat_min)
+            .def("v_lat_max", &SemanticReachNode::v_lat_max)
+            .def("position_rectangle", &SemanticReachNode::position_rectangle)
+            .def("set_propositions", &SemanticReachNode::set_propositions, py::arg("include_temporary") = true)
+            .def_readwrite("vec_nodes_parent", &SemanticReachNode::vec_nodes_parent)
+            .def_readwrite("vec_nodes_child", &SemanticReachNode::vec_nodes_child)
+            .def_readwrite("vec_nodes_source", &SemanticReachNode::vec_nodes_source)
+            .def("add_lanelet_ids", &SemanticReachNode::add_lanelet_ids)
+            .def_readonly("id", &SemanticReachNode::id)
+            .def_readonly("step", &SemanticReachNode::step)
+            .def_readonly("polygon_lon", &SemanticReachNode::polygon_lon)
+            .def_readonly("polygon_lat", &SemanticReachNode::polygon_lat)
+            .def_readwrite("proposition_holder", &SemanticReachNode::proposition_holder)
+            .def_readwrite("set_ids_lanelets", &SemanticReachNode::set_ids_lanelets)
+            .def("__repr__", [](SemanticReachNode const& node) {
                 return "(id:" + std::to_string(node.id) + ", "
                        + std::to_string(node.p_lon_min()) + ", " + std::to_string(node.p_lat_min())
                        + ", " + std::to_string(node.p_lon_max()) + ", " + std::to_string(node.p_lat_max()) + ")";
             })
-            .def("__hash__", [](ReachNode const& node) {
+            .def("__hash__", [](SemanticReachNode const& node) {
                 return py::hash(py::make_tuple(node.id, node.step));
             });
 }
