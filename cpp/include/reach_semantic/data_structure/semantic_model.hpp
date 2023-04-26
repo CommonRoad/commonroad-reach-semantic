@@ -1,10 +1,10 @@
 #pragma once
 
-#include "reachset/utility/shared_include.hpp"
-#include "reachset/data_structure/configuration.hpp"
-#include "reachset/data_structure/traffic_rule.hpp"
-#include "reachset/data_structure/region.hpp"
-#include "reachset/data_structure/position_interval.hpp"
+#include "reach_semantic/utility/shared_include.hpp"
+#include "reach_semantic/data_structure/configuration.hpp"
+#include "reach_semantic/data_structure/traffic_rule.hpp"
+#include "reach_semantic/data_structure/region.hpp"
+#include "reach_semantic/data_structure/position_interval.hpp"
 
 namespace reach {
 /// Class to represent the semantic model of a given CommonRoad scenario.

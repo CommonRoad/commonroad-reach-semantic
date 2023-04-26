@@ -1,12 +1,12 @@
 #pragma once
 
 #include "shared_include.hpp"
-#include "reachset/data_structure/reach/reach_polygon_boost.hpp"
-#include "reachset/data_structure/reach/reach_node.hpp"
-#include "reachset/data_structure/configuration.hpp"
+#include "reach_semantic/data_structure/reach/reach_polygon_boost.hpp"
+#include "reach_semantic/data_structure/reach/reach_node.hpp"
+#include "reach_semantic/data_structure/configuration.hpp"
 #include "collision/collision_checker.h"
 #include "geometry/curvilinear_coordinate_system.h"
-#include "reachset/data_structure/position_interval.hpp"
+#include "reach_semantic/data_structure/position_interval.hpp"
 
 using CollisionCheckerPtr = collision::CollisionCheckerPtr;
 using RectangleAABBPtr = collision::RectangleAABBPtr;

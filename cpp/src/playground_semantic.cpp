@@ -8,10 +8,10 @@
 
 #include "geometry/curvilinear_coordinate_system.h"
 #include "collision/collision_checker.h"
-#include "reachset/data_structure/reach/reach_set.hpp"
-#include "reachset/data_structure/semantic_model.hpp"
-#include "reachset/utility/collision_checker.hpp"
-//#include "reachset/semantic/data_structure/traffic_rule.hpp"
+#include "reach_semantic/data_structure/reach/reach_set.hpp"
+#include "reach_semantic/data_structure/semantic_model.hpp"
+#include "reach_semantic/utility/collision_checker.hpp"
+//#include "reach_semantic/semantic/data_structure/traffic_rule.hpp"
 
 using namespace reach;
 using std::chrono::high_resolution_clock;

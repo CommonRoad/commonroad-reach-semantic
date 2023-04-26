@@ -1,8 +1,8 @@
-#include "reachset/data_structure/reach/reach_set.hpp"
+#include "reach_semantic/data_structure/reach/reach_set.hpp"
 
 #include <utility>
-#include "reachset/utility/shared_using.hpp"
-#include "reachset/utility/reach_operation.hpp"
+#include "reach_semantic/utility/shared_using.hpp"
+#include "reach_semantic/utility/reach_operation.hpp"
 
 using namespace reach;
 

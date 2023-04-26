@@ -2,7 +2,7 @@
 
 #include <pybind11/embed.h>
 #include <pybind11/stl.h>
-#include "reachset/utility/shared_include.hpp"
+#include "reach_semantic/utility/shared_include.hpp"
 
 namespace reach {
 /// Class to represent position intervals in which a set of propositions hold.

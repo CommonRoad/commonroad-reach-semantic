@@ -2,7 +2,7 @@
 
 #include <omp.h>
 #include <eigen3/Eigen/Dense>
-#include "reachset/utility/shared_include.hpp"
+#include "reach_semantic/utility/shared_include.hpp"
 
 #include "geometry/curvilinear_coordinate_system.h"
 #include "collision/collision_checker.h"
@@ -10,7 +10,7 @@
 #include "collision/narrowphase/rectangle_obb.h"
 
 #include "collision/time_variant_collision_object.h"
-#include "reachset/utility/geometry_definition.hpp"
+#include "reach_semantic/utility/geometry_definition.hpp"
 
 namespace reach {
 using Polyline = std::vector<Eigen::Vector2d, Eigen::aligned_allocator<Eigen::Vector2d>>;

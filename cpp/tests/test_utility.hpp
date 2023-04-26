@@ -1,19 +1,19 @@
 #pragma once
 
 #include <doctest/doctest.h>
-#include "reachset/common/utility/shared_include.hpp"
+#include "reach_semantic/common/utility/shared_include.hpp"
 
-#include "reachset/data_structure/reach_polygon_boost.hpp"
-#include "reachset/data_structure/reach_base_set.hpp"
-#include "reachset/data_structure/reach_node.hpp"
-#include "reachset/data_structure/segment_tree.hpp"
+#include "reach_semantic/data_structure/reach_polygon_boost.hpp"
+#include "reach_semantic/data_structure/reach_base_set.hpp"
+#include "reach_semantic/data_structure/reach_node.hpp"
+#include "reach_semantic/data_structure/segment_tree.hpp"
 
-#include "reachset/common/utility/reach_operation.hpp"
-#include "reachset/common/utility/sweep_line.hpp"
-#include "reachset/common/utility/shared_using.hpp"
-#include "reachset/common/collision_checker.hpp"
+#include "reach_semantic/common/utility/reach_operation.hpp"
+#include "reach_semantic/common/utility/sweep_line.hpp"
+#include "reach_semantic/common/utility/shared_using.hpp"
+#include "reach_semantic/common/collision_checker.hpp"
 
-#include "reachset/continuous/continuous_reachability_analysis.hpp"
+#include "reach_semantic/continuous/continuous_reachability_analysis.hpp"
 
 using namespace reach;
 using namespace collision;

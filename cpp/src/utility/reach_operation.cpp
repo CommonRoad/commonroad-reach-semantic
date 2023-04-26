@@ -1,6 +1,6 @@
-#include "reachset/utility/reach_operation.hpp"
-#include "reachset/utility/sweep_line.hpp"
-#include "reachset/utility/shared_using.hpp"
+#include "reach_semantic/utility/reach_operation.hpp"
+#include "reach_semantic/utility/sweep_line.hpp"
+#include "reach_semantic/utility/shared_using.hpp"
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "UnusedLocalVariable"

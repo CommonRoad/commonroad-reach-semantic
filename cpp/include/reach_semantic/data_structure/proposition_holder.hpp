@@ -1,7 +1,7 @@
 #pragma once
 
-#include "reachset/data_structure/proposition.hpp"
-#include "reachset/utility/shared_include.hpp"
+#include "reach_semantic/data_structure/proposition.hpp"
+#include "reach_semantic/utility/shared_include.hpp"
 
 namespace reach {
 

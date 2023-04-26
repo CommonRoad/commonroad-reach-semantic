@@ -7,9 +7,9 @@
 
 #include "collision/collision_checker.h"
 #include "geometry/curvilinear_coordinate_system.h"
-#include "reachset/data_structure/reach/reach_set.hpp"
-#include "reachset/data_structure/reach/reach_polygon_boost.hpp"
-#include "reachset/utility/collision_checker.hpp"
+#include "reach_semantic/data_structure/reach/reach_set.hpp"
+#include "reach_semantic/data_structure/reach/reach_polygon_boost.hpp"
+#include "reach_semantic/utility/collision_checker.hpp"
 
 using namespace reach;
 using std::chrono::high_resolution_clock;

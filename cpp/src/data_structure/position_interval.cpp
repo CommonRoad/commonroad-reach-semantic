@@ -1,5 +1,5 @@
-#include "reachset/data_structure/position_interval.hpp"
-#include "reachset/utility/shared_using.hpp"
+#include "reach_semantic/data_structure/position_interval.hpp"
+#include "reach_semantic/utility/shared_using.hpp"
 
 using namespace reach;
 

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "reachset/utility/geometry_definition.hpp"
-#include "reachset/utility/shared_include.hpp"
-#include "reachset/data_structure/reach/reach_vertex.hpp"
+#include "reach_semantic/utility/geometry_definition.hpp"
+#include "reach_semantic/utility/shared_include.hpp"
+#include "reach_semantic/data_structure/reach/reach_vertex.hpp"
 
 namespace reach {
 /// Polygon class that constitutes reachset nodes and position rectangles.

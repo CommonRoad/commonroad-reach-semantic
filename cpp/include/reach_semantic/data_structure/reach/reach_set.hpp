@@ -1,11 +1,11 @@
 #pragma once
 
-#include "reachset/utility/shared_include.hpp"
-#include "reachset/data_structure/reach/reach_polygon_boost.hpp"
-#include "reachset/data_structure/reach/reach_node.hpp"
-#include "reachset/data_structure/configuration.hpp"
-#include "reachset/data_structure/semantic_model.hpp"
-#include "reachset/data_structure/proposition.hpp"
+#include "reach_semantic/utility/shared_include.hpp"
+#include "reach_semantic/data_structure/reach/reach_polygon_boost.hpp"
+#include "reach_semantic/data_structure/reach/reach_node.hpp"
+#include "reach_semantic/data_structure/configuration.hpp"
+#include "reach_semantic/data_structure/semantic_model.hpp"
+#include "reach_semantic/data_structure/proposition.hpp"
 #include "collision/collision_checker.h"
 #include <omp.h>
 

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "reachset/utility/shared_include.hpp"
-#include "reachset/data_structure/configuration.hpp"
-#include "reachset/data_structure/reach/reach_node.hpp"
+#include "reach_semantic/utility/shared_include.hpp"
+#include "reach_semantic/data_structure/configuration.hpp"
+#include "reach_semantic/data_structure/reach/reach_node.hpp"
 
 namespace reach {
 /// Class to hold adopted traffic rules

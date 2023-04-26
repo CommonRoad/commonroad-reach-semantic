@@ -1,8 +1,8 @@
 #pragma once
 
-#include "reachset/utility/shared_include.hpp"
-#include "reachset/data_structure/reach/reach_polygon_boost.hpp"
-#include "reachset/data_structure/proposition_holder.hpp"
+#include "reach_semantic/utility/shared_include.hpp"
+#include "reach_semantic/data_structure/reach/reach_polygon_boost.hpp"
+#include "reach_semantic/data_structure/proposition_holder.hpp"
 
 namespace reach {
 /// Class to represent a lanelet region in the scenario.

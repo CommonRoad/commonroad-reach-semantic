@@ -1,7 +1,7 @@
 #pragma once
 
-#include "reachset/utility/geometry_definition.hpp"
-#include "reachset/utility/shared_include.hpp"
+#include "reach_semantic/utility/geometry_definition.hpp"
+#include "reach_semantic/utility/shared_include.hpp"
 
 namespace reach {
 /// Polygon class used in reachset nodes and position rectangles.

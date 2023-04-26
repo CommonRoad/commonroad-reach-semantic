@@ -1,4 +1,4 @@
-#include "reachset/utility/lut_longitudinal_enlargement.hpp"
+#include "reach_semantic/utility/lut_longitudinal_enlargement.hpp"
 
 namespace reach {
 

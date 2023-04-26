@@ -1,6 +1,6 @@
 #pragma once
 
-#include "reachset/utility/shared_include.hpp"
+#include "reach_semantic/utility/shared_include.hpp"
 
 namespace reach {
 /// Line segment used in geometric operations.
