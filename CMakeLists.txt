@@ -1,6 +1,6 @@
 # ========= minimum settings
 cmake_minimum_required(VERSION 3.15) # minimum required version of CMake
-project(reach) # project name
+project(semantic_reach) # project name
 option(ADD_TESTS "unit tests" OFF) # flag to add unit tests
 
 # ========= check for required variables
