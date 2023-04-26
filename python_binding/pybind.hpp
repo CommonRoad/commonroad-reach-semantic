@@ -5,17 +5,16 @@
 #include <pybind11/eigen.h>
 #include <pybind11/numpy.h>
 
-#include "reachset/utility/shared_using.hpp"
-
 #include "reach_semantic/utility/shared_include.hpp"
-#include "reachset/utility/collision_checker.hpp"
-
 #include "reach_semantic/data_structure/configuration.hpp"
 #include "reach_semantic/data_structure/reach/reach_polygon_boost.hpp"
 #include "reach_semantic/data_structure/reach/reach_node.hpp"
 #include "reach_semantic/data_structure/reach/reach_set.hpp"
 #include "reach_semantic/data_structure/semantic_model.hpp"
 #include "reach_semantic/data_structure/proposition_holder.hpp"
+
+#include "reachset/utility/collision_checker.hpp"
+#include "reachset/utility/shared_using.hpp"
 
 namespace py = pybind11;
 
