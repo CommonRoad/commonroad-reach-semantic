@@ -1,7 +1,7 @@
 #pragma once
 
 #include "reach_semantic/utility/shared_include.hpp"
-#include "reach_semantic/utility/shared_using.hpp"
+#include "reachset/utility/shared_using.hpp"
 #include <yaml-cpp/yaml.h>
 #include "geometry/curvilinear_coordinate_system.h"
 

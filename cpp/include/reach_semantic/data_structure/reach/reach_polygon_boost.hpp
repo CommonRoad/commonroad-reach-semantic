@@ -1,6 +1,6 @@
 #pragma once
 
-#include "reach_semantic/utility/geometry_definition.hpp"
+#include "reachset/utility/geometry_definition.hpp"
 #include "reach_semantic/utility/shared_include.hpp"
 
 namespace reach {

@@ -22,16 +22,11 @@ set(REACH_INCLUDE_DIR
 
 # set a variable to hold all relevant cpp source files of reachable sets
 set(REACH_SOURCE
-        ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/reach_vertex.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/reach_polygon_boost.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/reach_node.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/reach_line.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/reach_set.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/configuration.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/segment_tree.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/utility/collision_checker.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/utility/reach_operation.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/utility/sweep_line.cpp
 
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/proposition_holder.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/semantic_model.cpp

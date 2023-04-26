@@ -10,7 +10,7 @@
 #include "collision/collision_checker.h"
 #include "reach_semantic/data_structure/reach/reach_set.hpp"
 #include "reach_semantic/data_structure/semantic_model.hpp"
-#include "reach_semantic/utility/collision_checker.hpp"
+#include "reachset/utility/collision_checker.hpp"
 //#include "reach_semantic/semantic/data_structure/traffic_rule.hpp"
 
 using namespace reach;
