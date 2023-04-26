@@ -11,6 +11,7 @@ target_include_directories(pycrreachs PRIVATE
 # link to external libraries
 target_link_libraries(pycrreachs PRIVATE
         ${CRDC_LIBRARY}
+        ${CRREACH_LIBRARY}
         fcl
         ccd
         ${S11N_LIBRARY}

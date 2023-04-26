@@ -12,6 +12,10 @@ if(NOT DEFINED CRDC_DIR) # path to drivability checker
     message(FATAL_ERROR "Please specify the path to drivability checker via -DCRDC_DIR=")
 endif()
 
+if(NOT DEFINED CRREACH_DIR) # path to regular commonroad reach
+    message(FATAL_ERROR "Please specify the path to regular commonroad reach via -DCRREACH_DIR=")
+endif()
+
 # ========= set variables
 # path to FCL installation in drivability checker
 set(fcl_DIR ${CRDC_DIR}/build/temp.linux-x86_64-cpython-${PYTHON_VER}/dist/lib/cmake/fcl)

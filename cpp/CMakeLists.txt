@@ -9,10 +9,14 @@ set(CRDC_LIBRARY
         ${CRDC_DIR}/commonroad_dc/libgpc.a # curvilinear collision checker
         CACHE STRING "" FORCE)
 
+set(CRREACH_INCLUDE ${CRREACH_DIR}/cpp/include)
+set(CRREACH_LIBRARY ${CRREACH_DIR}/build/temp.linux-x86_64-cpython-${PYTHON_VER}/cpp/libcrreach.a)
+
 # set a variable to hold all relevant include directories
 set(REACH_INCLUDE_DIR
         ${CMAKE_CURRENT_LIST_DIR}/include
         ${CRDC_INCLUDE}
+        ${CRREACH_INCLUDE}
         ${EIGEN3_INCLUDE_DIR}
         CACHE STRING "" FORCE)
 
@@ -49,6 +53,7 @@ target_include_directories(playground_semantic PRIVATE
 target_link_libraries(playground_semantic PRIVATE
         yaml-cpp
         ${CRDC_LIBRARY}
+        ${CRREACH_LIBRARY}
         ${CRCCOSY_LIBRARY}
         fcl
         ccd
