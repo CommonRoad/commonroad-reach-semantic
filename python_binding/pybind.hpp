@@ -31,7 +31,7 @@ void export_semantic_model(py::module& m);
 
 void export_traffic_rule_interface(py::module& m);
 
-void export_configuration(py::module& m);
+//void export_configuration(py::module& m);
 
 // ---- export_reach()
 void export_reachable_set_interface(py::module& m);
