@@ -6,13 +6,13 @@ from typing import List
 import commonroad_reach.utility.logger as util_logger
 from commonroad_reach.data_structure.collision_checker import CollisionChecker
 from commonroad_reach.data_structure.reach.reach_polygon import ReachPolygon
-from commonroad_reach.data_structure.reach.reach_set import ReachableSet
 from commonroad_reach.utility import reach_operation
 
 import commonroad_reach_semantic.utility.reach_operation as semantic_reach_operation
 from commonroad_reach_semantic.data_structure.proposition import PropositionGroup as PropGroup
 from commonroad_reach_semantic.data_structure.proposition_holder import PropositionHolder
 from commonroad_reach_semantic.data_structure.reach.semantic_reach_node import SemanticReachNode
+from commonroad_reach_semantic.data_structure.reach.semantic_reach_set import SemanticReachableSet
 from commonroad_reach_semantic.data_structure.semantic_configuration import SemanticConfiguration
 from commonroad_reach_semantic.data_structure.semantic_model import SemanticModel
 from commonroad_reach_semantic.data_structure.traffic_rule_interface import TrafficRuleInterface
@@ -20,7 +20,7 @@ from commonroad_reach_semantic.data_structure.traffic_rule_interface import Traf
 logger = logging.getLogger(__name__)
 
 
-class PySemanticReachableSet(ReachableSet):
+class PySemanticReachableSet(SemanticReachableSet):
     """
     Reachable set computation considering temporal constraints with Python backend.
     """
@@ -29,9 +29,7 @@ class PySemanticReachableSet(ReachableSet):
 
     def __init__(self, config: SemanticConfiguration, semantic_model: SemanticModel,
                  rule_interface: TrafficRuleInterface):
-        super().__init__(config)
-        self.semantic_model = semantic_model
-        self.rule_interface = rule_interface
+        super().__init__(config, semantic_model, rule_interface)
         self.dict_step_to_reachable_set[self.step_start] = self._construct_initial_reachable_set()
         self.dict_step_to_drivable_area[self.step_start] = reach_operation.project_propagated_sets_to_position_domain(
             self.dict_step_to_reachable_set[self.step_start])
