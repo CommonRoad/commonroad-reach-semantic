@@ -35,23 +35,31 @@ set(REACH_SOURCE
 
         CACHE STRING "" FORCE)
 
-# ====
-# 1. create executables which uses the source files set above
-add_executable(playground_semantic
-        ${CMAKE_CURRENT_LIST_DIR}/src/playground_semantic.cpp
-        ${REACH_SOURCE})
+# ========= building library
+# 1. create library from source files above
+add_library(crreachs STATIC ${REACH_SOURCE})
+# build position independent code so that we can link this in the Python bindings (builds shared lib)
+set_property(TARGET crreachs PROPERTY POSITION_INDEPENDENT_CODE ON)
 # 2. include directories
-target_include_directories(playground_semantic PRIVATE
+target_include_directories(crreachs PUBLIC
         ${REACH_INCLUDE_DIR})
 # 3. link to external libraries
-target_link_libraries(playground_semantic PRIVATE
-        yaml-cpp
-        ${CRDC_LIBRARY}
+target_link_libraries(crreachs PUBLIC
         ${CRREACH_LIBRARY}
-        ${CRCCOSY_LIBRARY}
+        ${CRDC_LIBRARY}
         fcl
         ccd
         ${S11N_LIBRARY}
+        yaml-cpp)
+target_link_libraries(crreachs PRIVATE pybind11::embed)
+
+# ====
+# 1. create executables which uses the source files set above
+add_executable(playground_semantic
+        ${CMAKE_CURRENT_LIST_DIR}/src/playground_semantic.cpp)
+# 2. link to external libraries
+target_link_libraries(playground_semantic PRIVATE
+        crreachs
         pybind11::embed)
 
 ## ==== unit tests using Doctest
