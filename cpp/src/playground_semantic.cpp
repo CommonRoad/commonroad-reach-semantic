@@ -8,7 +8,7 @@
 
 #include "geometry/curvilinear_coordinate_system.h"
 #include "collision/collision_checker.h"
-#include "reach_semantic/data_structure/reach/reach_set.hpp"
+#include "reach_semantic/data_structure/reach/semantic_reach_set.hpp"
 #include "reach_semantic/data_structure/semantic_model.hpp"
 #include "reachset/utility/collision_checker.hpp"
 //#include "reach_semantic/semantic/data_structure/traffic_rule.hpp"
@@ -77,7 +77,7 @@ int main() {
     auto collision_checker = obj_collision_checker_py.attr("cpp_collision_checker").cast<CollisionCheckerPtr>();
 
     // ======== ReachableSetInterface
-    auto reach_interface = ReachableSet(config, collision_checker, semantic_model);
+    auto reach_interface = SemanticReachableSet(config, collision_checker, semantic_model);
     auto start = high_resolution_clock::now();
     reach_interface.compute();
     auto end = high_resolution_clock::now();

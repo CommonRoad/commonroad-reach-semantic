@@ -1,4 +1,4 @@
-#include "reach_semantic/data_structure/reach/reach_set.hpp"
+#include "reach_semantic/data_structure/reach/semantic_reach_set.hpp"
 
 #include <utility>
 #include "reachset/utility/shared_using.hpp"
@@ -6,25 +6,25 @@
 
 using namespace reach;
 
-ReachableSet::ReachableSet(ConfigurationPtr config) : config(std::move(config)) {
+SemanticReachableSet::SemanticReachableSet(ConfigurationPtr config) : config(std::move(config)) {
     _initialize();
 }
 
-ReachableSet::ReachableSet(ConfigurationPtr config, CollisionCheckerPtr collision_checker,
-                           SemanticModelPtr semantic_model) :
+SemanticReachableSet::SemanticReachableSet(ConfigurationPtr config, CollisionCheckerPtr collision_checker,
+                                           SemanticModelPtr semantic_model) :
         config(std::move(config)), collision_checker(std::move(collision_checker)),
         semantic_model(std::move(semantic_model)) {
     _initialize();
 }
 
-ReachableSet::ReachableSet(ConfigurationPtr config, CollisionCheckerPtr collision_checker,
-                           SemanticModelPtr semantic_model, TrafficRuleInterfacePtr traffic_rule_interface) :
+SemanticReachableSet::SemanticReachableSet(ConfigurationPtr config, CollisionCheckerPtr collision_checker,
+                                           SemanticModelPtr semantic_model, TrafficRuleInterfacePtr traffic_rule_interface) :
         config(std::move(config)), collision_checker(std::move(collision_checker)),
         semantic_model(std::move(semantic_model)), rule_interface(std::move(traffic_rule_interface)) {
     _initialize();
 }
 
-void ReachableSet::_initialize() {
+void SemanticReachableSet::_initialize() {
     step_start = config->planning().step_start;
     step_end = step_start + config->planning().steps_computation;
 
@@ -35,7 +35,7 @@ void ReachableSet::_initialize() {
 }
 
 /// @note Computation of the reachable set of an LTI system requires the zero-state response of the system.
-void ReachableSet::_initialize_zero_state_polygons() {
+void SemanticReachableSet::_initialize_zero_state_polygons() {
     polygon_zero_state_lon = create_zero_state_polygon(config->planning().dt,
                                                        config->vehicle().ego.a_lon_min,
                                                        config->vehicle().ego.a_lon_max);
@@ -45,7 +45,7 @@ void ReachableSet::_initialize_zero_state_polygons() {
                                                        config->vehicle().ego.a_lat_max);
 }
 
-void ReachableSet::_construct_initial_drivable_area_and_reachable_set() {
+void SemanticReachableSet::_construct_initial_drivable_area_and_reachable_set() {
     // initial drivable area
     auto tuple_vertices = generate_tuple_vertices_position_rectangle_initial(config);
     auto drivable_area_initial = make_shared<ReachPolygon>(std::get<0>(tuple_vertices),
@@ -73,7 +73,7 @@ void ReachableSet::_construct_initial_drivable_area_and_reachable_set() {
 
 /// Intersects the rectangle with regions and position intervals.
 PropositionHolder
-ReachableSet::obtain_propositions_for_rectangle(ReachPolygonPtr const& rectangle, int const& step) const {
+SemanticReachableSet::obtain_propositions_for_rectangle(ReachPolygonPtr const& rectangle, int const& step) const {
     auto proposition_holder = PropositionHolder();
 
     /// retrieve propositions from the intersecting lanelet region
@@ -108,7 +108,7 @@ ReachableSet::obtain_propositions_for_rectangle(ReachPolygonPtr const& rectangle
     return proposition_holder;
 }
 
-vector<SemanticReachNodePtr> ReachableSet::label_traffic_propositions(int const& step, vector<SemanticReachNodePtr> vec_nodes) {
+vector<SemanticReachNodePtr> SemanticReachableSet::label_traffic_propositions(int const& step, vector<SemanticReachNodePtr> vec_nodes) {
     try {
         auto vec_nodes_labeled =
                 semantic_model->obj_semantic_model_py.attr("label_traffic_propositions")(step, vec_nodes)
@@ -124,7 +124,7 @@ vector<SemanticReachNodePtr> ReachableSet::label_traffic_propositions(int const&
     }
 }
 
-//vector<SemanticReachNodePtr> ReachableSet::examine_tpl_specifications(int const& step, vector<SemanticReachNodePtr> vec_nodes) {
+//vector<SemanticReachNodePtr> SemanticReachableSet::examine_tpl_specifications(int const& step, vector<SemanticReachNodePtr> vec_nodes) {
 //    try {
 //        auto vec_nodes_labeled =
 //                semantic_model->obj_semantic_model_py.attr("label_traffic_propositions")(step, vec_nodes)
@@ -140,7 +140,7 @@ vector<SemanticReachNodePtr> ReachableSet::label_traffic_propositions(int const&
 //    }
 //}
 
-void ReachableSet::compute(int step_start, int step_end) {
+void SemanticReachableSet::compute(int step_start, int step_end) {
     if (step_start == 0) step_start = this->step_start + 1;
     if (step_end == 0) step_end = this->step_end;
 
@@ -164,7 +164,7 @@ void ReachableSet::compute(int step_start, int step_end) {
 /// 3. Merge and repartition these rectangles to reduce computation load.
 /// 4. Check for collision and split the repartitioned rectangles into collision-free rectangles.
 /// 5. Merge and repartition the collision-free rectangles again to reduce number of nodes.
-void ReachableSet::_compute_drivable_area_at_step(int const& step) {
+void SemanticReachableSet::_compute_drivable_area_at_step(int const& step) {
     auto map_propositions_to_reachable_set_previous = map_step_to_propositions_to_reachable_set[step - 1];
     if (map_propositions_to_reachable_set_previous.empty()) {
         map_step_to_propositions_to_propagated_set[step] = {};
@@ -204,7 +204,7 @@ void ReachableSet::_compute_drivable_area_at_step(int const& step) {
 }
 
 
-vector<SemanticReachNodePtr> ReachableSet::_propagate_reachable_set(vector<SemanticReachNodePtr> const& vec_nodes) {
+vector<SemanticReachNodePtr> SemanticReachableSet::_propagate_reachable_set(vector<SemanticReachNodePtr> const& vec_nodes) {
     vector<SemanticReachNodePtr> vec_base_sets_propagated;
     vec_base_sets_propagated.reserve(vec_nodes.size());
 
@@ -251,7 +251,7 @@ default(none) shared(vec_nodes, vec_base_sets_propagated)
 /// *Steps*:
 /// 1. intersect propagated sets in the position domain with lanelet regions
 /// 2. over-approximate and restore to axis-aligned rectangles
-vector<SemanticReachNodePtr> ReachableSet::_split_wrt_regions(int const& step, vector<SemanticReachNodePtr> const& vec_nodes) {
+vector<SemanticReachNodePtr> SemanticReachableSet::_split_wrt_regions(int const& step, vector<SemanticReachNodePtr> const& vec_nodes) {
     if (vec_nodes.empty()) {
         return {};
     }
@@ -292,14 +292,14 @@ vector<SemanticReachNodePtr> ReachableSet::_split_wrt_regions(int const& step, v
     return vec_nodes_split;
 }
 
-SemanticReachNodePtr ReachableSet::update_propositions_with_region(SemanticReachNodePtr const& node,
+SemanticReachNodePtr SemanticReachableSet::update_propositions_with_region(SemanticReachNodePtr const& node,
                                                            RegionPtr const& region, int const& step) {
 
     return semantic_model->obj_semantic_model_py.attr("update_propositions_with_region")(node, region, step)
             .cast<SemanticReachNodePtr>();
 }
 
-vector<SemanticReachNodePtr> ReachableSet::_split_wrt_intervals(int const& step, vector<SemanticReachNodePtr> const& vec_nodes) {
+vector<SemanticReachNodePtr> SemanticReachableSet::_split_wrt_intervals(int const& step, vector<SemanticReachNodePtr> const& vec_nodes) {
     if (vec_nodes.empty()) {
         return {};
     }
@@ -336,7 +336,7 @@ vector<SemanticReachNodePtr> ReachableSet::_split_wrt_intervals(int const& step,
     return vec_nodes_split;
 }
 
-vector<SemanticReachNodePtr> ReachableSet::_discard_colliding_nodes(vector<SemanticReachNodePtr> const& vec_nodes) {
+vector<SemanticReachNodePtr> SemanticReachableSet::_discard_colliding_nodes(vector<SemanticReachNodePtr> const& vec_nodes) {
     try {
         auto vec_nodes_keep =
                 semantic_model->obj_semantic_model_py.attr("discard_colliding_nodes")(vec_nodes)
@@ -353,7 +353,7 @@ vector<SemanticReachNodePtr> ReachableSet::_discard_colliding_nodes(vector<Seman
 }
 
 unordered_map<PropositionHolder, vector<ReachPolygonPtr>, PropositionHolder::HashFunction>
-ReachableSet::_compute_collision_free_drivable_area(int const& step,
+SemanticReachableSet::_compute_collision_free_drivable_area(int const& step,
                                                     unordered_map<PropositionHolder, vector<SemanticReachNodePtr>,
                                                             PropositionHolder::HashFunction> const&
                                                     map_propositions_to_drivable_area) {
@@ -482,7 +482,7 @@ ReachableSet::_compute_collision_free_drivable_area(int const& step,
 /// *Steps*:
 /// 1. construct reach nodes from drivable area and the propagated base sets.
 /// 2. update parent-child relationship of the nodes.
-void ReachableSet::_compute_reachable_set_at_step(int const& step) {
+void SemanticReachableSet::_compute_reachable_set_at_step(int const& step) {
     auto map_propositions_to_propagated_set = map_step_to_propositions_to_propagated_set[step];
     auto map_propositions_to_drivable_area = map_step_to_propositions_to_drivable_area[step];
 
@@ -518,7 +518,7 @@ void ReachableSet::_compute_reachable_set_at_step(int const& step) {
 }
 //
 ///// Iterates through reachability graph backward in time, discards nodes that don't have a child node.
-//void ReachableSet::prune_nodes_not_reaching_final_step() {
+//void SemanticReachableSet::prune_nodes_not_reaching_final_step() {
 //    auto cnt_nodes_before_pruning = reachable_set_at_step(step_end).size();
 //    auto cnt_nodes_after_pruning = cnt_nodes_before_pruning;
 //
@@ -563,7 +563,7 @@ void ReachableSet::_compute_reachable_set_at_step(int const& step) {
 //    // cout << "\t#Nodes after pruning: \t" << cnt_nodes_after_pruning << endl;
 //}
 
-vector<SemanticReachNodePtr> ReachableSet::_call_python_dummy(int const& step, vector<SemanticReachNodePtr> const& vec_nodes) {
+vector<SemanticReachNodePtr> SemanticReachableSet::_call_python_dummy(int const& step, vector<SemanticReachNodePtr> const& vec_nodes) {
     vector<SemanticReachNodePtr> vec_nodes_new{};
     for (auto const& node: vec_nodes) {
         vec_nodes_new.emplace_back(semantic_model->obj_semantic_model_py.attr("call_python_dummy")(step, node)

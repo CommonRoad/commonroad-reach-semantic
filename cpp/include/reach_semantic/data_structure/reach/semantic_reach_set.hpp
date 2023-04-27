@@ -19,7 +19,7 @@ namespace py = pybind11;
 
 namespace reach {
 /// Reachable set representation for the ego vehicle.
-class ReachableSet {
+class SemanticReachableSet {
 private:
     bool _reachable_set_computed{false};
     bool _pruned{false};
@@ -57,11 +57,11 @@ private:
     std::vector<SemanticReachNodePtr> _call_python_dummy(int const& step, vector<SemanticReachNodePtr> const& vec_nodes);
 
 public:
-    explicit ReachableSet(ConfigurationPtr config);
+    explicit SemanticReachableSet(ConfigurationPtr config);
 
-    ReachableSet(ConfigurationPtr config, CollisionCheckerPtr collision_checker, SemanticModelPtr semantic_model);
+    SemanticReachableSet(ConfigurationPtr config, CollisionCheckerPtr collision_checker, SemanticModelPtr semantic_model);
 
-    ReachableSet(ConfigurationPtr config, CollisionCheckerPtr collision_checker,
+    SemanticReachableSet(ConfigurationPtr config, CollisionCheckerPtr collision_checker,
                  SemanticModelPtr semantic_model, TrafficRuleInterfacePtr traffic_rule_interface);
 
     ConfigurationPtr config;
@@ -163,5 +163,5 @@ public:
 
 };
 
-using ReachableSetPtr = shared_ptr<ReachableSet>;
+using SemanticReachableSetPtr = shared_ptr<SemanticReachableSet>;
 }

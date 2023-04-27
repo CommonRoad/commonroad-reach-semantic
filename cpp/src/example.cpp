@@ -7,7 +7,7 @@
 
 #include "collision/collision_checker.h"
 #include "geometry/curvilinear_coordinate_system.h"
-#include "reach_semantic/data_structure/reach/reach_set.hpp"
+#include "reach_semantic/data_structure/reach/semantic_reach_set.hpp"
 #include "reachset/data_structure/reach/reach_polygon.hpp"
 #include "reachset/utility/collision_checker.hpp"
 
@@ -51,7 +51,7 @@ int main() {
             obj_collision_checker_py.attr("cpp_collision_checker").cast<CollisionCheckerPtr>();
 
     // ======== compute reachable sets
-    auto reachable_set = ReachableSet(config, collision_checker);
+    auto reachable_set = SemanticReachableSet(config, collision_checker);
     auto start = high_resolution_clock::now();
     cout << "Computing reachable sets..." << endl;
     reachable_set.compute();

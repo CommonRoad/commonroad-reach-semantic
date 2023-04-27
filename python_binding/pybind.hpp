@@ -8,7 +8,7 @@
 #include "reach_semantic/utility/shared_include.hpp"
 #include "reach_semantic/data_structure/configuration.hpp"
 #include "reach_semantic/data_structure/reach/semantic_reach_node.hpp"
-#include "reach_semantic/data_structure/reach/reach_set.hpp"
+#include "reach_semantic/data_structure/reach/semantic_reach_set.hpp"
 #include "reach_semantic/data_structure/semantic_model.hpp"
 #include "reach_semantic/data_structure/proposition_holder.hpp"
 
