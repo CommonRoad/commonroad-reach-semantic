@@ -7,7 +7,6 @@
 
 #include "reach_semantic/utility/shared_include.hpp"
 #include "reach_semantic/data_structure/configuration.hpp"
-#include "reach_semantic/data_structure/reach/reach_polygon_boost.hpp"
 #include "reach_semantic/data_structure/reach/semantic_reach_node.hpp"
 #include "reach_semantic/data_structure/reach/reach_set.hpp"
 #include "reach_semantic/data_structure/semantic_model.hpp"
@@ -25,8 +24,6 @@ void export_utility(py::module& m);
 void export_reach(py::module& m);
 
 // ---- export_data_structures()
-
-void export_reach_polygon(py::module& m);
 
 void export_reach_node(py::module& m);
 

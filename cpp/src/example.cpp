@@ -8,7 +8,7 @@
 #include "collision/collision_checker.h"
 #include "geometry/curvilinear_coordinate_system.h"
 #include "reach_semantic/data_structure/reach/reach_set.hpp"
-#include "reach_semantic/data_structure/reach/reach_polygon_boost.hpp"
+#include "reachset/data_structure/reach/reach_polygon.hpp"
 #include "reachset/utility/collision_checker.hpp"
 
 using namespace reach;

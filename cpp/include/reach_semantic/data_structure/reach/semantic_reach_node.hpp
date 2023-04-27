@@ -2,7 +2,7 @@
 
 #include "reach_semantic/utility/shared_include.hpp"
 #include "reach_semantic/data_structure/proposition_holder.hpp"
-#include "reach_semantic/data_structure/reach/reach_polygon_boost.hpp"
+#include "reachset/data_structure/reach/reach_polygon.hpp"
 
 namespace reach {
 /// Node within the reachability graph, also used in the reachable set computation.
@@ -77,8 +77,13 @@ public:
 
     /// Rectangle representing the projection of the node onto the position domain.
     inline ReachPolygonPtr position_rectangle() const {
-        return std::make_shared<ReachPolygon>(p_lon_min(), p_lat_min(),
-                                              p_lon_max(), p_lat_max());
+        std::vector<std::tuple<double, double>> vertices = {
+                std::make_tuple(p_lon_min(), p_lat_min()),
+                std::make_tuple(p_lon_max(), p_lat_min()),
+                std::make_tuple(p_lon_max(), p_lat_max()),
+                std::make_tuple(p_lon_min(), p_lat_max())
+        };
+        return std::make_shared<ReachPolygon>(vertices);
     }
 
     inline void assign_parent_nodes(std::vector<std::shared_ptr<SemanticReachNode>> const& vec_nodes_parent) {

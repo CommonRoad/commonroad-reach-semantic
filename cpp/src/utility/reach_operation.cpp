@@ -154,7 +154,7 @@ SemanticReachNodePtr reach::split_reach_node_wrt_interval(SemanticReachNodePtr c
     }
 
     // check the validity of the split node
-    if (not node_split or not node_split->polygon_lon->valid() or not node_split->polygon_lat->valid()) {
+    if (not node_split or node_split->polygon_lon->empty() or node_split->polygon_lat->empty()) {
         node_split = nullptr;
     }
 
@@ -351,26 +351,6 @@ vector<ReachPolygonPtr> reach::check_collision_and_split_rectangles(int const& s
 //
 //    return vec_rectangles_collision_free;
 //}
-
-tuple<double, double, double, double>
-reach::obtain_extremum_coordinates_of_polygons(vector<ReachPolygonPtr> const& vec_polygons) {
-    vector<double> vec_p_lon;
-    vector<double> vec_p_lat;
-
-    for (auto const& polygon: vec_polygons) {
-        vec_p_lon.emplace_back(polygon->p_lon_min());
-        vec_p_lon.emplace_back(polygon->p_lon_max());
-        vec_p_lat.emplace_back(polygon->p_lat_min());
-        vec_p_lat.emplace_back(polygon->p_lat_max());
-    }
-
-    auto p_lon_min = std::min_element(vec_p_lon.cbegin(), vec_p_lon.cend());
-    auto p_lat_min = std::min_element(vec_p_lat.cbegin(), vec_p_lat.cend());
-    auto p_lon_max = std::max_element(vec_p_lon.cbegin(), vec_p_lon.cend());
-    auto p_lat_max = std::max_element(vec_p_lat.cbegin(), vec_p_lat.cend());
-
-    return make_tuple(*p_lon_min, *p_lat_min, *p_lon_max, *p_lat_max);
-}
 
 collision::RectangleAABB reach::obtain_bounding_box_of_rectangles(vector<ReachPolygonPtr> const& vec_rectangles) {
     auto p_lon_min = std::numeric_limits<double>::infinity();
@@ -640,11 +620,11 @@ SemanticReachNodePtr reach::construct_reach_node(ReachPolygonPtr const& rectangl
         if (!polygon_lon->empty() and !polygon_lat->empty()) {
             // add to list if the intersected polygons are nonempty
             for (auto const& vertex: polygon_lon->vertices()) {
-                vec_vertices_polygon_lon_new.emplace_back(vertex.x(), vertex.y());
+                vec_vertices_polygon_lon_new.emplace_back(vertex.x, vertex.y);
             }
 
             for (auto const& vertex: polygon_lat->vertices()) {
-                vec_vertices_polygon_lat_new.emplace_back(vertex.x(), vertex.y());
+                vec_vertices_polygon_lat_new.emplace_back(vertex.x, vertex.y);
             }
 
             // the propagation of a node has only one source of propagation

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "reach_semantic/utility/shared_include.hpp"
-#include "reach_semantic/data_structure/reach/reach_polygon_boost.hpp"
+#include "reachset/data_structure/reach/reach_polygon.hpp"
 #include "reach_semantic/data_structure/proposition_holder.hpp"
 
 namespace reach {

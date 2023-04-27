@@ -265,30 +265,27 @@ vector<SemanticReachNodePtr> ReachableSet::_split_wrt_regions(int const& step, v
             // there is no possibility of intersection
             if (!region->intersects(rectangle, "CVLN")) continue;
 
-            vector<ReachPolygonPtr> vec_polygons_intersection{};
+            auto polygon_intersected = region->polygon_cvln->clone();
             // there is a possibility of intersection
-            try {
-                vec_polygons_intersection = region->polygon_cvln->intersection(rectangle);
-            }
-            catch (...) {
+            // TODO: Find out, why there was a try-catch here
+            // compute intersection with the position rectangle
+            polygon_intersected->intersect_halfspace(1, 0, rectangle->p_lon_max());
+            polygon_intersected->intersect_halfspace(-1, 0, -rectangle->p_lon_min());
+            polygon_intersected->intersect_halfspace(0, 1, rectangle->p_lat_max());
+            polygon_intersected->intersect_halfspace(0, -1, -rectangle->p_lat_min());
+
+            if (polygon_intersected->empty()) {
                 continue;
             }
-            if (vec_polygons_intersection.empty()) continue;
 
             // over-approximate by restoring to axis-aligned rectangles
-            auto [p_lon_min, p_lat_min, p_lon_max, p_lat_max] =
-                    obtain_extremum_coordinates_of_polygons(vec_polygons_intersection);
-            try {
-                // clone the propagated set and split in the position domain, update the propositions
-                auto node_new = node->clone();
-                node_new->intersect_in_position_domain(p_lon_min, p_lat_min, p_lon_max, p_lat_max);
-                vec_nodes_split.emplace_back(update_propositions_with_region(node_new, region, step));
-            }
-            catch (py::error_already_set& e) {
-                cout << "Function: _split_wrt_regions" << endl;
-                py::print(e.what());
-                continue;
-            }
+            auto [p_lon_min, p_lat_min, p_lon_max, p_lat_max] = polygon_intersected->bounding_box();
+
+            // TODO: Find out, why there was a try-catch here
+            // clone the propagated set and split in the position domain, update the propositions
+            auto node_new = node->clone();
+            node_new->intersect_in_position_domain(p_lon_min, p_lat_min, p_lon_max, p_lat_max);
+            vec_nodes_split.emplace_back(update_propositions_with_region(node_new, region, step));
         }
     }
 

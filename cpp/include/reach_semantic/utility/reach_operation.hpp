@@ -1,7 +1,7 @@
 #pragma once
 
 #include "shared_include.hpp"
-#include "reach_semantic/data_structure/reach/reach_polygon_boost.hpp"
+#include "reachset/data_structure/reach/reach_polygon.hpp"
 #include "reach_semantic/data_structure/reach/semantic_reach_node.hpp"
 #include "reach_semantic/data_structure/configuration.hpp"
 #include "collision/collision_checker.h"
@@ -102,10 +102,6 @@ std::vector<ReachPolygonPtr> check_collision_and_split_rectangles(int const& ste
 //                                                                  const geometry::CurvilinearCoordinateSystem &cosy,
 //                                                                  const LUTLongitudinalEnlargement& lut_lon_enlargement,
 //                                                                  ReferencePoint reference_point);
-
-/// Returns the bounding box of polygons
-tuple<double, double, double, double>
-obtain_extremum_coordinates_of_polygons(vector<ReachPolygonPtr> const& vec_polygons);
 
 /// Returns the bounding box of rectangles
 collision::RectangleAABB obtain_bounding_box_of_rectangles(std::vector<ReachPolygonPtr> const& vec_rectangles);

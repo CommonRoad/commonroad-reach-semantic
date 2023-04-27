@@ -4,46 +4,10 @@ namespace py = pybind11;
 using namespace reach;
 
 void export_data_structures(py::module& m) {
-    export_reach_polygon(m);
     export_reach_node(m);
     export_semantic_model(m);
     export_traffic_rule_interface(m);
     export_configuration(m);
-}
-
-void export_reach_polygon(py::module& m) {
-    py::class_<ReachPolygon, shared_ptr<ReachPolygon >>(m, "ReachPolygon")
-            .def(py::init<vector<tuple<double, double >> const&>(),
-                 py::arg("vec_vertices"))
-            .def("p_min", &ReachPolygon::p_min)
-            .def("p_max", &ReachPolygon::p_max)
-            .def("v_min", &ReachPolygon::v_min)
-            .def("v_max", &ReachPolygon::v_max)
-            .def("p_lon_min", &ReachPolygon::p_lon_min)
-            .def("p_lon_max", &ReachPolygon::p_lon_max)
-            .def("p_lat_min", &ReachPolygon::p_lat_min)
-            .def("p_lat_max", &ReachPolygon::p_lat_max)
-            .def("p_lon_center", &ReachPolygon::p_lon_center)
-            .def("p_lat_center", &ReachPolygon::p_lat_center)
-            .def("bounding_box", &ReachPolygon::bounding_box)
-                    //.def("vertices", [](ReachPolygon const& polygon) {
-                    //    py::list list_tuples_vertices;
-                    //    for (auto const& vertex: polygon.vertices()) {
-                    //        list_tuples_vertices.append(py::make_tuple(vertex.p_lon(), vertex.p_lat()));
-                    //    }
-                    //    return list_tuples_vertices;
-                    //})
-            .def("convexify", &ReachPolygon::convexify)
-            .def("minkowski_sum", &ReachPolygon::minkowski_sum)
-            .def("intersects", &ReachPolygon::intersects)
-            .def("intersect_halfspace", &ReachPolygon::intersect_halfspace,
-                 py::arg("a"), py::arg("b"), py::arg("c"))
-            .def("intersects_rectangle", &ReachPolygon::intersects_rectangle,
-                 py::arg("polygon_other"), py::arg("num_digits") = 2)
-            .def("__repr__", [](ReachPolygon const& polygon) {
-                return "(" + std::to_string(polygon.p_lon_min()) + ", " + std::to_string(polygon.p_lat_min())
-                       + ", " + std::to_string(polygon.p_lon_max()) + ", " + std::to_string(polygon.p_lat_max()) + ")";
-            });
 }
 
 void export_reach_node(py::module& m) {
