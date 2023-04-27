@@ -7,7 +7,7 @@ from typing import List, Set, Optional, Dict, Union
 import buddy
 import numpy as np
 import spot
-# from commonroad_reach_semantic import pycrreachs
+from commonroad_reach_semantic import pycrreachs
 from commonroad_reach.data_structure.reach.reach_interface import ReachableSetInterface
 from commonroad_reach.utility import logger as util_logger
 
@@ -210,7 +210,7 @@ class KripkeNode:
 
         return v_lon_min
 
-    def add_reach_node(self, node_reach: Union[SemanticReachNode]):
+    def add_reach_node(self, node_reach: Union[SemanticReachNode, pycrreachs.SemanticReachNode]):
         """
         Adds a reach node.
         """

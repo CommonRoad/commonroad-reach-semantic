@@ -17,7 +17,7 @@ from commonroad_reach_semantic.data_structure.proposition import PropositionGrou
 from commonroad_reach_semantic.data_structure.reach.semantic_reach_node import SemanticReachNode
 from commonroad_reach_semantic.data_structure.region import Region
 from commonroad_reach_semantic.data_structure.road_network import RoadNetwork
-# from commonroad_reach_semantic import pycrreachs
+from commonroad_reach_semantic import pycrreachs
 from commonroad_reach_semantic.data_structure.semantic_configuration import SemanticConfiguration
 # from commonroad_reach_semantic.data_structure.sonia_interface import SONIAInterface
 from commonroad_reach_semantic.data_structure.vehicle import Vehicle
@@ -626,8 +626,8 @@ class SemanticModel:
                 return vehicle
 
     def label_traffic_propositions(self, step,
-                                   list_propagated_sets: Union[List[SemanticReachNode]]) \
-            -> Union[List[SemanticReachNode]]:
+                                   list_propagated_sets: Union[List[SemanticReachNode], List[pycrreachs.SemanticReachNode]]) \
+            -> Union[List[SemanticReachNode], List[pycrreachs.SemanticReachNode]]:
         """
         Labels propagated sets with propositions related to traffic status.
         """
@@ -641,8 +641,8 @@ class SemanticModel:
         return list_propagated_sets
 
     def label_traffic_status_propositions(self, step,
-                                          list_propagated_sets: Union[List[SemanticReachNode]]) \
-            -> Union[List[SemanticReachNode]]:
+                                          list_propagated_sets: Union[List[SemanticReachNode], List[pycrreachs.SemanticReachNode]]) \
+            -> Union[List[SemanticReachNode], List[pycrreachs.SemanticReachNode]]:
         """
         Labels propagated sets with traffic status propositions.
         """
@@ -658,8 +658,8 @@ class SemanticModel:
         return list_propagated_sets
 
     def label_in_conflict_area_propositions(self, step,
-                                            list_propagated_sets: Union[List[SemanticReachNode]]) \
-            -> Union[List[SemanticReachNode]]:
+                                            list_propagated_sets: Union[List[SemanticReachNode], List[pycrreachs.SemanticReachNode]]) \
+            -> Union[List[SemanticReachNode], List[pycrreachs.SemanticReachNode]]:
         """
         Labels propagated sets with propositions related to conflict status between them and the vehicles.
 
@@ -713,8 +713,8 @@ class SemanticModel:
         return list_propagated_sets
 
     def label_causes_braking_propositions(self, step: int,
-                                          list_propagated_sets: Union[List[SemanticReachNode]]) \
-            -> Union[List[SemanticReachNode]]:
+                                          list_propagated_sets: Union[List[SemanticReachNode], List[pycrreachs.SemanticReachNode]]) \
+            -> Union[List[SemanticReachNode], List[pycrreachs.SemanticReachNode]]:
         """
         Labels propagated sets with propositions related to causes braking to other vehicles.
         """
@@ -769,8 +769,8 @@ class SemanticModel:
 
         return list_sets_split
 
-    def update_propositions_with_region(self, propagated_set: Union[SemanticReachNode],
-                                        region: Union[Region], step: int):
+    def update_propositions_with_region(self, propagated_set: Union[SemanticReachNode, pycrreachs.SemanticReachNode],
+                                        region: Union[Region, pycrreachs.Region], step: int):
         """
         Updates the propositions of the propagated set with the proposition of the lanelet region.
 
@@ -838,7 +838,7 @@ class SemanticModel:
         return list_reachable_sets_split
 
     @staticmethod
-    def obtain_lanelet_transition_propositions(propagated_set: Union[SemanticReachNode]):
+    def obtain_lanelet_transition_propositions(propagated_set: Union[SemanticReachNode, pycrreachs.SemanticReachNode]):
         """
         Returns the set of lanelet transition propositions.
         """
