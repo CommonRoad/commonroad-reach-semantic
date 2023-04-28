@@ -2,7 +2,7 @@
 
 #include "reach_semantic/utility/shared_include.hpp"
 
-namespace reach {
+namespace semantic_reach {
 /// Proposition groups.
 enum class PropositionGroup {
     POSITION,

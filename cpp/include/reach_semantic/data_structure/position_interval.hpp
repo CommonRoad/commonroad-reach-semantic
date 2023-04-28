@@ -4,7 +4,7 @@
 #include <pybind11/stl.h>
 #include "reach_semantic/utility/shared_include.hpp"
 
-namespace reach {
+namespace semantic_reach {
 /// Class to represent position intervals in which a set of propositions hold.
 class PositionInterval {
 public:

@@ -1,7 +1,7 @@
 #include "reach_semantic/data_structure/proposition_holder.hpp"
 #include "reachset/utility/shared_using.hpp"
 
-using namespace reach;
+using namespace semantic_reach;
 
 PropositionHolder::PropositionHolder(std::set<std::string> const& set_propositions, PropositionGroup const& group) {
     add_propositions(set_propositions, group);

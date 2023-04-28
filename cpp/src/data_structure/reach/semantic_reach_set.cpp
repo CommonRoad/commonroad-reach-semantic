@@ -5,7 +5,7 @@
 #include "reachset/utility/reach_operation.hpp"
 #include "reach_semantic/utility/reach_operation.hpp"
 
-using namespace reach;
+using namespace semantic_reach;
 
 SemanticReachableSet::SemanticReachableSet(SemanticConfigurationPtr config) : config(std::move(config)) {
     _initialize();
@@ -49,15 +49,15 @@ void SemanticReachableSet::_initialize_zero_state_polygons() {
 void SemanticReachableSet::_construct_initial_drivable_area_and_reachable_set() {
     // initial drivable area
     auto tuple_vertices = generate_tuple_vertices_position_rectangle_initial(config);
-    auto drivable_area_initial = make_shared<ReachPolygon>(std::get<0>(tuple_vertices),
+    auto drivable_area_initial = make_shared<reach::ReachPolygon>(std::get<0>(tuple_vertices),
                                                            std::get<1>(tuple_vertices),
                                                            std::get<2>(tuple_vertices),
                                                            std::get<3>(tuple_vertices));
     // initial reachable set
     auto [tuple_vertices_polygon_lon, tuple_vertices_polygon_lat] =
             generate_tuples_vertices_polygons_initial(config);
-    auto polygon_lon = make_shared<ReachPolygon>(tuple_vertices_polygon_lon);
-    auto polygon_lat = make_shared<ReachPolygon>(tuple_vertices_polygon_lat);
+    auto polygon_lon = make_shared<reach::ReachPolygon>(tuple_vertices_polygon_lon);
+    auto polygon_lat = make_shared<reach::ReachPolygon>(tuple_vertices_polygon_lat);
 
     // obtain initial propositions
     auto proposition_holder = obtain_propositions_for_rectangle(drivable_area_initial, 0);
@@ -74,7 +74,7 @@ void SemanticReachableSet::_construct_initial_drivable_area_and_reachable_set() 
 
 /// Intersects the rectangle with regions and position intervals.
 PropositionHolder
-SemanticReachableSet::obtain_propositions_for_rectangle(ReachPolygonPtr const& rectangle, int const& step) const {
+SemanticReachableSet::obtain_propositions_for_rectangle(reach::ReachPolygonPtr const& rectangle, int const& step) const {
     auto proposition_holder = PropositionHolder();
 
     /// retrieve propositions from the intersecting lanelet region
@@ -353,7 +353,7 @@ vector<SemanticReachNodePtr> SemanticReachableSet::_discard_colliding_nodes(vect
     }
 }
 
-unordered_map<PropositionHolder, vector<ReachPolygonPtr>, PropositionHolder::HashFunction>
+unordered_map<PropositionHolder, vector<reach::ReachPolygonPtr>, PropositionHolder::HashFunction>
 SemanticReachableSet::_compute_collision_free_drivable_area(int const& step,
                                                     unordered_map<PropositionHolder, vector<SemanticReachNodePtr>,
                                                             PropositionHolder::HashFunction> const&
@@ -362,14 +362,14 @@ SemanticReachableSet::_compute_collision_free_drivable_area(int const& step,
     auto size_grid = config->reachable_set().size_grid;
     auto size_grid_2nd = config->reachable_set().size_grid_2nd;
     auto radius_terminal_split = config->reachable_set().radius_terminal_split;
-    unordered_map<PropositionHolder, vector<ReachPolygonPtr>, PropositionHolder::HashFunction>
+    unordered_map<PropositionHolder, vector<reach::ReachPolygonPtr>, PropositionHolder::HashFunction>
             map_proposition_holder_to_drivable_area{};
 
     // individually iterate through lists of propagated sets with different sets of propositions
     for (auto const& [proposition_holder, vec_propagated_sets]: map_propositions_to_drivable_area) {
         auto vec_rectangles_projected = semantic_reach::project_propagated_sets_to_position_domain(vec_propagated_sets);
 
-        vector<ReachPolygonPtr> drivable_area{};
+        vector<reach::ReachPolygonPtr> drivable_area{};
         // repartition, then collision check
         if (mode_repartition == 1) {
             // create repartitioned rectangles from the projected base sets
@@ -412,7 +412,7 @@ SemanticReachableSet::_compute_collision_free_drivable_area(int const& step,
     return map_proposition_holder_to_drivable_area;
 
     // the following code also considers three-circle approximation
-    //vector<ReachPolygonPtr> drivable_area_collision_free{};
+    //vector<reach::ReachPolygonPtr> drivable_area_collision_free{};
     //// repartition, then collision check
     //if (config->reachable_set().mode_repartition == 1) {
     //    auto vec_rectangles_repartitioned = create_repartitioned_rectangles(
@@ -434,7 +434,7 @@ SemanticReachableSet::_compute_collision_free_drivable_area(int const& step,
     //    }
     //    // collision check, then repartition
     //} else if (config->reachable_set().mode_repartition == 2) {
-    //    vector<ReachPolygonPtr> vec_rectangles_collision_free{};
+    //    vector<reach::ReachPolygonPtr> vec_rectangles_collision_free{};
     //    if (config->reachable_set().mode_inflation != 3) {
     //        vec_rectangles_collision_free = check_collision_and_split_rectangles(
     //                step, collision_checker,
@@ -457,7 +457,7 @@ SemanticReachableSet::_compute_collision_free_drivable_area(int const& step,
     //    auto vec_rectangles_repartitioned = create_repartitioned_rectangles(
     //            vec_rectangles_projected, config->reachable_set().size_grid);
     //
-    //    vector<ReachPolygonPtr> vec_rectangles_collision_free{};
+    //    vector<reach::ReachPolygonPtr> vec_rectangles_collision_free{};
     //    if (config->reachable_set().mode_inflation != 3) {
     //        vec_rectangles_collision_free = check_collision_and_split_rectangles(
     //                step, collision_checker,
@@ -540,7 +540,7 @@ void SemanticReachableSet::_compute_reachable_set_at_step(int const& step) {
 //            }
 //        }
 //        // discard nodes without a child
-//        vector<ReachPolygonPtr> vec_drivable_area_updated{};
+//        vector<reach::ReachPolygonPtr> vec_drivable_area_updated{};
 //        vector<SemanticReachNodePtr> vec_reachable_set_updated{};
 //        for (int idx_node = 0; idx_node < vec_nodes.size(); idx_node++) {
 //            auto result = std::find(vec_idx_nodes_to_be_deleted.begin(),

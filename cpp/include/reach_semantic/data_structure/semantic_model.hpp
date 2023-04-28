@@ -6,13 +6,13 @@
 #include "reach_semantic/data_structure/region.hpp"
 #include "reach_semantic/data_structure/position_interval.hpp"
 
-namespace reach {
+namespace semantic_reach {
 /// Class to represent the semantic model of a given CommonRoad scenario.
 class SemanticModel {
 public:
     py::handle obj_semantic_model_py;
 
-    ConfigurationPtr config;
+    SemanticConfigurationPtr config;
     int step_start{};
     int step_end{};
 

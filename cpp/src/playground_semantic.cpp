@@ -13,7 +13,7 @@
 #include "reachset/utility/collision_checker.hpp"
 //#include "reach_semantic/semantic/data_structure/traffic_rule.hpp"
 
-using namespace reach;
+using namespace semantic_reach;
 using std::chrono::high_resolution_clock;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;

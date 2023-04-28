@@ -2,11 +2,11 @@
 #include "reach_semantic/data_structure/reach/semantic_reach_node.hpp"
 #include "reachset/utility/shared_using.hpp"
 
-using namespace reach;
+using namespace semantic_reach;
 
 int SemanticReachNode::cnt_id = 0;
 
-SemanticReachNode::SemanticReachNode(int const& step, ReachPolygonPtr polygon_lon, ReachPolygonPtr polygon_lat,
+SemanticReachNode::SemanticReachNode(int const& step, reach::ReachPolygonPtr polygon_lon, reach::ReachPolygonPtr polygon_lat,
                      PropositionHolder proposition_holder,
                      std::vector<std::shared_ptr<SemanticReachNode>> const& vec_nodes_source) :
         step(step), polygon_lon(std::move(polygon_lon)), polygon_lat(std::move(polygon_lat)),

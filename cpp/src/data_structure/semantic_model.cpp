@@ -1,7 +1,7 @@
 #include "reach_semantic/data_structure/semantic_model.hpp"
 #include "reachset/utility/shared_using.hpp"
 
-using namespace reach;
+using namespace semantic_reach;
 
 SemanticModel::SemanticModel(py::handle const& obj_semantic_model_py) {
     this->obj_semantic_model_py = obj_semantic_model_py;

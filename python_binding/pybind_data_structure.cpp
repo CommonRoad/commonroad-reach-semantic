@@ -1,7 +1,7 @@
 #include "pybind.hpp"
 
 namespace py = pybind11;
-using namespace reach;
+using namespace semantic_reach;
 
 void export_data_structures(py::module& m) {
     export_reach_node(m);
@@ -103,11 +103,11 @@ void export_traffic_rule_interface(py::module& m) {
 
 void export_configuration(py::module& m) {
 
-    py::class_<SemanticConfiguration, shared_ptr<SemanticConfiguration>, Configuration>(m, "SemanticConfiguration")
+    py::class_<SemanticConfiguration, shared_ptr<SemanticConfiguration>, reach::Configuration>(m, "SemanticConfiguration")
             .def(py::init<>())
             .def_readwrite("reachable_set", &SemanticConfiguration::config_reachable_set);
 
-    py::class_<SemanticReachableSetConfiguration, shared_ptr<SemanticReachableSetConfiguration>, ReachableSetConfiguration>(m, "SemanticReachableSetConfiguration")
+    py::class_<SemanticReachableSetConfiguration, shared_ptr<SemanticReachableSetConfiguration>, reach::ReachableSetConfiguration>(m, "SemanticReachableSetConfiguration")
             .def(py::init<>())
             .def_readwrite("length_edge_node_min", &SemanticReachableSetConfiguration::length_edge_node_min);
 }

@@ -4,7 +4,7 @@
 #include "reach_semantic/data_structure/proposition_holder.hpp"
 #include "reachset/data_structure/reach/reach_polygon.hpp"
 
-namespace reach {
+namespace semantic_reach {
 /// Node within the reachability graph, also used in the reachable set computation.
 /// Each node is a Cartesian product of polygon_lon and polygon_lat. In curvilinear coordinate system, polygon_lon
 /// is a polygon in the longitudinal p-v domain, and polygon_lat is a polygon in the lateral p-v domain; In Cartesian
@@ -20,15 +20,15 @@ public:
     /// @param polygon_lat lateral polygon of the node
     /// @param proposition_holder holder for propositions
     /// @param source_propagation source nodes of the propagation
-    SemanticReachNode(int const& step, ReachPolygonPtr polygon_lon, ReachPolygonPtr polygon_lat,
+    SemanticReachNode(int const& step, reach::ReachPolygonPtr polygon_lon, reach::ReachPolygonPtr polygon_lat,
               PropositionHolder proposition_holder,
               std::vector<std::shared_ptr<SemanticReachNode>> const& source_propagation = {});
 
     static int cnt_id;
     int id{};
     int step{};
-    ReachPolygonPtr polygon_lon;
-    ReachPolygonPtr polygon_lat;
+    reach::ReachPolygonPtr polygon_lon;
+    reach::ReachPolygonPtr polygon_lat;
     std::vector<std::shared_ptr<SemanticReachNode>> vec_nodes_parent;
     std::vector<std::shared_ptr<SemanticReachNode>> vec_nodes_child;
     std::vector<std::shared_ptr<SemanticReachNode>> vec_nodes_source;
@@ -76,14 +76,14 @@ public:
     }
 
     /// Rectangle representing the projection of the node onto the position domain.
-    inline ReachPolygonPtr position_rectangle() const {
+    inline reach::ReachPolygonPtr position_rectangle() const {
         std::vector<std::tuple<double, double>> vertices = {
                 std::make_tuple(p_lon_min(), p_lat_min()),
                 std::make_tuple(p_lon_max(), p_lat_min()),
                 std::make_tuple(p_lon_max(), p_lat_max()),
                 std::make_tuple(p_lon_min(), p_lat_max())
         };
-        return std::make_shared<ReachPolygon>(vertices);
+        return std::make_shared<reach::ReachPolygon>(vertices);
     }
 
     inline void assign_parent_nodes(std::vector<std::shared_ptr<SemanticReachNode>> const& vec_nodes_parent) {

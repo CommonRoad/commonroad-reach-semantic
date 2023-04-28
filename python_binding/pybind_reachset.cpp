@@ -1,7 +1,7 @@
 #include "pybind.hpp"
 
 namespace py = pybind11;
-using namespace reach;
+using namespace semantic_reach;
 
 void export_reach(py::module& m) {
     export_reachable_set_interface(m);

@@ -1,7 +1,7 @@
 #include "reach_semantic/data_structure/traffic_rule.hpp"
 #include "reachset/utility/shared_using.hpp"
 
-using namespace reach;
+using namespace semantic_reach;
 
 TrafficRuleInterface::TrafficRuleInterface(py::handle const& obj_traffic_rule_py) {
     this->obj_rule_interface_py = obj_traffic_rule_py;

@@ -1,7 +1,7 @@
 #include "reach_semantic/data_structure/position_interval.hpp"
 #include "reachset/utility/shared_using.hpp"
 
-using namespace reach;
+using namespace semantic_reach;
 
 PositionInterval::PositionInterval(double const& p_min, double const& p_max, set<std::string> const& set_propositions) :
         p_min(p_min), p_max(p_max), set_propositions(set_propositions) {}

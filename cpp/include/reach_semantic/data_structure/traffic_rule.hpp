@@ -4,13 +4,13 @@
 #include "reach_semantic/data_structure/semantic_configuration.hpp"
 #include "reach_semantic/data_structure/reach/semantic_reach_node.hpp"
 
-namespace reach {
+namespace semantic_reach {
 /// Class to hold adopted traffic rules
 class TrafficRuleInterface {
 public:
     py::handle obj_rule_interface_py;
 
-    ConfigurationPtr config;
+    SemanticConfigurationPtr config;
 
     std::map<int, std::set<std::string>> map_step_to_propositions_mandatory;
     std::map<int, std::set<std::string>> map_step_to_propositions_forbidden;

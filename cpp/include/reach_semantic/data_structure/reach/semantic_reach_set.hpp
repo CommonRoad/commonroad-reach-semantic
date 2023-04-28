@@ -17,7 +17,7 @@
 using CollisionCheckerPtr = collision::CollisionCheckerPtr;
 namespace py = pybind11;
 
-namespace reach {
+namespace semantic_reach {
 /// Reachable set representation for the ego vehicle.
 class SemanticReachableSet {
 private:
@@ -47,7 +47,7 @@ private:
     std::vector<SemanticReachNodePtr> _discard_colliding_nodes(std::vector<SemanticReachNodePtr> const& vec_nodes);
 
     /// Computes collision free drivable area.
-    std::unordered_map<PropositionHolder, std::vector<ReachPolygonPtr>, PropositionHolder::HashFunction>
+    std::unordered_map<PropositionHolder, std::vector<reach::ReachPolygonPtr>, PropositionHolder::HashFunction>
     _compute_collision_free_drivable_area(int const& step,
                                           std::unordered_map<PropositionHolder, std::vector<SemanticReachNodePtr>,
                                                   PropositionHolder::HashFunction> const&
@@ -74,16 +74,16 @@ public:
 
     std::map<int, std::unordered_map<PropositionHolder, std::vector<SemanticReachNodePtr>, PropositionHolder::HashFunction>>
             map_step_to_propositions_to_propagated_set{};
-    std::map<int, std::unordered_map<PropositionHolder, std::vector<ReachPolygonPtr>, PropositionHolder::HashFunction>>
+    std::map<int, std::unordered_map<PropositionHolder, std::vector<reach::ReachPolygonPtr>, PropositionHolder::HashFunction>>
             map_step_to_propositions_to_drivable_area{};
     std::map<int, std::unordered_map<PropositionHolder, std::vector<SemanticReachNodePtr>, PropositionHolder::HashFunction>>
             map_step_to_propositions_to_reachable_set{};
 
-    ReachPolygonPtr polygon_zero_state_lon;
-    ReachPolygonPtr polygon_zero_state_lat;
+    reach::ReachPolygonPtr polygon_zero_state_lon;
+    reach::ReachPolygonPtr polygon_zero_state_lat;
 
     /// Returns the propositions of the given rectangle.
-    PropositionHolder obtain_propositions_for_rectangle(ReachPolygonPtr const& rectangle, int const& step) const;
+    PropositionHolder obtain_propositions_for_rectangle(reach::ReachPolygonPtr const& rectangle, int const& step) const;
 
     /// Label traffic propositions using Python script.
     inline std::vector<SemanticReachNodePtr> label_traffic_propositions(int const& step, std::vector<SemanticReachNodePtr> vec_nodes);
@@ -95,7 +95,7 @@ public:
 
     //void prune_nodes_not_reaching_final_step();
 
-    inline std::unordered_map<PropositionHolder, std::vector<ReachPolygonPtr>, PropositionHolder::HashFunction>
+    inline std::unordered_map<PropositionHolder, std::vector<reach::ReachPolygonPtr>, PropositionHolder::HashFunction>
     drivable_area_at_step(int const& step) {
         if (find(_vec_steps_computed.begin(), _vec_steps_computed.end(), step)
             == _vec_steps_computed.end()) {
@@ -107,14 +107,14 @@ public:
         }
     }
 
-    inline std::vector<ReachPolygonPtr> drivable_area_merge_at_step(int const& step) {
+    inline std::vector<reach::ReachPolygonPtr> drivable_area_merge_at_step(int const& step) {
         if (find(_vec_steps_computed.begin(), _vec_steps_computed.end(), step)
             == _vec_steps_computed.end()) {
             cout << "Given step " << step << "for drivable area retrieval is out of range." << endl;
             return {};
 
         } else {
-            std::vector<ReachPolygonPtr> vec_drivable_area_merged{};
+            std::vector<reach::ReachPolygonPtr> vec_drivable_area_merged{};
             auto map_propositions_to_drivable_area = map_step_to_propositions_to_drivable_area[step];
 
             for (auto const& [proposition, vec_drivable_area]:

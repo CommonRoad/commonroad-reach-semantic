@@ -6,10 +6,10 @@
 #include "reach_semantic/utility/shared_include.hpp"
 #include "reachset/utility/shared_using.hpp"
 
-namespace reach {
+namespace semantic_reach {
 
 /// Struct storing reachable set configurations.
-struct SemanticReachableSetConfiguration : ReachableSetConfiguration {
+struct SemanticReachableSetConfiguration : reach::ReachableSetConfiguration {
     // shortest length the edges of a reachable node should possess for it to be kept
     float length_edge_node_min{};
 
@@ -19,7 +19,7 @@ struct SemanticReachableSetConfiguration : ReachableSetConfiguration {
 };
 
 /// Struct storing all configurations.
-struct SemanticConfiguration : Configuration {
+struct SemanticConfiguration : reach::Configuration {
     SemanticReachableSetConfiguration config_reachable_set{};
 
     SemanticConfiguration() = default;
