@@ -1,7 +1,7 @@
 import logging
-from typing import List, Optional
+from collections import defaultdict
+from typing import List, Optional, Union
 
-import commonroad_reach.utility.reach_operation as regular_reach_operation
 import networkx as nx
 from commonroad.scenario.lanelet import Lanelet
 from commonroad_reach.data_structure.reach.reach_node import ReachNode
@@ -9,6 +9,7 @@ from commonroad_reach.data_structure.reach.reach_polygon import ReachPolygon
 from commonroad_reach.utility import geometry as util_geometry
 from commonroad_reach.utility import logger as util_logger
 
+from commonroad_reach_semantic import pycrreachs
 from commonroad_reach_semantic.data_structure.position_interval import PositionInterval
 from commonroad_reach_semantic.data_structure.proposition import PropositionGroup as PropGroup
 from commonroad_reach_semantic.data_structure.reach.semantic_reach_node import SemanticReachNode
@@ -150,16 +151,11 @@ def discard_nodes_with_short_edge(list_nodes: List[ReachNode], length: float):
     ]
 
 
-# scaling factor to apply when determining whether two reachsets are connected
-# this helps to avoid numerical errors
-DIGITS = 2
-
-
 def determine_connected_components(list_nodes_reach):
     """
     Determines and returns the connected reachable sets in the position domain.
     """
-    dict_adjacency = regular_reach_operation.connected_reachset_py(list_nodes_reach, DIGITS)
+    dict_adjacency = determine_connected_reach_nodes(list_nodes_reach)
 
     # adjacency list: list with tuples, e.g., (0, 1) represents that node 0 and node 1 are connected
     set_tuples_adjacent = set()
@@ -177,3 +173,34 @@ def determine_connected_components(list_nodes_reach):
         list_lists_nodes_connected.append(list_nodes_reach_connected)
 
     return list_lists_nodes_connected
+
+
+def determine_connected_reach_nodes(list_nodes_reach: Union[List[SemanticReachNode], List[pycrreachs.SemanticReachNode]]):
+    """
+    Determines connected sets in the position domain.
+
+    Returns a dictionary in the form of {node index self:list of tuples (node index self, node index other)}.
+    This function is the equivalent python function to pycrreach.connected_reachset_boost().
+    """
+    dict_adjacency = defaultdict(list)
+
+    if not list_nodes_reach:
+        return dict_adjacency
+
+    else:
+        if isinstance(list_nodes_reach[0], SemanticReachNode):
+            list_position_rectangles = [node_reach.position_rectangle for node_reach in list_nodes_reach]
+
+        else:
+            list_position_rectangles = [node_reach.position_rectangle() for node_reach in list_nodes_reach]
+
+    # iterate over all rectangles
+    for idx1, position_rect_1 in enumerate(list_position_rectangles):
+        for idx2, position_rect_2 in enumerate(list_position_rectangles):
+            if idx1 == idx2:
+                continue
+
+            if position_rect_1.intersects(position_rect_2):
+                dict_adjacency[idx1].append((idx1, idx2))
+
+    return dict_adjacency
