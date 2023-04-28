@@ -6,7 +6,7 @@
 #include <pybind11/numpy.h>
 
 #include "reach_semantic/utility/shared_include.hpp"
-#include "reach_semantic/data_structure/configuration.hpp"
+#include "reach_semantic/data_structure/semantic_configuration.hpp"
 #include "reach_semantic/data_structure/reach/semantic_reach_node.hpp"
 #include "reach_semantic/data_structure/reach/semantic_reach_set.hpp"
 #include "reach_semantic/data_structure/semantic_model.hpp"
@@ -31,7 +31,7 @@ void export_semantic_model(py::module& m);
 
 void export_traffic_rule_interface(py::module& m);
 
-//void export_configuration(py::module& m);
+void export_configuration(py::module& m);
 
 // ---- export_reach()
 void export_reachable_set_interface(py::module& m);

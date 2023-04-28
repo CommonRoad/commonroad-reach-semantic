@@ -6,18 +6,18 @@
 
 using namespace reach;
 
-SemanticReachableSet::SemanticReachableSet(ConfigurationPtr config) : config(std::move(config)) {
+SemanticReachableSet::SemanticReachableSet(SemanticConfigurationPtr config) : config(std::move(config)) {
     _initialize();
 }
 
-SemanticReachableSet::SemanticReachableSet(ConfigurationPtr config, CollisionCheckerPtr collision_checker,
+SemanticReachableSet::SemanticReachableSet(SemanticConfigurationPtr config, CollisionCheckerPtr collision_checker,
                                            SemanticModelPtr semantic_model) :
         config(std::move(config)), collision_checker(std::move(collision_checker)),
         semantic_model(std::move(semantic_model)) {
     _initialize();
 }
 
-SemanticReachableSet::SemanticReachableSet(ConfigurationPtr config, CollisionCheckerPtr collision_checker,
+SemanticReachableSet::SemanticReachableSet(SemanticConfigurationPtr config, CollisionCheckerPtr collision_checker,
                                            SemanticModelPtr semantic_model, TrafficRuleInterfacePtr traffic_rule_interface) :
         config(std::move(config)), collision_checker(std::move(collision_checker)),
         semantic_model(std::move(semantic_model)), rule_interface(std::move(traffic_rule_interface)) {

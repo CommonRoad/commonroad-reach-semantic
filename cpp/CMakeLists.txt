@@ -24,7 +24,7 @@ set(REACH_INCLUDE_DIR
 set(REACH_SOURCE
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/semantic_reach_node.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/semantic_reach_set.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/configuration.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/semantic_configuration.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/utility/reach_operation.cpp
 
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/proposition_holder.cpp

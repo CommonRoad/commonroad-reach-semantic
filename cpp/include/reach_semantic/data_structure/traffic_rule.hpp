@@ -1,7 +1,7 @@
 #pragma once
 
 #include "reach_semantic/utility/shared_include.hpp"
-#include "reach_semantic/data_structure/configuration.hpp"
+#include "reach_semantic/data_structure/semantic_configuration.hpp"
 #include "reach_semantic/data_structure/reach/semantic_reach_node.hpp"
 
 namespace reach {

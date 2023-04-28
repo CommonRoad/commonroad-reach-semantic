@@ -43,7 +43,7 @@ int main() {
     obj_config_py.attr("update")();
     obj_config_py.attr("print_summary")();
 
-    auto config = obj_config_py.attr("convert_to_cpp_configuration")().cast<ConfigurationPtr>();
+    auto config = obj_config_py.attr("convert_to_cpp_configuration")().cast<SemanticConfigurationPtr>();
 
     // ======== traffic rule interface object via python TrafficRuleInterface
     auto cls_TrafficRuleInterface_py = py::module_::import(

@@ -3,7 +3,7 @@
 #include "shared_include.hpp"
 #include "reachset/data_structure/reach/reach_polygon.hpp"
 #include "reach_semantic/data_structure/reach/semantic_reach_node.hpp"
-#include "reach_semantic/data_structure/configuration.hpp"
+#include "reach_semantic/data_structure/semantic_configuration.hpp"
 #include "collision/collision_checker.h"
 #include "geometry/curvilinear_coordinate_system.h"
 #include "reach_semantic/data_structure/position_interval.hpp"

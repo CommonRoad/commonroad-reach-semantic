@@ -9,13 +9,13 @@ void export_reach(py::module& m) {
 
 void export_reachable_set_interface(py::module& m) {
     py::class_<SemanticReachableSet, shared_ptr<SemanticReachableSet>>(m, "SemanticReachableSet")
-            .def(py::init<ConfigurationPtr&>(),
+            .def(py::init<SemanticConfigurationPtr&>(),
                  py::arg("configuration"))
-            .def(py::init<ConfigurationPtr const&, CollisionCheckerPtr const&, SemanticModelPtr const&>(),
+            .def(py::init<SemanticConfigurationPtr const&, CollisionCheckerPtr const&, SemanticModelPtr const&>(),
                  py::arg("configuration"),
                  py::arg("collision_checker"),
                  py::arg("semantic_model"))
-            .def(py::init<ConfigurationPtr const&, CollisionCheckerPtr const&,
+            .def(py::init<SemanticConfigurationPtr const&, CollisionCheckerPtr const&,
                          SemanticModelPtr const&, TrafficRuleInterfacePtr const&>(),
                  py::arg("configuration"),
                  py::arg("collision_checker"),

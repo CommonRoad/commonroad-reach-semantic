@@ -3,7 +3,7 @@
 #include "reach_semantic/utility/shared_include.hpp"
 #include "reachset/data_structure/reach/reach_polygon.hpp"
 #include "reach_semantic/data_structure/reach/semantic_reach_node.hpp"
-#include "reach_semantic/data_structure/configuration.hpp"
+#include "reach_semantic/data_structure/semantic_configuration.hpp"
 #include "reach_semantic/data_structure/semantic_model.hpp"
 #include "reach_semantic/data_structure/proposition.hpp"
 #include "collision/collision_checker.h"
@@ -57,14 +57,14 @@ private:
     std::vector<SemanticReachNodePtr> _call_python_dummy(int const& step, vector<SemanticReachNodePtr> const& vec_nodes);
 
 public:
-    explicit SemanticReachableSet(ConfigurationPtr config);
+    explicit SemanticReachableSet(SemanticConfigurationPtr config);
 
-    SemanticReachableSet(ConfigurationPtr config, CollisionCheckerPtr collision_checker, SemanticModelPtr semantic_model);
+    SemanticReachableSet(SemanticConfigurationPtr config, CollisionCheckerPtr collision_checker, SemanticModelPtr semantic_model);
 
-    SemanticReachableSet(ConfigurationPtr config, CollisionCheckerPtr collision_checker,
+    SemanticReachableSet(SemanticConfigurationPtr config, CollisionCheckerPtr collision_checker,
                  SemanticModelPtr semantic_model, TrafficRuleInterfacePtr traffic_rule_interface);
 
-    ConfigurationPtr config;
+    SemanticConfigurationPtr config;
     CollisionCheckerPtr collision_checker;
     SemanticModelPtr semantic_model;
     TrafficRuleInterfacePtr rule_interface;
