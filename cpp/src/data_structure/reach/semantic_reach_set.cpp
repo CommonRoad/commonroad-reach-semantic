@@ -2,6 +2,7 @@
 
 #include <utility>
 #include "reachset/utility/shared_using.hpp"
+#include "reachset/utility/reach_operation.hpp"
 #include "reach_semantic/utility/reach_operation.hpp"
 
 using namespace reach;
@@ -313,7 +314,7 @@ vector<SemanticReachNodePtr> SemanticReachableSet::_split_wrt_intervals(int cons
     for (auto const& node: vec_nodes) {
         for (auto const& interval_lon: vec_intervals_lon) {
             if (interval_lon->intersects(node->p_lon_min(), node->p_lon_max())) {
-                auto node_split = split_reach_node_wrt_interval(node, interval_lon, "lon");
+                auto node_split = semantic_reach::split_reach_node_wrt_interval(node, interval_lon, "lon");
                 if (node_split) {
                     vec_nodes_split_lon.emplace_back(node_split);
                 }
@@ -325,7 +326,7 @@ vector<SemanticReachNodePtr> SemanticReachableSet::_split_wrt_intervals(int cons
     for (auto const& node: vec_nodes_split_lon) {
         for (auto const& interval_lat: vec_intervals_lat) {
             if (interval_lat->intersects(node->p_lat_min(), node->p_lat_max())) {
-                auto node_split = split_reach_node_wrt_interval(node, interval_lat, "lat");
+                auto node_split = semantic_reach::split_reach_node_wrt_interval(node, interval_lat, "lat");
                 if (node_split) {
                     vec_nodes_split.emplace_back(node_split);
                 }
@@ -366,7 +367,7 @@ SemanticReachableSet::_compute_collision_free_drivable_area(int const& step,
 
     // individually iterate through lists of propagated sets with different sets of propositions
     for (auto const& [proposition_holder, vec_propagated_sets]: map_propositions_to_drivable_area) {
-        auto vec_rectangles_projected = project_propagated_sets_to_position_domain(vec_propagated_sets);
+        auto vec_rectangles_projected = semantic_reach::project_propagated_sets_to_position_domain(vec_propagated_sets);
 
         vector<ReachPolygonPtr> drivable_area{};
         // repartition, then collision check
@@ -503,14 +504,14 @@ void SemanticReachableSet::_compute_reachable_set_at_step(int const& step) {
     for (auto const& [proposition_holder, drivable_area]: map_propositions_to_drivable_area) {
         auto propagated_set = map_propositions_to_propagated_set[proposition_holder];
 
-        auto vec_nodes = construct_reach_nodes(drivable_area, propagated_set, num_threads);
+        auto vec_nodes = semantic_reach::construct_reach_nodes(drivable_area, propagated_set, num_threads);
 
         if (discard_small_node) {
-            vec_nodes = discard_nodes_with_short_edge(vec_nodes, config->reachable_set().length_edge_node_min);
+            vec_nodes = semantic_reach::discard_nodes_with_short_edge(vec_nodes, config->reachable_set().length_edge_node_min);
         }
 
         if (!vec_nodes.empty()) {
-            auto reachable_set = connect_children_to_parents(step, vec_nodes, num_threads);
+            auto reachable_set = semantic_reach::connect_children_to_parents(step, vec_nodes, num_threads);
             map_propositions_to_reachable_set[proposition_holder] = reachable_set;
         }
     }
