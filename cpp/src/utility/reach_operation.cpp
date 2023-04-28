@@ -27,7 +27,7 @@ ReachPolygonPtr reach::create_zero_state_polygon(double const& dt, double const&
                                      std::get<2>(tuple_coefficients_lower));
     }
     polygon->convexify();
-    //polygon->sort_vertices_bottom_left_first();
+    polygon->sort_vertices_bottom_left_first();
 
     return polygon;
 }
