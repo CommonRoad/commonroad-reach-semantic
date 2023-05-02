@@ -32,7 +32,7 @@ class ColorMapper:
         # determine number of colors
 
         different_propositions = {
-            reach_node.proposition_holder
+            frozenset(reach_node.proposition_holder.set_propositions)
             for step in steps
             for reach_node in reach_interface.reachable_set_at_step(step)
         }

@@ -11,13 +11,13 @@ from commonroad.scenario.traffic_sign import TrafficLightDirection, TrafficLight
 
 import commonroad_reach_semantic.utility.reach_operation as reach_operation
 import commonroad_reach_semantic.utility.region as util_region
+from commonroad_reach_semantic import pycrreachs
 from commonroad_reach_semantic.data_structure.position_interval import PositionInterval
 from commonroad_reach_semantic.data_structure.proposition import Proposition as P
 from commonroad_reach_semantic.data_structure.proposition import PropositionGroup as PG
 from commonroad_reach_semantic.data_structure.reach.semantic_reach_node import SemanticReachNode
 from commonroad_reach_semantic.data_structure.region import Region
 from commonroad_reach_semantic.data_structure.road_network import RoadNetwork
-# from commonroad_reach_semantic import pycrreachs
 from commonroad_reach_semantic.data_structure.semantic_configuration import SemanticConfiguration
 # from commonroad_reach_semantic.data_structure.sonia_interface import SONIAInterface
 from commonroad_reach_semantic.data_structure.vehicle import Vehicle
@@ -626,8 +626,9 @@ class SemanticModel:
                 return vehicle
 
     def label_traffic_propositions(self, step,
-                                   list_propagated_sets: Union[List[SemanticReachNode]]) \
-            -> Union[List[SemanticReachNode]]:
+                                   list_propagated_sets: Union[
+                                       List[SemanticReachNode], List[pycrreachs.SemanticReachNode]]) \
+            -> Union[List[SemanticReachNode], List[pycrreachs.SemanticReachNode]]:
         """
         Labels propagated sets with propositions related to traffic status.
         """
@@ -641,8 +642,9 @@ class SemanticModel:
         return list_propagated_sets
 
     def label_traffic_status_propositions(self, step,
-                                          list_propagated_sets: Union[List[SemanticReachNode]]) \
-            -> Union[List[SemanticReachNode]]:
+                                          list_propagated_sets: Union[
+                                              List[SemanticReachNode], List[pycrreachs.SemanticReachNode]]) \
+            -> Union[List[SemanticReachNode], List[pycrreachs.SemanticReachNode]]:
         """
         Labels propagated sets with traffic status propositions.
         """
@@ -658,8 +660,9 @@ class SemanticModel:
         return list_propagated_sets
 
     def label_in_conflict_area_propositions(self, step,
-                                            list_propagated_sets: Union[List[SemanticReachNode]]) \
-            -> Union[List[SemanticReachNode]]:
+                                            list_propagated_sets: Union[
+                                                List[SemanticReachNode], List[pycrreachs.SemanticReachNode]]) \
+            -> Union[List[SemanticReachNode], List[pycrreachs.SemanticReachNode]]:
         """
         Labels propagated sets with propositions related to conflict status between them and the vehicles.
 
@@ -713,8 +716,9 @@ class SemanticModel:
         return list_propagated_sets
 
     def label_causes_braking_propositions(self, step: int,
-                                          list_propagated_sets: Union[List[SemanticReachNode]]) \
-            -> Union[List[SemanticReachNode]]:
+                                          list_propagated_sets: Union[
+                                              List[SemanticReachNode], List[pycrreachs.SemanticReachNode]]) \
+            -> Union[List[SemanticReachNode], List[pycrreachs.SemanticReachNode]]:
         """
         Labels propagated sets with propositions related to causes braking to other vehicles.
         """
@@ -769,8 +773,8 @@ class SemanticModel:
 
         return list_sets_split
 
-    def update_propositions_with_region(self, propagated_set: Union[SemanticReachNode],
-                                        region: Union[Region], step: int):
+    def update_propositions_with_region(self, propagated_set: Union[SemanticReachNode, pycrreachs.SemanticReachNode],
+                                        region: Union[Region, pycrreachs.Region], step: int):
         """
         Updates the propositions of the propagated set with the proposition of the lanelet region.
 
@@ -802,7 +806,7 @@ class SemanticModel:
         return propagated_set
 
     def split_wrt_position_intervals(self, step: int,
-                                      reachable_set: SemanticReachNode) -> List[SemanticReachNode]:
+                                     reachable_set: SemanticReachNode) -> List[SemanticReachNode]:
         """
         Splits the reachable set w.r.t position intervals.
         """
@@ -838,7 +842,7 @@ class SemanticModel:
         return list_reachable_sets_split
 
     @staticmethod
-    def obtain_lanelet_transition_propositions(propagated_set: Union[SemanticReachNode]):
+    def obtain_lanelet_transition_propositions(propagated_set: Union[SemanticReachNode, pycrreachs.SemanticReachNode]):
         """
         Returns the set of lanelet transition propositions.
         """
@@ -862,6 +866,30 @@ class SemanticModel:
                     set_propositions.add(P.lanelet_transition(id_lanelet_source, id_lanelet_base_set))
 
         return set_propositions
+
+    @staticmethod
+    def discard_colliding_nodes(list_propagated_set: List[SemanticReachNode]) -> List[SemanticReachNode]:
+        """
+        Returns a list of propagated sets that do not collide with vehicles.
+        """
+        list_nodes_keep = []
+
+        for propagated_set in list_propagated_set:
+            colliding = False
+            set_propositions = propagated_set.set_propositions()
+            for proposition in set_propositions:
+                # check if it is aligned with and besides a vehicle
+                if P.aligned_with() in proposition:
+                    id_vehicle = int(proposition.split("_")[1][1:])
+
+                    if P.beside(id_vehicle) in set_propositions:
+                        colliding = True
+                        break
+
+            if not colliding:
+                list_nodes_keep.append(propagated_set)
+
+        return list_nodes_keep
 
     @staticmethod
     def call_python_dummy(step, node):

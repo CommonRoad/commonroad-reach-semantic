@@ -2,6 +2,7 @@ import commonroad_reach.utility.logger as util_logger
 from commonroad_reach.data_structure.reach.reach_interface import ReachableSetInterface
 
 from commonroad_reach_semantic.data_structure.driving_corridor_extractor import DrivingCorridorExtractor
+from commonroad_reach_semantic.data_structure.reach.semantic_reach_set_cpp import CppSemanticReachableSet
 from commonroad_reach_semantic.data_structure.reach.semantic_reach_set_py import PySemanticReachableSet
 from commonroad_reach_semantic.data_structure.semantic_configuration_builder import SemanticConfigurationBuilder
 from commonroad_reach_semantic.data_structure.semantic_model import SemanticModel
@@ -35,7 +36,8 @@ def main():
 
     # ==== compute reachable sets using reachability interface
     reach_interface = ReachableSetInterface(config)
-    reach_interface._reach = PySemanticReachableSet(config, semantic_model, rule_interface)
+    # reach_interface._reach = PySemanticReachableSet(config, semantic_model, rule_interface)
+    reach_interface._reach = CppSemanticReachableSet(config, semantic_model, rule_interface)
     reach_interface.compute_reachable_sets()
 
     # ==== construct an interface to interact with Spot

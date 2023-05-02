@@ -3,7 +3,7 @@ from collections import defaultdict
 from typing import Union, Dict, List, Set, Optional
 
 import numpy as np
-# from commonroad_reach_semantic import pycrreachs
+from commonroad_reach_semantic import pycrreachs
 from commonroad.geometry.shape import Shape, Rectangle
 from commonroad.scenario.intersection import IntersectionIncomingElement
 from commonroad.scenario.lanelet import LaneletNetwork
@@ -264,7 +264,7 @@ class Vehicle:
 
         return set()
 
-    def retrieve_p_lon_node_ego(self, node: Union[SemanticReachNode]):
+    def retrieve_p_lon_node_ego(self, node: Union[SemanticReachNode, pycrreachs.SemanticReachNode]):
         if isinstance(node, SemanticReachNode):
             bounds = node.position_rectangle.bounds
 
@@ -281,7 +281,7 @@ class Vehicle:
         """Returns True if vehicle is behind the base set."""
         return True if self.front_distance_to_node_at_step(step, node) > 0 else False
 
-    def braking_caused_by_node_at_step(self, step: int, node: Union[SemanticReachNode]) -> bool:
+    def braking_caused_by_node_at_step(self, step: int, node: Union[SemanticReachNode, pycrreachs.SemanticReachNode]) -> bool:
         """
         Returns whether the vehicle should brake hard due to the reach node.
         """
@@ -291,7 +291,7 @@ class Vehicle:
 
         return small_distance and brake_hard
 
-    def front_distance_to_node_at_step(self, step: int, node: Union[SemanticReachNode]) -> float:
+    def front_distance_to_node_at_step(self, step: int, node: Union[SemanticReachNode, pycrreachs.SemanticReachNode]) -> float:
         """
         Returns the front distance of the vehicle to the base set.
 
@@ -311,7 +311,7 @@ class Vehicle:
             p_lon_min_node_ego = min(list_p_lon_node_ego) - self.radius_inflation
             return p_lon_min_node_ego - p_lon_max_ego
 
-    def should_brake_hard_due_to_node_at_step(self, step: int, node: Union[SemanticReachNode]) -> bool:
+    def should_brake_hard_due_to_node_at_step(self, step: int, node: Union[SemanticReachNode, pycrreachs.SemanticReachNode]) -> bool:
         """
         Returns whether the vehicle should brake harder than the predefined threshold due to the reach node.
         """
