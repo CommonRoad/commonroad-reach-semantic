@@ -1,11 +1,13 @@
 import commonroad_reach.utility.logger as util_logger
 from commonroad_reach.data_structure.reach.reach_interface import ReachableSetInterface
 
-from commonroad_reach_semantic.data_structure.driving_corridor_extractor import DrivingCorridorExtractor
-from commonroad_reach_semantic.data_structure.reach.semantic_reach_set_cpp import CppSemanticReachableSet
+import commonroad_reach_semantic.data_structure.rule.priorities as priorities
 from commonroad_reach_semantic.data_structure.config.semantic_configuration_builder import SemanticConfigurationBuilder
+from commonroad_reach_semantic.data_structure.driving_corridor_extractor import DrivingCorridorExtractor
 from commonroad_reach_semantic.data_structure.environment_model.semantic_model import SemanticModel
 from commonroad_reach_semantic.data_structure.model_checking.spot_interface import SpotInterface
+from commonroad_reach_semantic.data_structure.reach.semantic_reach_set_cpp import CppSemanticReachableSet
+from commonroad_reach_semantic.data_structure.reach.semantic_reach_set_py import PySemanticReachableSet
 from commonroad_reach_semantic.data_structure.rule.traffic_rule_interface import TrafficRuleInterface
 from commonroad_reach_semantic.utility import visualization as util_visual
 
@@ -29,14 +31,14 @@ def main():
     # ==== initialize semantic model and traffic rules
     semantic_model = SemanticModel(config)
     rule_interface = TrafficRuleInterface(config)
-    semantic_model.determine_traffic_priorities(rule_interface.dict_traffic_sign_to_priorities)
+    semantic_model.determine_traffic_priorities(priorities.dict_traffic_sign_to_priorities)
     rule_interface.concretize_traffic_rules(semantic_model)
     rule_interface.print_summary()
 
     # ==== compute reachable sets using reachability interface
     reach_interface = ReachableSetInterface(config)
-    # reach_interface._reach = PySemanticReachableSet(config, semantic_model, rule_interface)
-    reach_interface._reach = CppSemanticReachableSet(config, semantic_model, rule_interface)
+    reach_interface._reach = PySemanticReachableSet(config, semantic_model, rule_interface)
+    # reach_interface._reach = CppSemanticReachableSet(config, semantic_model, rule_interface)
     reach_interface.compute_reachable_sets()
 
     # ==== construct an interface to interact with Spot
