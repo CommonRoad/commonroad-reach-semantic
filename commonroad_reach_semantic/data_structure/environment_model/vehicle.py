@@ -13,9 +13,9 @@ from commonroad.scenario.trajectory import State
 from commonroad_dc.pycrccosy import CurvilinearCoordinateSystem
 from commonroad_route_planner.route import Route
 
-from commonroad_reach_semantic.data_structure.semantic_configuration import SemanticConfiguration
+from commonroad_reach_semantic.data_structure.config.semantic_configuration import SemanticConfiguration
 from commonroad_reach_semantic.data_structure.reach.semantic_reach_node import SemanticReachNode
-from commonroad_reach_semantic.data_structure.road_network import Lane, RoadNetwork
+from commonroad_reach_semantic.data_structure.environment_model.road_network import Lane, RoadNetwork
 import commonroad_reach.utility.coordinate_system as util_cosy
 import commonroad_reach_semantic.utility.vehicle as util_vehicle
 

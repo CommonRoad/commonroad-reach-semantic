@@ -3,7 +3,7 @@ import os
 from commonroad_reach.data_structure.configuration_builder import ConfigurationBuilder
 from omegaconf import OmegaConf
 
-from commonroad_reach_semantic.data_structure.semantic_configuration import SemanticConfiguration
+from commonroad_reach_semantic.data_structure.config.semantic_configuration import SemanticConfiguration
 
 
 class SemanticConfigurationBuilder(ConfigurationBuilder):
@@ -22,7 +22,7 @@ class SemanticConfigurationBuilder(ConfigurationBuilder):
         :return: built configuration
         """
         if path_root is None:
-            path_root = os.path.normpath(os.path.join(os.path.dirname(__file__), "../.."))
+            path_root = os.path.normpath(os.path.join(os.path.dirname(__file__), "../../.."))
 
         if cls.path_root is None:
             cls.set_paths(path_root=path_root, dir_config=dir_config, dir_config_default=dir_config_default)

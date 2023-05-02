@@ -1,7 +1,7 @@
 from typing import Set
 
-from commonroad_reach_semantic.data_structure.vehicle import Vehicle
-from commonroad_reach_semantic.data_structure.proposition import Proposition as P
+from commonroad_reach_semantic.data_structure.environment_model.vehicle import Vehicle
+from commonroad_reach_semantic.data_structure.rule.proposition import Proposition as P
 
 
 class PositionInterval:

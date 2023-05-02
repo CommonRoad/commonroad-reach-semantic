@@ -7,7 +7,7 @@ from shapely.geometry import Polygon, MultiPolygon
 from commonroad_reach.data_structure.reach.reach_polygon import ReachPolygon
 import commonroad_reach.utility.general as util_general
 
-from commonroad_reach_semantic.data_structure.region import Region
+from commonroad_reach_semantic.data_structure.environment_model.region import Region
 import commonroad_reach_semantic.utility.geometry as util_geometry
 
 

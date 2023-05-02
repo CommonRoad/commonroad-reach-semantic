@@ -10,8 +10,8 @@ from commonroad_reach.utility import geometry as util_geometry
 from commonroad_reach.utility import logger as util_logger
 
 from commonroad_reach_semantic import pycrreachs
-from commonroad_reach_semantic.data_structure.position_interval import PositionInterval
-from commonroad_reach_semantic.data_structure.proposition import PropositionGroup as PropGroup
+from commonroad_reach_semantic.data_structure.environment_model.position_interval import PositionInterval
+from commonroad_reach_semantic.data_structure.rule.proposition import PropositionGroup as PropGroup
 from commonroad_reach_semantic.data_structure.reach.semantic_reach_node import SemanticReachNode
 
 logger = logging.getLogger(__name__)

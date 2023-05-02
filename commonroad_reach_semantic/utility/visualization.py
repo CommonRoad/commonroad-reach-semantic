@@ -17,10 +17,10 @@ from commonroad_reach.data_structure.reach.reach_interface import ReachableSetIn
 from commonroad_reach.utility import coordinate_system as util_coordinate_system
 
 from commonroad_reach_semantic.data_structure.driving_corridor_extractor import DrivingCorridor
-from commonroad_reach_semantic.data_structure.kripke import KripkeNode
-from commonroad_reach_semantic.data_structure.semantic_configuration import SemanticConfiguration
-from commonroad_reach_semantic.data_structure.semantic_model import SemanticModel
-from commonroad_reach_semantic.data_structure.spot_interface import SpotInterface
+from commonroad_reach_semantic.data_structure.model_checking.kripke import KripkeNode
+from commonroad_reach_semantic.data_structure.config.semantic_configuration import SemanticConfiguration
+from commonroad_reach_semantic.data_structure.environment_model.semantic_model import SemanticModel
+from commonroad_reach_semantic.data_structure.model_checking.spot_interface import SpotInterface
 
 logger = logging.getLogger(__name__)
 logging.getLogger('PIL').setLevel(logging.WARNING)

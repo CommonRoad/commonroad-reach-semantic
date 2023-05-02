@@ -5,10 +5,10 @@ from typing import Set, List
 import spot
 import numpy as np
 from commonroad.scenario.traffic_sign import TrafficSignIDZamunda
-from commonroad_reach_semantic.data_structure.semantic_configuration import SemanticConfiguration
+from commonroad_reach_semantic.data_structure.config.semantic_configuration import SemanticConfiguration
 from commonroad_reach_semantic.data_structure.reach.semantic_reach_node import SemanticReachNode
-from commonroad_reach_semantic.data_structure.semantic_model import SemanticModel
-from commonroad_reach_semantic.data_structure.traffic_rule import NoBackwardDrivingRule, NoOppositeDrivingRule, \
+from commonroad_reach_semantic.data_structure.environment_model.semantic_model import SemanticModel
+from commonroad_reach_semantic.data_structure.rule.traffic_rule import NoBackwardDrivingRule, NoOppositeDrivingRule, \
     LineMarkingRule, \
     TrafficLightRule, PriorityRule, RightBeforeLeftRule, LeftTurningRule
 import commonroad_reach.utility.logger as util_logger

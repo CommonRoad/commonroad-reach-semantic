@@ -4,9 +4,9 @@ from commonroad_reach.data_structure.collision_checker import CollisionChecker
 
 from commonroad_reach_semantic import pycrreachs
 from commonroad_reach_semantic.data_structure.reach.semantic_reach_set import SemanticReachableSet
-from commonroad_reach_semantic.data_structure.semantic_configuration import SemanticConfiguration
-from commonroad_reach_semantic.data_structure.semantic_model import SemanticModel
-from commonroad_reach_semantic.data_structure.traffic_rule_interface import TrafficRuleInterface
+from commonroad_reach_semantic.data_structure.config.semantic_configuration import SemanticConfiguration
+from commonroad_reach_semantic.data_structure.environment_model.semantic_model import SemanticModel
+from commonroad_reach_semantic.data_structure.rule.traffic_rule_interface import TrafficRuleInterface
 
 logger = logging.getLogger(__name__)
 

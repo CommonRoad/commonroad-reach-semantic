@@ -6,8 +6,8 @@ from typing import Set
 from commonroad_reach.data_structure.reach.reach_node import ReachNode
 from commonroad_reach.pycrreach import ReachPolygon
 
-from commonroad_reach_semantic.data_structure.proposition import Proposition as Prop
-from commonroad_reach_semantic.data_structure.proposition_holder import PropositionHolder
+from commonroad_reach_semantic.data_structure.rule.proposition import Proposition as Prop
+from commonroad_reach_semantic.data_structure.rule.proposition_holder import PropositionHolder
 
 
 class SemanticReachNode(ReachNode):

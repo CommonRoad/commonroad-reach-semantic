@@ -12,15 +12,15 @@ from commonroad.scenario.traffic_sign import TrafficLightDirection, TrafficLight
 import commonroad_reach_semantic.utility.reach_operation as reach_operation
 import commonroad_reach_semantic.utility.region as util_region
 from commonroad_reach_semantic import pycrreachs
-from commonroad_reach_semantic.data_structure.position_interval import PositionInterval
-from commonroad_reach_semantic.data_structure.proposition import Proposition as P
-from commonroad_reach_semantic.data_structure.proposition import PropositionGroup as PG
+from commonroad_reach_semantic.data_structure.environment_model.position_interval import PositionInterval
+from commonroad_reach_semantic.data_structure.rule.proposition import Proposition as P
+from commonroad_reach_semantic.data_structure.rule.proposition import PropositionGroup as PG
 from commonroad_reach_semantic.data_structure.reach.semantic_reach_node import SemanticReachNode
-from commonroad_reach_semantic.data_structure.region import Region
-from commonroad_reach_semantic.data_structure.road_network import RoadNetwork
-from commonroad_reach_semantic.data_structure.semantic_configuration import SemanticConfiguration
+from commonroad_reach_semantic.data_structure.environment_model.region import Region
+from commonroad_reach_semantic.data_structure.environment_model.road_network import RoadNetwork
+from commonroad_reach_semantic.data_structure.config.semantic_configuration import SemanticConfiguration
 # from commonroad_reach_semantic.data_structure.sonia_interface import SONIAInterface
-from commonroad_reach_semantic.data_structure.vehicle import Vehicle
+from commonroad_reach_semantic.data_structure.environment_model.vehicle import Vehicle
 
 logger = logging.getLogger(__name__)
 
