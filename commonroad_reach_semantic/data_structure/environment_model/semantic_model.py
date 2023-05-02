@@ -5,22 +5,20 @@ from typing import List, Dict, Union
 
 import commonroad_reach.utility.logger as util_logger
 import numpy as np
-from commonroad.scenario.lanelet import LaneletNetwork, LaneletType
-from commonroad.scenario.obstacle import DynamicObstacle
+from commonroad.scenario.lanelet import LaneletNetwork
 from commonroad.scenario.traffic_sign import TrafficLightDirection, TrafficLightState
 
 import commonroad_reach_semantic.utility.reach_operation as reach_operation
 import commonroad_reach_semantic.utility.region as util_region
 from commonroad_reach_semantic import pycrreachs
 from commonroad_reach_semantic.data_structure.environment_model.position_interval import PositionInterval
+from commonroad_reach_semantic.data_structure.environment_model.vehicle_model import VehicleModel
 from commonroad_reach_semantic.data_structure.rule.proposition import Proposition as P
 from commonroad_reach_semantic.data_structure.rule.proposition import PropositionGroup as PG
 from commonroad_reach_semantic.data_structure.reach.semantic_reach_node import SemanticReachNode
 from commonroad_reach_semantic.data_structure.environment_model.region import Region
 from commonroad_reach_semantic.data_structure.environment_model.road_network import RoadNetwork
 from commonroad_reach_semantic.data_structure.config.semantic_configuration import SemanticConfiguration
-# from commonroad_reach_semantic.data_structure.sonia_interface import SONIAInterface
-from commonroad_reach_semantic.data_structure.environment_model.vehicle import Vehicle
 
 logger = logging.getLogger(__name__)
 
@@ -56,11 +54,6 @@ class SemanticModel:
         self.dict_id_lanelet_to_lanelet = dict()
         self.dict_id_lanelet_to_set_ids_lanelets_intersecting = defaultdict(set)
 
-        # vehicle-related
-        self.list_vehicles: List[Vehicle] = list()
-        self.set_ids_vehicles_entering_intersection = set()
-        self.dict_sonia_prediction = defaultdict(dict)
-
         # region-related
         self.list_regions: List[Region] = list()
         self.dict_step_to_position_intervals = dict()
@@ -69,7 +62,8 @@ class SemanticModel:
         self.dict_step_to_traffic_status_propositions = dict()
 
         self._create_local_lanelet_network_and_road_network()
-        self._create_vehicles()
+        self.vehicle_model = VehicleModel(self.config, self.road_network, self.local_lanelet_network, self.step_start,
+                                          self.step_end)
         self._create_position_intervals()
         self._create_lanelet_regions()
         self._determine_propositions()
@@ -80,7 +74,7 @@ class SemanticModel:
     def print_summary(self):
         string = "# ========= Model Summary ========= #\n"
         string += f"#\tLanes: {len(self.road_network.list_lanes)}\n"
-        string += f"#\tVehicles: {len(self.list_vehicles)}\n"
+        string += f"#\tVehicles: {len(self.vehicle_model.list_vehicles)}\n"
         string += f"#\tRegions: {len(self.list_regions)}\n"
         string += "# ================================= #"
 
@@ -241,107 +235,6 @@ class SemanticModel:
 
         return set_ids_lanelets_intersection
 
-    def _create_vehicles(self):
-        """
-        Creates vehicle objects from relevant obstacles in the scenario.
-        """
-        Vehicle.initialize(self.config, self.road_network)
-
-        if self.config.semantic_model.use_sonia:
-            # self.scenario_with_sonia, self.dict_sonia_prediction = self._obtain_sonia_prediction()
-            logger.error("SONIA not connected yet")
-
-        list_obstacles_relevant = self._retrieve_relevant_obstacles(fov=self.config.vehicle.ego.fov)
-        self._add_obstacles_to_lanelets(list_obstacles_relevant)
-        self.list_vehicles = self._create_vehicles_from_obstacles(list_obstacles_relevant)
-        self.set_ids_vehicles_entering_intersection = self._retrieve_vehicles_entering_intersection()
-
-        logger.info("Vehicles created.")
-
-    # def _obtain_sonia_prediction(self):
-    #     """
-    #     Returns a new scenario with automata prediction.
-    #     """
-    #     util_logger.print_and_log_info(logger, "* Computing SONIA Prediction...")
-    #     sonia_interface = SONIAInterface(self.config)
-    #     sonia_interface.predict_occupancies()
-    #     dict_sonia_prediction = sonia_interface.postprocess_prediction()
-    #     sonia_interface.deregister_scenario()
-    #
-    #     return sonia_interface.scenario, dict_sonia_prediction
-
-    def _retrieve_relevant_obstacles(self, fov=200, bound_with_circle=True):
-        """
-        Returns a list of obstacles in the scenario to be considered in the computation.
-
-        Computes a circle with the initial position as the center, and the fov of the ego vehicle as the radius.
-        The vehicles within this radius are deemed as relevant obstacles.
-        """
-        list_obstacles_relevant = []
-
-        if not bound_with_circle:
-            # return all obstacles in the scenario
-            return self.config.scenario.obstacles
-
-        # obtain vehicles within the fov of the ego vehicle
-        for obs in self.config.scenario.obstacles:
-            # compute the distance between the initial position of ego and other vehicles
-            dis = np.linalg.norm(obs.initial_state.position - self.config.planning_problem.initial_state.position)
-            if dis <= fov:
-                list_obstacles_relevant.append(obs)
-
-        return list_obstacles_relevant
-
-    def _add_obstacles_to_lanelets(self, list_obstacles):
-        """
-        Adds obstacles to lanelets.
-
-        An obstacle is added to a lanelet if its occupancy in the future time steps intersects with the lanelet.
-        """
-        for obstacle in list_obstacles:
-            for lanelet in self.local_lanelet_network.lanelets:
-                polygon_lanelet = lanelet.polygon.shapely_object
-
-                for step in range(self.step_end + 1):
-                    time_step = step * round(self.config.planning.dt * 10)
-                    occupancy = obstacle.occupancy_at_time(time_step)
-                    if occupancy and occupancy.shape.shapely_object.intersects(polygon_lanelet):
-                        if isinstance(obstacle, DynamicObstacle):
-                            lanelet.add_dynamic_obstacle_to_lanelet(obstacle.obstacle_id, time_step)
-
-                        else:
-                            lanelet.add_static_obstacle_to_lanelet(obstacle.obstacle_id)
-                            break
-
-    def _create_vehicles_from_obstacles(self, list_obstacles):
-        """
-        Creates a list of vehicle objects from the given list of obstacles.
-        """
-        list_vehicles = []
-
-        for obstacle in list_obstacles:
-            vehicle = Vehicle.create_vehicle_from_obstacle(obstacle, self.dict_sonia_prediction)
-            if vehicle:
-                list_vehicles.append(vehicle)
-
-        return list_vehicles
-
-    def _retrieve_vehicles_entering_intersection(self):
-        """
-        Returns set of ids of vehicles entering intersection
-        """
-        set_ids_vehicle = set()
-
-        for vehicle in self.list_vehicles:
-            for id_lanelet in vehicle.lane.list_ids_lanelets:
-                lanelet_vehicle = self.local_lanelet_network.find_lanelet_by_id(id_lanelet)
-
-                if LaneletType.INTERSECTION in lanelet_vehicle.lanelet_type:
-                    set_ids_vehicle.add(vehicle.id_vehicle)
-
-        # alternatively, one can also check the lanelets a vehicle occupies during the planning horizon
-        return set_ids_vehicle
-
     def _create_position_intervals(self):
         """
         Creates position intervals from vehicles.
@@ -361,7 +254,7 @@ class SemanticModel:
             list_intervals_lon = [interval_lon_initial.clone()]
             list_intervals_lat = [interval_lat_initial.clone()]
 
-            for vehicle in self.list_vehicles:
+            for vehicle in self.vehicle_model.list_vehicles:
                 list_intervals_lon_split = []
                 list_intervals_lat_split = []
 
@@ -464,7 +357,7 @@ class SemanticModel:
         if not incoming_element_route:
             return None
 
-        for vehicle in self.list_vehicles:
+        for vehicle in self.vehicle_model.list_vehicles:
             incoming_element_vehicle = vehicle.incoming_element
             if not incoming_element_vehicle:
                 continue
@@ -485,7 +378,7 @@ class SemanticModel:
         Updates the lane relation between the regions and the vehicles.
         """
         for region in self.list_regions:
-            for vehicle in self.list_vehicles:
+            for vehicle in self.vehicle_model.list_vehicles:
                 lane_vehicle = vehicle.lane
                 if lane_vehicle in region.set_lanes:
                     region.proposition_holder.add_proposition(P.in_same_lane(vehicle.id_vehicle), PG.VEHICLE)
@@ -508,7 +401,7 @@ class SemanticModel:
             if not incoming_region:
                 continue
 
-            for vehicle in self.list_vehicles:
+            for vehicle in self.vehicle_model.list_vehicles:
                 for step in range(self.step_end + 1):
                     list_ids_lanelets_vehicle_at_step = vehicle.lanelet_ids_at_step(step)
 
@@ -518,7 +411,7 @@ class SemanticModel:
 
         # examine if the region is on oncoming of the vehicle
         for region in self.list_regions:
-            for vehicle in self.list_vehicles:
+            for vehicle in self.vehicle_model.list_vehicles:
                 if region.set_ids_lanelets.intersection(vehicle.set_ids_lanelets_oncoming):
                     region.proposition_holder.add_proposition(P.on_oncoming_of(vehicle.id_vehicle), PG.INTERSECTION)
 
@@ -528,7 +421,7 @@ class SemanticModel:
         """
         list_directions = ["left", "straight", "right"]
         for region in self.list_regions:
-            for vehicle in self.list_vehicles:
+            for vehicle in self.vehicle_model.list_vehicles:
                 for step in range(self.step_end + 1):
                     for dir_region in list_directions:
                         for dir_vehicle in list_directions:
@@ -593,7 +486,7 @@ class SemanticModel:
                         dict_step_to_traffic_status_propositions[step].add(P.in_intersection(id_obstacle))
 
         # extract propositions indicating a vehicle is in its outgoing lanelet
-        for vehicle in self.list_vehicles:
+        for vehicle in self.vehicle_model.list_vehicles:
             for step in range(self.step_end + 1):
                 if vehicle.set_ids_lanelets_successor_incoming.intersection(vehicle.lanelet_ids_at_step(step)):
                     dict_step_to_traffic_status_propositions[step].add(
@@ -607,13 +500,13 @@ class SemanticModel:
         """
         if self.config.semantic_model.incoming_element_route:
             # vehicles
-            for vehicle in self.list_vehicles:
+            for vehicle in self.vehicle_model.list_vehicles:
                 vehicle.determine_priorities(dict_traffic_sign_to_priorities)
 
             # lanelet regions
             for region in self.list_regions:
                 region.determine_priorities(dict_traffic_sign_to_priorities)
-                region.examine_priorities_against_vehicles(self.list_vehicles)
+                region.examine_priorities_against_vehicles(self.vehicle_model.list_vehicles)
 
             logger.info("Traffic priorities determined.")
 
@@ -621,7 +514,7 @@ class SemanticModel:
         """
         Returns the vehicle object by its id.
         """
-        for vehicle in self.list_vehicles:
+        for vehicle in self.vehicle_model.list_vehicles:
             if vehicle.id_vehicle == id_vehicle:
                 return vehicle
 
@@ -671,7 +564,7 @@ class SemanticModel:
         """
         # examine if the propagated set is conflicting with the vehicles
         for propagated_set in list_propagated_sets:
-            for vehicle in self.list_vehicles:
+            for vehicle in self.vehicle_model.list_vehicles:
                 # if not vehicle.behind_node_at_step(step, base_set):
                 #     continue
 
@@ -692,7 +585,7 @@ class SemanticModel:
             else:
                 p_lon_min = propagated_set.p_lon_min()
 
-            for vehicle in self.list_vehicles:
+            for vehicle in self.vehicle_model.list_vehicles:
                 try:
                     p_lon_min_propagated_set = p_lon_min - self.config.vehicle.ego.radius_inflation
                     p_lon_ref_max_vehicle = vehicle.dict_step_to_state_lon_ref[step].s + vehicle.shape.length / 2
@@ -728,7 +621,7 @@ class SemanticModel:
 
         for propagated_set in list_propagated_sets:
             # todo: this should only be computed for vehicles entering an intersection from other directions
-            for vehicle in self.list_vehicles:
+            for vehicle in self.vehicle_model.list_vehicles:
                 if vehicle.braking_caused_by_node_at_step(step, propagated_set):
                     propagated_set.proposition_holder.add_propositions({P.causes_braking_for(vehicle.id_vehicle)},
                                                                        PG.TRAFFIC_STATUS)

@@ -117,7 +117,7 @@ def _concretize_right_before_left_rule(semantic_model: SemanticModel) -> List[st
     More directions should be added to complete the rule.
     """
     list_specifications = list()
-    for id_vehicle in semantic_model.set_ids_vehicles_entering_intersection:
+    for id_vehicle in semantic_model.vehicle_model.set_ids_vehicles_entering_intersection:
         o = id_vehicle
         specification_mtl = \
             f"G (" \
@@ -149,7 +149,7 @@ def _concretize_priority_rule(semantic_model: SemanticModel) -> List[str]:
     More directions should be added to complete the rule.
     """
     list_specifications = list()
-    for id_vehicle in semantic_model.set_ids_vehicles_entering_intersection:
+    for id_vehicle in semantic_model.vehicle_model.set_ids_vehicles_entering_intersection:
         o = id_vehicle
         specification_mtl = \
             f"G (" \
@@ -185,7 +185,7 @@ def _concretize_left_turning_rule(semantic_model: SemanticModel) -> List[str]:
     when the reachable sets reach lanelets that are not oncoming of a vehicle.
     """
     list_specifications = list()
-    for id_vehicle in semantic_model.set_ids_vehicles_entering_intersection:
+    for id_vehicle in semantic_model.vehicle_model.set_ids_vehicles_entering_intersection:
         o = id_vehicle
         specification_mtl = \
             f"G (" \
