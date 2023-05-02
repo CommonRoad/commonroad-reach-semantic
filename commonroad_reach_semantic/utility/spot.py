@@ -1,6 +1,7 @@
-from typing import Dict, Set
+from typing import Dict, Set, Iterator
 
 import networkx as nx
+import spot
 
 
 def create_proposition_formula(set_propositions,
@@ -85,3 +86,43 @@ def convert_automaton_graph_to_networkx_graph(graph_automaton):
     G.add_edges_from(list_edges_graph)
 
     return G
+
+
+def conjuncts(formula: spot.formula) -> Iterator[spot.formula]:
+    """Iterate over all conjuncts of a spot formula.
+
+    list(conjuncts(a & b)) == [a, b]
+    list(conjuncts(a | b)) == [a | b]
+    """
+    if formula._is(spot.op_And):
+        for child in formula:
+            yield child
+    else:
+        yield formula
+
+
+def disjuncts(formula: spot.formula) -> Iterator[spot.formula]:
+    """Iterate over all disjuncts of a spot formula.
+
+    list(disjuncts(a | b)) == [a, b]
+    list(disjuncts(a & b)) == [a & b]
+    """
+    if formula._is(spot.op_Or):
+        for child in formula:
+            yield child
+    else:
+        yield formula
+
+
+def extract_atomic_proposition(literal: spot.formula) -> tuple[str, bool]:
+    """Extract the atomic proposition from a (negated) literal.
+    
+    :param literal: Formula that is either a literal or a negated literal
+    :return: Name of the atomic proposition and whether it is negated or not
+    """
+    if literal._is(spot.op_Not) and literal[0]._is(spot.op_ap):
+        return literal[0].ap_name(), True
+    elif literal._is(spot.op_ap):
+        return literal.ap_name(), False
+    else:
+        raise ValueError(f"{literal} is not a (negated) literal")
