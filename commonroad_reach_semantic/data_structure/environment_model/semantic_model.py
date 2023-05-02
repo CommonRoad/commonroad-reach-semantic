@@ -52,8 +52,7 @@ class SemanticModel:
         self.dict_step_to_traffic_status_propositions = dict()
 
         self.lanelet_model = LaneletModel(self.config)
-        self.vehicle_model = VehicleModel(self.config, self.lanelet_model.road_network,
-                                          self.lanelet_model.local_lanelet_network, self.step_start, self.step_end)
+        self.vehicle_model = VehicleModel(self.config, self.lanelet_model, self.step_start, self.step_end)
         self._create_position_intervals()
         self._create_lanelet_regions()
         self._determine_propositions()

@@ -7,6 +7,7 @@ from commonroad.scenario.lanelet import LaneletType, LaneletNetwork
 from commonroad.scenario.obstacle import DynamicObstacle, Obstacle, StaticObstacle, EnvironmentObstacle, PhantomObstacle
 
 from commonroad_reach_semantic.data_structure.config.semantic_configuration import SemanticConfiguration
+from commonroad_reach_semantic.data_structure.environment_model.lanelet_model import LaneletModel
 from commonroad_reach_semantic.data_structure.environment_model.road_network import RoadNetwork
 from commonroad_reach_semantic.data_structure.environment_model.vehicle import Vehicle
 
@@ -14,19 +15,19 @@ logger = logging.getLogger(__name__)
 
 
 class VehicleModel:
+    """Computes and stores semantic information related to vehicles in the scenario."""
+
     config: SemanticConfiguration
     list_vehicles: List[Vehicle]
     set_ids_vehicles_entering_intersection: Set[int]
-    road_network: RoadNetwork
-    local_lanelet_network: LaneletNetwork
+    lanelet_model: LaneletModel
     step_start: int
     step_end: int
 
-    def __init__(self, config: SemanticConfiguration, road_network: RoadNetwork, local_lanelet_network: LaneletNetwork,
+    def __init__(self, config: SemanticConfiguration, lanelet_model: LaneletModel,
                  step_start: int, step_end: int) -> None:
         self.config = config
-        self.road_network = road_network
-        self.local_lanelet_network = local_lanelet_network
+        self.lanelet_model = lanelet_model
         self.step_start = step_start
         self.step_end = step_end
 
@@ -40,7 +41,7 @@ class VehicleModel:
         """
         Creates vehicle objects from relevant obstacles in the scenario.
         """
-        Vehicle.initialize(self.config, self.road_network)
+        Vehicle.initialize(self.config, self.lanelet_model.road_network)
 
         if self.config.semantic_model.use_sonia:
             # self.scenario_with_sonia, self.dict_sonia_prediction = self._obtain_sonia_prediction()
@@ -93,7 +94,7 @@ class VehicleModel:
         An obstacle is added to a lanelet if its occupancy in the future time steps intersects with the lanelet.
         """
         for obstacle in list_obstacles:
-            for lanelet in self.local_lanelet_network.lanelets:
+            for lanelet in self.lanelet_model.local_lanelet_network.lanelets:
                 polygon_lanelet = lanelet.polygon.shapely_object
 
                 for step in range(self.step_start, self.step_end + 1):
@@ -124,7 +125,7 @@ class VehicleModel:
         return {
             vehicle.id_vehicle for vehicle in self.list_vehicles
             if LaneletType.INTERSECTION in (
-                self.local_lanelet_network.find_lanelet_by_id(id_lanelet).lanelet_type
+                self.lanelet_model.local_lanelet_network.find_lanelet_by_id(id_lanelet).lanelet_type
                 for id_lanelet in vehicle.lane.list_ids_lanelets
             )
         }
