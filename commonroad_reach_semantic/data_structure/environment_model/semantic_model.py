@@ -46,14 +46,12 @@ class SemanticModel:
 
         # region-related
         self.list_regions: List[Region] = list()
-        self.dict_step_to_position_intervals = dict()
 
         # proposition-related
         self.dict_step_to_traffic_status_propositions = dict()
 
         self.lanelet_model = LaneletModel(self.config)
         self.vehicle_model = VehicleModel(self.config, self.lanelet_model, self.step_start, self.step_end)
-        self._create_position_intervals()
         self._create_lanelet_regions()
         self._determine_propositions()
 
@@ -69,48 +67,6 @@ class SemanticModel:
 
         for line in string.split("\n"):
             util_logger.print_and_log_info(logger, line)
-
-    def _create_position_intervals(self):
-        """
-        Creates position intervals from vehicles.
-        """
-        # physical dimensions of the ego vehicle
-        length_ego = self.config.vehicle.ego.length
-        width_ego = self.config.vehicle.ego.width
-
-        # position interval to be split w.r.t vehicles
-        interval_lon_initial = PositionInterval(0 + length_ego / 2,
-                                                self.config.planning.route.path_length[-1] - length_ego / 2, set())
-        interval_lat_initial = PositionInterval(-self.config.semantic_model.p_lateral_max + width_ego / 2,
-                                                self.config.semantic_model.p_lateral_max - width_ego / 2, set())
-        # iterate through steps
-        for step in range(self.step_end + 1):
-            self.dict_step_to_position_intervals[step] = {"lon": [], "lat": []}
-            list_intervals_lon = [interval_lon_initial.clone()]
-            list_intervals_lat = [interval_lat_initial.clone()]
-
-            for vehicle in self.vehicle_model.list_vehicles:
-                list_intervals_lon_split = []
-                list_intervals_lat_split = []
-
-                for interval_lon in list_intervals_lon:
-                    list_intervals_lon_split += \
-                        interval_lon.split_with_respect_to_vehicle(step, vehicle, length_ego / 2, "lon")
-
-                for interval_lat in list_intervals_lat:
-                    list_intervals_lat_split += \
-                        interval_lat.split_with_respect_to_vehicle(step, vehicle, width_ego / 2, "lat")
-
-                list_intervals_lon = list_intervals_lon_split
-                list_intervals_lat = list_intervals_lat_split
-
-            # sort longitudinal and lateral position intervals
-            list_intervals_lon.sort(key=lambda interval: interval.p_min)
-            list_intervals_lat.sort(key=lambda interval: interval.p_min)
-            self.dict_step_to_position_intervals[step]["lon"] = list_intervals_lon
-            self.dict_step_to_position_intervals[step]["lat"] = list_intervals_lat
-
-        logger.info("Position intervals created.")
 
     def _create_lanelet_regions(self):
         """
@@ -539,8 +495,8 @@ class SemanticModel:
         Splits the reachable set w.r.t position intervals.
         """
 
-        list_intervals_lon: List[PositionInterval] = self.dict_step_to_position_intervals[step]["lon"]
-        list_intervals_lat: List[PositionInterval] = self.dict_step_to_position_intervals[step]["lat"]
+        list_intervals_lon: List[PositionInterval] = self.vehicle_model.dict_step_to_position_intervals[step]["lon"]
+        list_intervals_lat: List[PositionInterval] = self.vehicle_model.dict_step_to_position_intervals[step]["lat"]
 
         list_reachable_sets_split_lon = []
         for interval_lon in list_intervals_lon:

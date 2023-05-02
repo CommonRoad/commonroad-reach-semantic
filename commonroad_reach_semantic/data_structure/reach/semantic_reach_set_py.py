@@ -78,8 +78,8 @@ class PySemanticReachableSet(SemanticReachableSet):
                 break
 
         # retrieve vehicle-related propositions from position intervals
-        list_intervals_lon = self.semantic_model.dict_step_to_position_intervals[step]["lon"]
-        list_intervals_lat = self.semantic_model.dict_step_to_position_intervals[step]["lat"]
+        list_intervals_lon = self.semantic_model.vehicle_model.dict_step_to_position_intervals[step]["lon"]
+        list_intervals_lat = self.semantic_model.vehicle_model.dict_step_to_position_intervals[step]["lat"]
 
         for interval_lon in list_intervals_lon:
             if interval_lon.intersects(rectangle.p_lon_min, rectangle.p_lon_max):

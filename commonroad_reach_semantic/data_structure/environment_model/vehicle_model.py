@@ -1,6 +1,7 @@
+import itertools
 import logging
 from collections import defaultdict
-from typing import List, Union, Set
+from typing import List, Union, Set, Dict
 
 import numpy as np
 from commonroad.scenario.lanelet import LaneletType, LaneletNetwork
@@ -8,6 +9,7 @@ from commonroad.scenario.obstacle import DynamicObstacle, Obstacle, StaticObstac
 
 from commonroad_reach_semantic.data_structure.config.semantic_configuration import SemanticConfiguration
 from commonroad_reach_semantic.data_structure.environment_model.lanelet_model import LaneletModel
+from commonroad_reach_semantic.data_structure.environment_model.position_interval import PositionInterval
 from commonroad_reach_semantic.data_structure.environment_model.road_network import RoadNetwork
 from commonroad_reach_semantic.data_structure.environment_model.vehicle import Vehicle
 
@@ -18,11 +20,12 @@ class VehicleModel:
     """Computes and stores semantic information related to vehicles in the scenario."""
 
     config: SemanticConfiguration
-    list_vehicles: List[Vehicle]
-    set_ids_vehicles_entering_intersection: Set[int]
     lanelet_model: LaneletModel
     step_start: int
     step_end: int
+    list_vehicles: List[Vehicle]
+    set_ids_vehicles_entering_intersection: Set[int]
+    dict_step_to_position_intervals: Dict[int, Dict[str, List[PositionInterval]]]
 
     def __init__(self, config: SemanticConfiguration, lanelet_model: LaneletModel,
                  step_start: int, step_end: int) -> None:
@@ -35,7 +38,10 @@ class VehicleModel:
         self.set_ids_vehicles_entering_intersection = set()
         self.dict_sonia_prediction = defaultdict(dict)
 
+        self.dict_step_to_position_intervals = dict()
+
         self._create_vehicles()
+        self._create_position_intervals()
 
     def _create_vehicles(self) -> None:
         """
@@ -129,3 +135,41 @@ class VehicleModel:
                 for id_lanelet in vehicle.lane.list_ids_lanelets
             )
         }
+
+    def _create_position_intervals(self) -> None:
+        """
+        Creates position intervals from vehicles.
+        """
+        # physical dimensions of the ego vehicle
+        length_ego = self.config.vehicle.ego.length
+        width_ego = self.config.vehicle.ego.width
+
+        # position interval to be split w.r.t vehicles
+        interval_lon_initial = PositionInterval(0 + length_ego / 2,
+                                                self.config.planning.route.path_length[-1] - length_ego / 2, set())
+        interval_lat_initial = PositionInterval(-self.config.semantic_model.p_lateral_max + width_ego / 2,
+                                                self.config.semantic_model.p_lateral_max - width_ego / 2, set())
+        # iterate through steps
+        for step in range(self.step_start, self.step_end + 1):
+            list_intervals_lon = [interval_lon_initial.clone()]
+            list_intervals_lat = [interval_lat_initial.clone()]
+
+            for vehicle in self.list_vehicles:
+                list_intervals_lon = list(itertools.chain.from_iterable(
+                    interval_lon.split_with_respect_to_vehicle(step, vehicle, length_ego / 2, "lon")
+                    for interval_lon in list_intervals_lon
+                ))
+                list_intervals_lat = list(itertools.chain.from_iterable(
+                    interval_lat.split_with_respect_to_vehicle(step, vehicle, width_ego / 2, "lat")
+                    for interval_lat in list_intervals_lat
+                ))
+
+            # sort longitudinal and lateral position intervals
+            list_intervals_lon.sort(key=lambda interval: interval.p_min)
+            list_intervals_lat.sort(key=lambda interval: interval.p_min)
+            self.dict_step_to_position_intervals[step] = {
+                "lon": list_intervals_lon,
+                "lat": list_intervals_lat,
+            }
+
+        logger.info("Position intervals created.")
