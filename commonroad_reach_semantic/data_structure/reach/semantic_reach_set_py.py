@@ -161,7 +161,7 @@ class PySemanticReachableSet(SemanticReachableSet):
                            not propagated_set.collides_with_vehicle())
 
         # examine whether the propagated sets satisfy TPL specifications
-        propagated_sets = self.rule_interface.examine_tpl_specifications(step, list(propagated_sets))
+        propagated_sets = self.rule_interface.tpl_checker.examine_tpl_specifications(step, list(propagated_sets))
 
         # update traffic propositions of the propagated sets
         propagated_sets = self.semantic_model.label_traffic_propositions(step, propagated_sets)

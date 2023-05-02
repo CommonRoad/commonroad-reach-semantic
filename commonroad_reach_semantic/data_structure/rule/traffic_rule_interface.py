@@ -8,6 +8,7 @@ from commonroad.scenario.traffic_sign import TrafficSignIDZamunda
 from commonroad_reach_semantic.data_structure.config.semantic_configuration import SemanticConfiguration
 from commonroad_reach_semantic.data_structure.reach.semantic_reach_node import SemanticReachNode
 from commonroad_reach_semantic.data_structure.environment_model.semantic_model import SemanticModel
+from commonroad_reach_semantic.data_structure.rule.tpl_checker import TPLChecker
 from commonroad_reach_semantic.data_structure.rule.traffic_rule import NoBackwardDrivingRule, NoOppositeDrivingRule, \
     LineMarkingRule, \
     TrafficLightRule, PriorityRule, RightBeforeLeftRule, LeftTurningRule
@@ -43,12 +44,10 @@ class TrafficRuleInterface:
         self.dict_step_to_forbidden_transitions_traffic_light = \
             {step: set() for step in range(self.config.planning.steps_computation + 1)}
 
-        # mandatory and forbidden propositions
-        self.dict_step_to_propositions_mandatory = defaultdict(set)
-        self.dict_step_to_propositions_forbidden = defaultdict(set)
-
         for item in self.list_traffic_rules_activated:
             self._parse_traffic_rule(item, add_to_concretize=True)
+
+        self.tpl_checker = TPLChecker(config, self.list_specifications_tpl)
 
         logger.info("TrafficRuleInterface instantiated.")
 
@@ -110,7 +109,7 @@ class TrafficRuleInterface:
                 self._parse_traffic_rule(item)
 
         self._append_default_specifications()
-        self._extract_mandatory_and_forbidden_propositions()
+        self.tpl_checker.extract_mandatory_and_forbidden_propositions()
 
         logger.info("Traffic rules concretized.")
         logger.info(f"\t#Rules concretized: {len(self.list_traffic_rules_to_be_concretized)}")
@@ -173,46 +172,3 @@ class TrafficRuleInterface:
             TrafficSignIDZamunda.WARNING_RIGHT_BEFORE_LEFT: {"left": 3, "straight": 3, "right": 3, "index": 15},
             TrafficSignIDZamunda.GREEN_ARROW: {"left": -np.inf, "straight": -np.inf, "right": 0, "index": 16}
         }
-
-    def _extract_mandatory_and_forbidden_propositions(self):
-        """
-        Extracts and stores mandatory and forbidden propositions into dictionaries.
-        """
-        for specification in self.list_specifications_tpl:
-            index_bracket_left = specification.find("[")
-            index_bracket_right = specification.find("]")
-            # if time step is indicated in the specification
-            if index_bracket_left >= 0 and index_bracket_right >= 0:
-                step_start = int(specification[index_bracket_left + 1:index_bracket_right])
-                step_end = step_start
-                specification = specification[index_bracket_right + 2:]
-
-            else:
-                step_start = self.config.planning.step_start
-                step_end = step_start + self.config.planning.steps_computation
-
-            set_clauses = specification.split(" & ")
-            for clause in set_clauses:
-                if clause[0] != "!":
-                    for step in range(step_start, step_end + 1):
-                        self.dict_step_to_propositions_mandatory[step].add(clause)
-
-                else:
-                    for step in range(step_start, step_end + 1):
-                        self.dict_step_to_propositions_forbidden[step].add(clause[1:])
-
-        logger.info("Mandatory and forbidden propositions extracted.")
-
-    def examine_tpl_specifications(self, step: int, list_propagated_sets: List[SemanticReachNode]) -> List[SemanticReachNode]:
-        """
-        Examines whether the given propagated sets satisfy the TPL specifications.
-        """
-        set_propositions_mandatory = self.dict_step_to_propositions_mandatory[step]
-        set_propositions_forbidden = self.dict_step_to_propositions_forbidden[step]
-
-        list_propagated_sets_keep = [propagated_set for propagated_set in list_propagated_sets
-                                     if propagated_set.set_propositions.issuperset(set_propositions_mandatory)]
-        list_propagated_sets_keep = [propagated_set for propagated_set in list_propagated_sets_keep
-                                     if propagated_set.set_propositions.isdisjoint(set_propositions_forbidden)]
-
-        return list_propagated_sets_keep
