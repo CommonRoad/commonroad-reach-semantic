@@ -9,9 +9,7 @@ from commonroad.scenario.traffic_sign import TrafficSignIDZamunda
 from commonroad_reach_semantic.data_structure.config.semantic_configuration import SemanticConfiguration
 from commonroad_reach_semantic.data_structure.environment_model.semantic_model import SemanticModel
 from commonroad_reach_semantic.data_structure.rule.tpl_checker import TPLChecker
-from commonroad_reach_semantic.data_structure.rule.traffic_rule import NoBackwardDrivingRule, NoOppositeDrivingRule, \
-    LineMarkingRule, \
-    TrafficLightRule, PriorityRule, RightBeforeLeftRule, LeftTurningRule, TrafficRule
+from commonroad_reach_semantic.data_structure.rule.traffic_rule import TrafficRule
 
 logger = logging.getLogger(__name__)
 
@@ -21,15 +19,6 @@ class TrafficRuleInterface:
 
     set_identifiers_tpl: Set[str] = {"(", ")", "->", "<->", "&", "|", "!", "xor"}
 
-    dict_traffic_rule_to_object: Dict[str, TrafficRule] = {
-        "NoBackwardDrivingRule": NoBackwardDrivingRule(),
-        "NoOppositeDrivingRule": NoOppositeDrivingRule(),
-        "LineMarkingRule": LineMarkingRule(),
-        "TrafficLightRule": TrafficLightRule(),
-        "PriorityRule": PriorityRule(),
-        "RightBeforeLeftRule": RightBeforeLeftRule(),
-        "LeftTurningRule": LeftTurningRule(),
-    }
     dict_traffic_sign_to_priorities: Dict[TrafficSignIDZamunda, Dict[str, float]] = {
         TrafficSignIDZamunda.ADDITION_LEFT_TURNING_PRIORITY_WITH_OPPOSITE_RIGHT_YIELD: {"left": 5, "straight": 4,
                                                                                         "right": 4, "index": 1},
@@ -130,7 +119,7 @@ class TrafficRuleInterface:
         Concretizes traffic rules with respect to the given semantic model.
         """
         for traffic_rule in self.list_traffic_rules_to_be_concretized:
-            list_specifications = self.dict_traffic_rule_to_object[traffic_rule].concretize(semantic_model)
+            list_specifications = TrafficRule.from_string(traffic_rule).concretize(semantic_model)
             if not list_specifications:
                 continue
 
