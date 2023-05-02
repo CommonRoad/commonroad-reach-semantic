@@ -1,18 +1,17 @@
 import logging
-from collections import defaultdict
-from typing import Set, List
+from typing import Set, Dict
 
-import spot
+import commonroad_reach.utility.logger as util_logger
 import numpy as np
+import spot
 from commonroad.scenario.traffic_sign import TrafficSignIDZamunda
+
 from commonroad_reach_semantic.data_structure.config.semantic_configuration import SemanticConfiguration
-from commonroad_reach_semantic.data_structure.reach.semantic_reach_node import SemanticReachNode
 from commonroad_reach_semantic.data_structure.environment_model.semantic_model import SemanticModel
 from commonroad_reach_semantic.data_structure.rule.tpl_checker import TPLChecker
 from commonroad_reach_semantic.data_structure.rule.traffic_rule import NoBackwardDrivingRule, NoOppositeDrivingRule, \
     LineMarkingRule, \
-    TrafficLightRule, PriorityRule, RightBeforeLeftRule, LeftTurningRule
-import commonroad_reach.utility.logger as util_logger
+    TrafficLightRule, PriorityRule, RightBeforeLeftRule, LeftTurningRule, TrafficRule
 
 logger = logging.getLogger(__name__)
 
@@ -20,17 +19,47 @@ logger = logging.getLogger(__name__)
 class TrafficRuleInterface:
     """Class to hold adopted traffic rules"""
 
-    initialized = False
-    set_identifiers_tpl = {"(", ")", "->", "<->", "&", "|", "!", "xor"}
+    set_identifiers_tpl: Set[str] = {"(", ")", "->", "<->", "&", "|", "!", "xor"}
 
-    dict_traffic_rule_to_object = dict()
-    dict_traffic_sign_to_priorities = dict()
+    dict_traffic_rule_to_object: Dict[str, TrafficRule] = {
+        "NoBackwardDrivingRule": NoBackwardDrivingRule(),
+        "NoOppositeDrivingRule": NoOppositeDrivingRule(),
+        "LineMarkingRule": LineMarkingRule(),
+        "TrafficLightRule": TrafficLightRule(),
+        "PriorityRule": PriorityRule(),
+        "RightBeforeLeftRule": RightBeforeLeftRule(),
+        "LeftTurningRule": LeftTurningRule(),
+    }
+    dict_traffic_sign_to_priorities: Dict[TrafficSignIDZamunda, Dict[str, float]] = {
+        TrafficSignIDZamunda.ADDITION_LEFT_TURNING_PRIORITY_WITH_OPPOSITE_RIGHT_YIELD: {"left": 5, "straight": 4,
+                                                                                        "right": 4, "index": 1},
+        TrafficSignIDZamunda.ADDITION_LEFT_TURNING_PRIORITY_WITH_OPPOSITE_YIELD: {"left": 5, "straight": 4,
+                                                                                  "right": -np.inf, "index": 2},
+        TrafficSignIDZamunda.ADDITION_LEFT_TURNING_PRIORITY_WITH_RIGHT_YIELD: {"left": 5, "straight": -np.inf,
+                                                                               "right": 4, "index": 3},
+        TrafficSignIDZamunda.ADDITION_RIGHT_TURNING_PRIORITY_WITH_OPPOSITE_LEFT_YIELD: {"left": 4, "straight": 4,
+                                                                                        "right": 5, "index": 4},
+        TrafficSignIDZamunda.ADDITION_RIGHT_TURNING_PRIORITY_WITH_OPPOSITE_YIELD: {"left": -np.inf, "straight": 4,
+                                                                                   "right": 5, "index": 5},
+        TrafficSignIDZamunda.ADDITION_RIGHT_TURNING_PRIORITY_WITH_LEFT_YIELD: {"left": 4, "straight": -np.inf,
+                                                                               "right": 5, "index": 6},
+        TrafficSignIDZamunda.ADDITION_LEFT_TRAFFIC_PRIORITY_WITH_STRAIGHT_RIGHT_YIELD: {"left": 2, "straight": 2,
+                                                                                        "right": 2, "index": 7},
+        TrafficSignIDZamunda.ADDITION_LEFT_TRAFFIC_PRIORITY_WITH_STRAIGHT_YIELD: {"left": 2, "straight": 2,
+                                                                                  "right": -np.inf, "index": 8},
+        TrafficSignIDZamunda.ADDITION_RIGHT_TRAFFIC_PRIORITY_WITH_STRAIGHT_LEFT_YIELD: {"left": 2, "straight": 2,
+                                                                                        "right": 2, "index": 9},
+        TrafficSignIDZamunda.ADDITION_RIGHT_TRAFFIC_PRIORITY_WITH_STRAIGHT_YIELD: {"left": -np.inf, "straight": 2,
+                                                                                   "right": 2, "index": 10},
+        TrafficSignIDZamunda.PRIORITY: {"left": 4, "straight": 5, "right": 4, "index": 11},
+        TrafficSignIDZamunda.RIGHT_OF_WAY: {"left": 4, "straight": 5, "right": 4, "index": 12},
+        TrafficSignIDZamunda.YIELD: {"left": 2, "straight": 2, "right": 2, "index": 13},
+        TrafficSignIDZamunda.STOP: {"left": 1, "straight": 1, "right": 1, "index": 14},
+        TrafficSignIDZamunda.WARNING_RIGHT_BEFORE_LEFT: {"left": 3, "straight": 3, "right": 3, "index": 15},
+        TrafficSignIDZamunda.GREEN_ARROW: {"left": -np.inf, "straight": -np.inf, "right": 0, "index": 16},
+    }
 
-    def __init__(self, config: SemanticConfiguration):
-        if not self.initialized:
-            self._initialize_dictionaries()
-            self.initialized = True
-
+    def __init__(self, config: SemanticConfiguration) -> None:
         self.config = config
         self.list_traffic_rules_activated = config.traffic_rule.activated_rules
         self.list_traffic_rules_to_be_concretized = list()
@@ -51,7 +80,7 @@ class TrafficRuleInterface:
 
         logger.info("TrafficRuleInterface instantiated.")
 
-    def _parse_traffic_rule(self, item: str, add_to_concretize: bool = False):
+    def _parse_traffic_rule(self, item: str, add_to_concretize: bool = False) -> None:
         """
         Parses the given traffic rules.
 
@@ -96,7 +125,7 @@ class TrafficRuleInterface:
 
         return set(specification.split())
 
-    def concretize_traffic_rules(self, semantic_model: SemanticModel):
+    def concretize_traffic_rules(self, semantic_model: SemanticModel) -> None:
         """
         Concretizes traffic rules with respect to the given semantic model.
         """
@@ -114,12 +143,12 @@ class TrafficRuleInterface:
         logger.info("Traffic rules concretized.")
         logger.info(f"\t#Rules concretized: {len(self.list_traffic_rules_to_be_concretized)}")
 
-    def _append_default_specifications(self):
+    def _append_default_specifications(self) -> None:
         """Appends default specifications if the lists are empty."""
         if not self.list_specifications_ltl:
             self.list_specifications_ltl.append(f"true")
 
-    def print_summary(self):
+    def print_summary(self) -> None:
         string = "# ===== Specification Summary ===== #\n"
         string += f"# TPL:\n"
         for specification in self.list_specifications_tpl:
@@ -133,42 +162,3 @@ class TrafficRuleInterface:
 
         for line in string.split("\n"):
             util_logger.print_and_log_info(logger, line)
-
-    @classmethod
-    def _initialize_dictionaries(cls):
-        cls.dict_traffic_rule_to_object = {"NoBackwardDrivingRule": NoBackwardDrivingRule(),
-                                           "NoOppositeDrivingRule": NoOppositeDrivingRule(),
-                                           "LineMarkingRule": LineMarkingRule(),
-                                           "TrafficLightRule": TrafficLightRule(),
-                                           "PriorityRule": PriorityRule(),
-                                           "RightBeforeLeftRule": RightBeforeLeftRule(),
-                                           "LeftTurningRule": LeftTurningRule()}
-
-        cls.dict_traffic_sign_to_priorities = {
-            TrafficSignIDZamunda.ADDITION_LEFT_TURNING_PRIORITY_WITH_OPPOSITE_RIGHT_YIELD: {"left": 5, "straight": 4,
-                                                                                            "right": 4, "index": 1},
-            TrafficSignIDZamunda.ADDITION_LEFT_TURNING_PRIORITY_WITH_OPPOSITE_YIELD: {"left": 5, "straight": 4,
-                                                                                      "right": -np.inf, "index": 2},
-            TrafficSignIDZamunda.ADDITION_LEFT_TURNING_PRIORITY_WITH_RIGHT_YIELD: {"left": 5, "straight": -np.inf,
-                                                                                   "right": 4, "index": 3},
-            TrafficSignIDZamunda.ADDITION_RIGHT_TURNING_PRIORITY_WITH_OPPOSITE_LEFT_YIELD: {"left": 4, "straight": 4,
-                                                                                            "right": 5, "index": 4},
-            TrafficSignIDZamunda.ADDITION_RIGHT_TURNING_PRIORITY_WITH_OPPOSITE_YIELD: {"left": -np.inf, "straight": 4,
-                                                                                       "right": 5, "index": 5},
-            TrafficSignIDZamunda.ADDITION_RIGHT_TURNING_PRIORITY_WITH_LEFT_YIELD: {"left": 4, "straight": -np.inf,
-                                                                                   "right": 5, "index": 6},
-            TrafficSignIDZamunda.ADDITION_LEFT_TRAFFIC_PRIORITY_WITH_STRAIGHT_RIGHT_YIELD: {"left": 2, "straight": 2,
-                                                                                            "right": 2, "index": 7},
-            TrafficSignIDZamunda.ADDITION_LEFT_TRAFFIC_PRIORITY_WITH_STRAIGHT_YIELD: {"left": 2, "straight": 2,
-                                                                                      "right": -np.inf, "index": 8},
-            TrafficSignIDZamunda.ADDITION_RIGHT_TRAFFIC_PRIORITY_WITH_STRAIGHT_LEFT_YIELD: {"left": 2, "straight": 2,
-                                                                                            "right": 2, "index": 9},
-            TrafficSignIDZamunda.ADDITION_RIGHT_TRAFFIC_PRIORITY_WITH_STRAIGHT_YIELD: {"left": -np.inf, "straight": 2,
-                                                                                       "right": 2, "index": 10},
-            TrafficSignIDZamunda.PRIORITY: {"left": 4, "straight": 5, "right": 4, "index": 11},
-            TrafficSignIDZamunda.RIGHT_OF_WAY: {"left": 4, "straight": 5, "right": 4, "index": 12},
-            TrafficSignIDZamunda.YIELD: {"left": 2, "straight": 2, "right": 2, "index": 13},
-            TrafficSignIDZamunda.STOP: {"left": 1, "straight": 1, "right": 1, "index": 14},
-            TrafficSignIDZamunda.WARNING_RIGHT_BEFORE_LEFT: {"left": 3, "straight": 3, "right": 3, "index": 15},
-            TrafficSignIDZamunda.GREEN_ARROW: {"left": -np.inf, "straight": -np.inf, "right": 0, "index": 16}
-        }
