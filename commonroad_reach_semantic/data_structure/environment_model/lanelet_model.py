@@ -1,9 +1,10 @@
 import logging
 import warnings
 from collections import defaultdict
+from typing import Set, Dict, Callable
 
 import numpy as np
-from commonroad.scenario.lanelet import LaneletNetwork
+from commonroad.scenario.lanelet import LaneletNetwork, Lanelet
 
 from commonroad_reach_semantic.data_structure.config.semantic_configuration import SemanticConfiguration
 from commonroad_reach_semantic.data_structure.environment_model.road_network import RoadNetwork
@@ -13,6 +14,17 @@ logger = logging.getLogger(__name__)
 
 
 class LaneletModel:
+    """Computes and stores semantic information related to lanelets in the scenario."""
+
+    config: SemanticConfiguration
+    set_lanelets_route_related: Set[Lanelet]
+    set_ids_lanelets_same_direction: Set[int]
+    set_ids_lanelets_opposite_direction: Set[int]
+    set_ids_lanelets_in_intersections: Set[int]
+    local_lanelet_network: LaneletNetwork
+    road_network: RoadNetwork
+    dict_id_lanelet_to_set_ids_lanelets_intersecting: Dict[int, Set[int]]
+
     def __init__(self, config: SemanticConfiguration) -> None:
         self.config = config
         self.set_lanelets_route_related = set()
@@ -21,12 +33,11 @@ class LaneletModel:
         self.set_ids_lanelets_in_intersections = set()
         self.local_lanelet_network = None
         self.road_network = None
-        self.dict_id_lanelet_to_lanelet = dict()
         self.dict_id_lanelet_to_set_ids_lanelets_intersecting = defaultdict(set)
 
         self._create_local_lanelet_network_and_road_network()
 
-    def _create_local_lanelet_network_and_road_network(self):
+    def _create_local_lanelet_network_and_road_network(self) -> None:
         """
         Constructs a local lanelet network from lanelets close to the route lanelets.
 
@@ -49,10 +60,6 @@ class LaneletModel:
         # create a road network to compute lanes in the scenario
         self.road_network = RoadNetwork(self.local_lanelet_network)
 
-        # create dictionary mapping id to lanelet
-        for lanelet in self.local_lanelet_network.lanelets:
-            self.dict_id_lanelet_to_lanelet[lanelet.lanelet_id] = lanelet
-
         # cache intersection
         for lanelet_1 in self.local_lanelet_network.lanelets:
             for lanelet_2 in self.local_lanelet_network.lanelets:
@@ -71,38 +78,13 @@ class LaneletModel:
         set_ids_lanelets = set(self.config.planning.route.list_ids_lanelets)
 
         # obtain lanelets in the same direction as the route
-        terminate = False
-        while not terminate:
-            num_ids_lanelets = len(set_ids_lanelets)
-            for id_lanelet in list(set_ids_lanelets):
-                lanelet = self.config.scenario.lanelet_network.find_lanelet_by_id(id_lanelet)
-
-                # if left lanelet is in the same direction
-                if lanelet.adj_left and lanelet.adj_left_same_direction:
-                    set_ids_lanelets.add(lanelet.adj_left)
-
-                # if right lanelet is in the same direction
-                if lanelet.adj_right and lanelet.adj_right_same_direction:
-                    set_ids_lanelets.add(lanelet.adj_right)
-
-            terminate = (num_ids_lanelets == len(set_ids_lanelets))
+        self._explore_lanelets(set_ids_lanelets, condition_left=lambda lanelet: lanelet.adj_left_same_direction,
+                               condition_right=lambda lanelet: lanelet.adj_right_same_direction)
 
         set_ids_lanelets_same_direction = set_ids_lanelets.copy()
 
         # obtain lanelets in both same and opposite directions
-        terminate = False
-        while not terminate:
-            num_ids_lanelets = len(set_ids_lanelets)
-            for id_lanelet in list(set_ids_lanelets):
-                lanelet = self.config.scenario.lanelet_network.find_lanelet_by_id(id_lanelet)
-
-                if lanelet.adj_left:
-                    set_ids_lanelets.add(lanelet.adj_left)
-
-                if lanelet.adj_right:
-                    set_ids_lanelets.add(lanelet.adj_right)
-
-            terminate = (num_ids_lanelets == len(set_ids_lanelets))
+        self._explore_lanelets(set_ids_lanelets)
 
         set_ids_lanelets_opposite_direction = set_ids_lanelets.difference(set_ids_lanelets_same_direction)
 
@@ -128,31 +110,52 @@ class LaneletModel:
 
         return set_lanelets_route_related, set_ids_lanelets_same_direction, set_ids_lanelets_opposite_direction
 
-    def _obtain_lanelets_in_proximity_of_route(self):
+    def _explore_lanelets(self, lanelet_ids: Set[int], condition_left: Callable[[Lanelet], bool] = lambda _: True,
+                          condition_right: Callable[[Lanelet], bool] = lambda _: True) -> None:
+        """Iteratively add all lanelets adjacent to the initial set of lanelets."""
+        while True:
+            new_lanelet_ids = set()
+            for id_lanelet in list(lanelet_ids):
+                lanelet = self.config.scenario.lanelet_network.find_lanelet_by_id(id_lanelet)
+
+                # if left lanelet is in the same direction
+                if lanelet.adj_left and condition_left(lanelet):
+                    new_lanelet_ids.add(lanelet.adj_left)
+
+                # if right lanelet is in the same direction
+                if lanelet.adj_right and condition_right(lanelet):
+                    new_lanelet_ids.add(lanelet.adj_right)
+
+            # if no new lanelets were added, terminate
+            if new_lanelet_ids.issubset(lanelet_ids):
+                return
+
+            lanelet_ids.update(new_lanelet_ids)
+
+    def _obtain_lanelets_in_proximity_of_route(self) -> Set[Lanelet]:
         list_lanelets_route = [self.config.scenario.lanelet_network.find_lanelet_by_id(id_lanelet)
                                for id_lanelet in self.config.planning.route.list_ids_lanelets]
         # get the coordinates of the bounding box
-        list_vertices = []
-        for lanelet in list_lanelets_route:
-            for vertex in lanelet.center_vertices:
-                list_vertices.append(vertex)
+        list_vertices = [vertex for lanelet in list_lanelets_route for vertex in lanelet.center_vertices]
 
-        x_min = min([x for x, y in list_vertices])
-        x_max = max([x for x, y in list_vertices])
-        y_min = min([y for x, y in list_vertices])
-        y_max = max([y for x, y in list_vertices])
+        x_min = min(x for x, y in list_vertices)
+        x_max = max(x for x, y in list_vertices)
+        y_min = min(y for x, y in list_vertices)
+        y_max = max(y for x, y in list_vertices)
         vertex_circle = np.array([(x_max + x_min) / 2.0, (y_max + y_min) / 2.0])
         radius_circle = max(x_max - x_min, y_max - y_min)
 
         return set(self.config.scenario.lanelet_network.lanelets_in_proximity(vertex_circle, radius_circle))
 
-    def _create_local_lanelet_network(self, set_lanelets):
+    def _create_local_lanelet_network(self, set_lanelets: Set[Lanelet]) -> LaneletNetwork:
         """
         Returns a lanelet network with the given set of lanelets.
         """
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             local_lanelet_network = LaneletNetwork.create_from_lanelet_network(self.config.scenario.lanelet_network)
+
+            # First clear and then readd to keep traffic signs and traffic lights from the original network?
 
             # clear existing lanelets
             for lanelet in local_lanelet_network.lanelets:
