@@ -162,7 +162,7 @@ def plot_scenario_with_regions(semantic_model: SemanticModel, coordinate_system:
     Path(path_output).mkdir(parents=True, exist_ok=True)
 
     figsize = figsize if figsize else (25, 15)
-    plot_limits = plot_limits or compute_plot_limits_from_lanelet_network(semantic_model.local_lanelet_network)
+    plot_limits = plot_limits or compute_plot_limits_from_lanelet_network(semantic_model.lanelet_model.local_lanelet_network)
     draw_params = reach_visualization.generate_default_drawing_parameters(config)
 
     util_logger.print_and_log_info(logger, "* Plotting lanelet regions...")

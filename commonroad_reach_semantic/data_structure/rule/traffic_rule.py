@@ -61,7 +61,7 @@ class TrafficRule(Enum):
 
 def _concretize_line_marking_rule(semantic_model: SemanticModel) -> List[str]:
     set_propositions_forbidden = set()
-    for lanelet in semantic_model.local_lanelet_network.lanelets:
+    for lanelet in semantic_model.lanelet_model.local_lanelet_network.lanelets:
         if lanelet.adj_left and lanelet.line_marking_left_vertices in [LineMarking.SOLID,
                                                                        LineMarking.BROAD_SOLID]:
             set_propositions_forbidden.add(f"!{P.lanelet_transition(lanelet.lanelet_id, lanelet.adj_left)}")
@@ -87,10 +87,10 @@ def _concretize_traffic_light_rule(semantic_model: SemanticModel) -> List[str]:
         time_step = step * round(config.planning.dt / config.scenario.dt)
         set_propositions_forbidden = set()
 
-        for lanelet in semantic_model.local_lanelet_network.lanelets:
+        for lanelet in semantic_model.lanelet_model.local_lanelet_network.lanelets:
             list_ids_successors = lanelet.successor
             for id_traffic_light in lanelet.traffic_lights:
-                traffic_light = semantic_model.local_lanelet_network.find_traffic_light_by_id(id_traffic_light)
+                traffic_light = semantic_model.lanelet_model.local_lanelet_network.find_traffic_light_by_id(id_traffic_light)
                 state_light = traffic_light.get_state_at_time_step(time_step)
                 direction_light = traffic_light.direction
 
