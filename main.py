@@ -18,8 +18,8 @@ def main():
     # name_scenario = "ZAM_Over-1_1"
     # name_scenario = "ARG_Carcarana-1_1_T-1"
     # name_scenario = "USA_US101-6_1_T-1"
-    # name_scenario = "ZAM_Intersection-1_1_T-1"
-    name_scenario = "ZAM_Merge-1_1_T-1"
+    name_scenario = "ZAM_Intersection-1_1_T-1"
+    # name_scenario = "ZAM_Merge-1_1_T-1"
 
     # ==== build configuration
     config = SemanticConfigurationBuilder.build_configuration(name_scenario,
@@ -30,9 +30,8 @@ def main():
 
     # ==== initialize semantic model and traffic rules
     semantic_model = SemanticModel(config)
-    rule_interface = TrafficRuleInterface(config)
     semantic_model.determine_traffic_priorities(priorities.dict_traffic_sign_to_priorities)
-    rule_interface.concretize_traffic_rules(semantic_model)
+    rule_interface = TrafficRuleInterface(config, semantic_model)
     rule_interface.print_summary()
 
     # ==== compute reachable sets using reachability interface
