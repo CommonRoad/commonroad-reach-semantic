@@ -4,13 +4,12 @@ from collections import defaultdict
 from typing import List, Union, Set, Dict
 
 import numpy as np
-from commonroad.scenario.lanelet import LaneletType, LaneletNetwork
+from commonroad.scenario.lanelet import LaneletType
 from commonroad.scenario.obstacle import DynamicObstacle, Obstacle, StaticObstacle, EnvironmentObstacle, PhantomObstacle
 
 from commonroad_reach_semantic.data_structure.config.semantic_configuration import SemanticConfiguration
 from commonroad_reach_semantic.data_structure.environment_model.lanelet_model import LaneletModel
 from commonroad_reach_semantic.data_structure.environment_model.position_interval import PositionInterval
-from commonroad_reach_semantic.data_structure.environment_model.road_network import RoadNetwork
 from commonroad_reach_semantic.data_structure.environment_model.vehicle import Vehicle
 
 logger = logging.getLogger(__name__)

@@ -1,27 +1,15 @@
 import logging
-import warnings
-from collections import defaultdict
-from typing import List, Dict, Union
+from typing import List, Dict
 
 import commonroad_reach.utility.logger as util_logger
-import numpy as np
-from commonroad.scenario.lanelet import LaneletNetwork
-from commonroad.scenario.traffic_sign import TrafficLightDirection, TrafficLightState
 
-import commonroad_reach_semantic.utility.reach_operation as reach_operation
-import commonroad_reach_semantic.utility.region as util_region
-from commonroad_reach_semantic import pycrreachs
+from commonroad_reach_semantic.data_structure.config.semantic_configuration import SemanticConfiguration
 from commonroad_reach_semantic.data_structure.environment_model.lanelet_model import LaneletModel
-from commonroad_reach_semantic.data_structure.environment_model.position_interval import PositionInterval
 from commonroad_reach_semantic.data_structure.environment_model.region_model import RegionModel
 from commonroad_reach_semantic.data_structure.environment_model.traffic_status_model import TrafficStatusModel
 from commonroad_reach_semantic.data_structure.environment_model.vehicle_model import VehicleModel
-from commonroad_reach_semantic.data_structure.rule.proposition import Proposition as P
-from commonroad_reach_semantic.data_structure.rule.proposition import PropositionGroup as PG
 from commonroad_reach_semantic.data_structure.reach.semantic_reach_node import SemanticReachNode
-from commonroad_reach_semantic.data_structure.environment_model.region import Region
-from commonroad_reach_semantic.data_structure.environment_model.road_network import RoadNetwork
-from commonroad_reach_semantic.data_structure.config.semantic_configuration import SemanticConfiguration
+from commonroad_reach_semantic.data_structure.rule.proposition import Proposition as P
 
 logger = logging.getLogger(__name__)
 
