@@ -215,16 +215,23 @@ class Vehicle:
         if not self.incoming_element:
             return set()
 
-        else:
-            set_ids_lanelets: Set[int] = eval(f"self.incoming_element.successors_{self.type_outgoing}")
-            set_ids_lanelets_to_add = set()
+        match self.type_outgoing:
+            case OutgoingDirection.LEFT:
+                set_ids_lanelets = self.incoming_element.successors_left
+            case OutgoingDirection.STRAIGHT:
+                set_ids_lanelets = self.incoming_element.successors_straight
+            case OutgoingDirection.RIGHT:
+                set_ids_lanelets = self.incoming_element.successors_right
+            case _:
+                return set()
+        set_ids_lanelets_to_add = set()
 
-            for id_lanelet in set_ids_lanelets:
-                lanelet = self.lanelet_network.find_lanelet_by_id(id_lanelet)
-                set_ids_lanelets_to_add.update(set(lanelet.successor))
+        for id_lanelet in set_ids_lanelets:
+            lanelet = self.lanelet_network.find_lanelet_by_id(id_lanelet)
+            set_ids_lanelets_to_add.update(set(lanelet.successor))
 
-            set_ids_lanelets.update(set_ids_lanelets_to_add)
-            return set_ids_lanelets
+        set_ids_lanelets.update(set_ids_lanelets_to_add)
+        return set_ids_lanelets
 
     def spot_prediction_occupancy_at_step(self, step: int):
         return self.dict_step_to_sonia_prediction_occupancy[step]

@@ -163,6 +163,18 @@ class Proposition:
             return f"V{str(id_obstacle)}_{suffix}"
 
     @staticmethod
+    def in_direction_successor(direction: OutgoingDirection, id_obstacle: int = None) -> str:
+        match direction:
+            case OutgoingDirection.LEFT:
+                return Proposition.in_left_successor(id_obstacle)
+            case OutgoingDirection.STRAIGHT:
+                return Proposition.in_straight_successor(id_obstacle)
+            case OutgoingDirection.RIGHT:
+                return Proposition.in_right_successor(id_obstacle)
+            case _:
+                raise ValueError(f"Invalid direction: {direction}")
+
+    @staticmethod
     def in_left_successor(id_obstacle: int = None) -> str:
         suffix = 'InLeftSuc'
         if not id_obstacle:

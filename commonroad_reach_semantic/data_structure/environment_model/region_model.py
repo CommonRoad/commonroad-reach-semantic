@@ -97,14 +97,19 @@ class RegionModel:
 
         # in successor lanelets of the incoming element
         direction_outgoing = self.config.semantic_model.direction_outgoing
-        if not direction_outgoing:
-            return None
+        match direction_outgoing:
+            case OutgoingDirection.LEFT:
+                incoming_successors = self.config.semantic_model.incoming_element_route.successors_left
+            case OutgoingDirection.STRAIGHT:
+                incoming_successors = self.config.semantic_model.incoming_element_route.successors_straight
+            case OutgoingDirection.RIGHT:
+                incoming_successors = self.config.semantic_model.incoming_element_route.successors_right
+            case _:
+                return None
 
         for region in self.list_regions:
-            # TODO: get rid of eval
-            if region.set_ids_lanelets.intersection(
-                    eval(f"self.config.semantic_model.incoming_element_route.successors_{direction_outgoing}")):
-                region.proposition_holder.add_proposition(eval(f"Prop.in_{direction_outgoing}_successor()"),
+            if region.set_ids_lanelets.intersection(incoming_successors):
+                region.proposition_holder.add_proposition(Prop.in_direction_successor(direction_outgoing),
                                                           PropGroup.POSITION)
 
     def _label_region_vehicle_intersection_incoming_propositions(self) -> None:
@@ -115,8 +120,16 @@ class RegionModel:
         successor lanelets of the incoming lanelets so that it is still present even after entering the intersection.
         """
         incoming_element_route = Region.incoming_element_route
-        if not incoming_element_route:
-            return None
+        match self.config.semantic_model.direction_outgoing:
+            case OutgoingDirection.LEFT:
+                incoming_element_route_successors = incoming_element_route.successors_left
+            case OutgoingDirection.STRAIGHT:
+                incoming_element_route_successors = incoming_element_route.successors_straight
+            case OutgoingDirection.RIGHT:
+                incoming_element_route_successors = incoming_element_route.successors_right
+            case _:
+                return None
+        set_ids_lanelets_effective = incoming_element_route.incoming_lanelets.union(incoming_element_route_successors)
 
         for vehicle in self.vehicle_model.list_vehicles:
             incoming_element_vehicle = vehicle.incoming_element
@@ -126,9 +139,6 @@ class RegionModel:
             # if the route's incoming element is left of vehicle's incoming element, propagate this to the incoming and
             # corresponding successor lanelets of the incoming element.
             if incoming_element_route.left_of == incoming_element_vehicle.incoming_id:
-                set_ids_lanelets_effective = incoming_element_route.incoming_lanelets.union(
-                    eval(f"incoming_element_route.successors_{self.config.semantic_model.direction_outgoing}"))
-
                 for region in self.list_regions:
                     if region.set_ids_lanelets.intersection(set_ids_lanelets_effective):
                         region.proposition_holder.add_proposition(Prop.intersection_left_of(vehicle.id_vehicle),
