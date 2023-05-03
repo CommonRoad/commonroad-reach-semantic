@@ -491,11 +491,11 @@ def draw_kripke_nodes(set_nodes_kripke: Set[KripkeNode], config: SemanticConfigu
 
 def draw_regions(semantic_model: SemanticModel, coordinate_system: str, renderer):
     config: SemanticConfiguration = semantic_model.config
-    num_colors = len(semantic_model.list_regions)
+    num_colors = len(semantic_model.region_model.list_regions)
     palette = sns.color_palette("rainbow", num_colors)
 
     idx_palette = -1
-    for region in semantic_model.list_regions:
+    for region in semantic_model.region_model.list_regions:
         if coordinate_system == "CART":
             polygon_region = region.polygon_cart
             list_vertices_cart = [(x, y) for x, y in zip(polygon_region.shapely_object.exterior.coords.xy[0],

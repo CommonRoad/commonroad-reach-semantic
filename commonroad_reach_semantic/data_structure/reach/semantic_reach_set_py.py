@@ -71,7 +71,7 @@ class PySemanticReachableSet(SemanticReachableSet):
         """
         proposition_holder = PropositionHolder()
         # retrieve propositions from the intersecting lanelet region
-        for region in self.semantic_model.list_regions:
+        for region in self.semantic_model.region_model.list_regions:
             if region.polygon_cvln.intersects(rectangle):
                 for group, set_propositions in region.dict_group_to_propositions_at_step(step).items():
                     proposition_holder.add_propositions(set_propositions, group)
