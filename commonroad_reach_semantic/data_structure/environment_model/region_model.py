@@ -137,11 +137,10 @@ class RegionModel:
         """
         Updates the lane relation between the regions and the vehicles.
         """
-        for region in self.list_regions:
-            for vehicle in self.vehicle_model.list_vehicles:
-                lane_vehicle = vehicle.lane
-                if lane_vehicle in region.set_lanes:
-                    region.proposition_holder.add_proposition(Prop.in_same_lane(vehicle.id_vehicle), PropGroup.VEHICLE)
+        for region, vehicle in itertools.product(self.list_regions, self.vehicle_model.list_vehicles):
+            lane_vehicle = vehicle.lane
+            if lane_vehicle in region.set_lanes:
+                region.proposition_holder.add_proposition(Prop.in_same_lane(vehicle.id_vehicle), PropGroup.VEHICLE)
 
     def _label_region_with_time_variant_propositions(self) -> None:
         """
@@ -161,38 +160,34 @@ class RegionModel:
             if not incoming_region:
                 continue
 
-            for vehicle in self.vehicle_model.list_vehicles:
-                for step in range(self.step_end + 1):
-                    list_ids_lanelets_vehicle_at_step = vehicle.lanelet_ids_at_step(step)
+            for vehicle, step in itertools.product(self.vehicle_model.list_vehicles,
+                                                   range(self.step_start, self.step_end + 1)):
+                list_ids_lanelets_vehicle_at_step = vehicle.lanelet_ids_at_step(step)
 
-                    if region.set_ids_lanelets_oncoming.intersection(list_ids_lanelets_vehicle_at_step):
-                        region.proposition_holder.add_proposition(Prop.on_oncoming(vehicle.id_vehicle),
-                                                                  PropGroup.INTERSECTION,
-                                                                  step)
+                if region.set_ids_lanelets_oncoming.intersection(list_ids_lanelets_vehicle_at_step):
+                    region.proposition_holder.add_proposition(Prop.on_oncoming(vehicle.id_vehicle),
+                                                              PropGroup.INTERSECTION, step)
 
         # examine if the region is on oncoming of the vehicle
-        for region in self.list_regions:
-            for vehicle in self.vehicle_model.list_vehicles:
-                if region.set_ids_lanelets.intersection(vehicle.set_ids_lanelets_oncoming):
-                    region.proposition_holder.add_proposition(Prop.on_oncoming_of(vehicle.id_vehicle),
-                                                              PropGroup.INTERSECTION)
+        for region, vehicle in itertools.product(self.list_regions, self.vehicle_model.list_vehicles):
+            if region.set_ids_lanelets.intersection(vehicle.set_ids_lanelets_oncoming):
+                region.proposition_holder.add_proposition(Prop.on_oncoming_of(vehicle.id_vehicle),
+                                                          PropGroup.INTERSECTION)
 
     def _label_region_vehicle_outgoing_propositions(self) -> None:
         """
         Updates the intersection outgoing relations between the region the vehicles over time.
         """
         list_directions = ["left", "straight", "right"]
-        for region in self.list_regions:
-            for vehicle in self.vehicle_model.list_vehicles:
-                for step in range(self.step_end + 1):
-                    for dir_region in list_directions:
-                        for dir_vehicle in list_directions:
-                            # TODO: get rid of eval
-                            if eval(f"region.set_ids_lanelets_outgoing_{dir_region}").intersection(
-                                    eval(f"vehicle.{dir_vehicle}_outgoings_at_step(step)")):
-                                proposition = eval(
-                                    f"Prop.{dir_region}_out_same_as_{dir_vehicle}_out(vehicle.id_vehicle)")
-                                region.proposition_holder.add_proposition(proposition, PropGroup.PRIORITY, step)
+        for region, vehicle, step in itertools.product(self.list_regions, self.vehicle_model.list_vehicles,
+                                                       range(self.step_start, self.step_end + 1)):
+            for dir_region, dir_vehicle in itertools.product(list_directions, repeat=2):
+                # TODO: get rid of eval
+                if eval(f"region.set_ids_lanelets_outgoing_{dir_region}").intersection(
+                        eval(f"vehicle.{dir_vehicle}_outgoings_at_step(step)")):
+                    proposition = eval(
+                        f"Prop.{dir_region}_out_same_as_{dir_vehicle}_out(vehicle.id_vehicle)")
+                    region.proposition_holder.add_proposition(proposition, PropGroup.PRIORITY, step)
 
     def _label_traffic_light_status_propositions(self) -> None:
         """
