@@ -20,14 +20,16 @@ class RegionModel:
     config: SemanticConfiguration
     lanelet_model: LaneletModel
     vehicle_model: VehicleModel
+    step_start: int
     step_end: int
     list_regions: List[Region]
 
-    def __init__(self, config: SemanticConfiguration, lanelet_model: LaneletModel, vehicle_model: VehicleModel, step_end: int) -> None:
+    def __init__(self, config: SemanticConfiguration, lanelet_model: LaneletModel, vehicle_model: VehicleModel) -> None:
         self.config = config
         self.lanelet_model = lanelet_model
         self.vehicle_model = vehicle_model
-        self.step_end = step_end
+        self.step_start = self.config.planning.step_start
+        self.step_end = self.step_start + self.config.planning.steps_computation
 
         self.list_regions = list()
 
@@ -56,7 +58,7 @@ class RegionModel:
 
         logger.info("Lanelet regions created.")
 
-    def _determine_propositions(self):
+    def _determine_propositions(self) -> None:
         """
         Determines relevant propositions.
         """
@@ -65,7 +67,7 @@ class RegionModel:
 
         logger.info("Propositions determined.")
 
-    def _label_region_with_time_invariant_propositions(self):
+    def _label_region_with_time_invariant_propositions(self) -> None:
         """
         Labels regions with time invariant propositions.
         """
@@ -74,7 +76,7 @@ class RegionModel:
         self._label_region_vehicle_intersection_incoming_propositions()
         self._label_region_vehicle_same_lane_propositions()
 
-    def _label_driving_direction_propositions(self):
+    def _label_driving_direction_propositions(self) -> None:
         """
         Labels regions with propositions related to driving directions.
         """
@@ -82,7 +84,7 @@ class RegionModel:
             if not region.set_ids_lanelets.intersection(self.lanelet_model.set_ids_lanelets_opposite_direction):
                 region.proposition_holder.add_proposition(Prop.same_driving_direction(), PropGroup.TRAFFIC_SIGN)
 
-    def _label_lanelet_type_propositions(self):
+    def _label_lanelet_type_propositions(self) -> None:
         """
         Labels regions with propositions related to lanelet types.
         """
@@ -100,9 +102,10 @@ class RegionModel:
             # TODO: get rid of eval
             if region.set_ids_lanelets.intersection(
                     eval(f"self.config.semantic_model.incoming_element_route.successors_{direction_outgoing}")):
-                region.proposition_holder.add_proposition(eval(f"Prop.in_{direction_outgoing}_successor()"), PropGroup.POSITION)
+                region.proposition_holder.add_proposition(eval(f"Prop.in_{direction_outgoing}_successor()"),
+                                                          PropGroup.POSITION)
 
-    def _label_region_vehicle_intersection_incoming_propositions(self):
+    def _label_region_vehicle_intersection_incoming_propositions(self) -> None:
         """
         Updates the intersection incoming relations between the region and vehicles over time.
 
@@ -129,7 +132,7 @@ class RegionModel:
                         region.proposition_holder.add_proposition(Prop.intersection_left_of(vehicle.id_vehicle),
                                                                   PropGroup.INTERSECTION)
 
-    def _label_region_vehicle_same_lane_propositions(self):
+    def _label_region_vehicle_same_lane_propositions(self) -> None:
         """
         Updates the lane relation between the regions and the vehicles.
         """
@@ -139,7 +142,7 @@ class RegionModel:
                 if lane_vehicle in region.set_lanes:
                     region.proposition_holder.add_proposition(Prop.in_same_lane(vehicle.id_vehicle), PropGroup.VEHICLE)
 
-    def _label_region_with_time_variant_propositions(self):
+    def _label_region_with_time_variant_propositions(self) -> None:
         """
         Updates time variant propositions of the region.
         """
@@ -147,7 +150,7 @@ class RegionModel:
         self._label_region_vehicle_outgoing_propositions()
         self._label_traffic_light_status_propositions()
 
-    def _label_region_vehicle_intersection_oncoming_propositions(self):
+    def _label_region_vehicle_intersection_oncoming_propositions(self) -> None:
         """
         Updates the intersection oncoming relations between the region and vehicles over time.
         """
@@ -162,16 +165,18 @@ class RegionModel:
                     list_ids_lanelets_vehicle_at_step = vehicle.lanelet_ids_at_step(step)
 
                     if region.set_ids_lanelets_oncoming.intersection(list_ids_lanelets_vehicle_at_step):
-                        region.proposition_holder.add_proposition(Prop.on_oncoming(vehicle.id_vehicle), PropGroup.INTERSECTION,
+                        region.proposition_holder.add_proposition(Prop.on_oncoming(vehicle.id_vehicle),
+                                                                  PropGroup.INTERSECTION,
                                                                   step)
 
         # examine if the region is on oncoming of the vehicle
         for region in self.list_regions:
             for vehicle in self.vehicle_model.list_vehicles:
                 if region.set_ids_lanelets.intersection(vehicle.set_ids_lanelets_oncoming):
-                    region.proposition_holder.add_proposition(Prop.on_oncoming_of(vehicle.id_vehicle), PropGroup.INTERSECTION)
+                    region.proposition_holder.add_proposition(Prop.on_oncoming_of(vehicle.id_vehicle),
+                                                              PropGroup.INTERSECTION)
 
-    def _label_region_vehicle_outgoing_propositions(self):
+    def _label_region_vehicle_outgoing_propositions(self) -> None:
         """
         Updates the intersection outgoing relations between the region the vehicles over time.
         """
@@ -184,10 +189,11 @@ class RegionModel:
                             # TODO: get rid of eval
                             if eval(f"region.set_ids_lanelets_outgoing_{dir_region}").intersection(
                                     eval(f"vehicle.{dir_vehicle}_outgoings_at_step(step)")):
-                                proposition = eval(f"Prop.{dir_region}_out_same_as_{dir_vehicle}_out(vehicle.id_vehicle)")
+                                proposition = eval(
+                                    f"Prop.{dir_region}_out_same_as_{dir_vehicle}_out(vehicle.id_vehicle)")
                                 region.proposition_holder.add_proposition(proposition, PropGroup.PRIORITY, step)
 
-    def _label_traffic_light_status_propositions(self):
+    def _label_traffic_light_status_propositions(self) -> None:
         """
         Updates traffic light status of the region.
         """
