@@ -14,6 +14,7 @@ from commonroad_reach_semantic import pycrreachs
 from commonroad_reach_semantic.data_structure.environment_model.lanelet_model import LaneletModel
 from commonroad_reach_semantic.data_structure.environment_model.position_interval import PositionInterval
 from commonroad_reach_semantic.data_structure.environment_model.region_model import RegionModel
+from commonroad_reach_semantic.data_structure.environment_model.traffic_status_model import TrafficStatusModel
 from commonroad_reach_semantic.data_structure.environment_model.vehicle_model import VehicleModel
 from commonroad_reach_semantic.data_structure.rule.proposition import Proposition as P
 from commonroad_reach_semantic.data_structure.rule.proposition import PropositionGroup as PG
@@ -45,13 +46,10 @@ class SemanticModel:
         self.step_start = self.config.planning.step_start
         self.step_end = self.step_start + self.config.planning.steps_computation
 
-        # proposition-related
-        self.dict_step_to_traffic_status_propositions = dict()
-
         self.lanelet_model = LaneletModel(self.config)
         self.vehicle_model = VehicleModel(self.config, self.lanelet_model)
         self.region_model = RegionModel(self.config, self.lanelet_model, self.vehicle_model)
-        self._determine_traffic_status_propositions()
+        self.traffic_status_model = TrafficStatusModel(self.config, self.lanelet_model, self.vehicle_model)
 
         logger.info("SemanticModel created.")
         self.print_summary()
@@ -65,32 +63,6 @@ class SemanticModel:
 
         for line in string.split("\n"):
             util_logger.print_and_log_info(logger, line)
-
-    def _determine_traffic_status_propositions(self):
-        """
-        Determines propositions for the general traffic status.
-        """
-        dict_step_to_traffic_status_propositions = defaultdict(set)
-
-        # extract propositions indicating a vehicle is within an intersection
-        for id_lanelet in self.lanelet_model.set_ids_lanelets_in_intersections:
-            lanelet = self.config.scenario.lanelet_network.find_lanelet_by_id(id_lanelet)
-
-            for step in range(self.step_end + 1):
-                set_ids_obstacles_dynamic = lanelet.dynamic_obstacle_by_time_step(step)
-
-                if set_ids_obstacles_dynamic:
-                    for id_obstacle in set_ids_obstacles_dynamic:
-                        dict_step_to_traffic_status_propositions[step].add(P.in_intersection(id_obstacle))
-
-        # extract propositions indicating a vehicle is in its outgoing lanelet
-        for vehicle in self.vehicle_model.list_vehicles:
-            for step in range(self.step_end + 1):
-                if vehicle.set_ids_lanelets_successor_incoming.intersection(vehicle.lanelet_ids_at_step(step)):
-                    dict_step_to_traffic_status_propositions[step].add(
-                        eval(f"P.in_{vehicle.type_outgoing}_successor(vehicle.id_vehicle)"))
-
-        self.dict_step_to_traffic_status_propositions = dict_step_to_traffic_status_propositions
 
     def determine_traffic_priorities(self, dict_traffic_sign_to_priorities: Dict):
         """
@@ -128,7 +100,7 @@ class SemanticModel:
         """
         Labels propagated sets with traffic status propositions.
         """
-        set_propositions = self.dict_step_to_traffic_status_propositions[step]
+        set_propositions = self.traffic_status_model.dict_step_to_traffic_status_propositions[step]
         # if isinstance(list_propagated_sets[0], ReachNode):
         for propagated_set in list_propagated_sets:
             propagated_set.proposition_holder.add_propositions(set_propositions, PG.TRAFFIC_STATUS)
