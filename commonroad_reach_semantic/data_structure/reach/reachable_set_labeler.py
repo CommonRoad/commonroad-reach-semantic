@@ -1,8 +1,10 @@
+import itertools
 from typing import Union, List
 
 from commonroad_reach.pycrreach import ReachPolygon
 
 from commonroad_reach_semantic import pycrreachs
+from commonroad_reach_semantic.data_structure.environment_model.position_interval import PositionInterval
 from commonroad_reach_semantic.data_structure.environment_model.region import Region
 from commonroad_reach_semantic.data_structure.environment_model.semantic_model import SemanticModel
 from commonroad_reach_semantic.data_structure.reach.semantic_reach_node import SemanticReachNode
@@ -33,7 +35,8 @@ class ReachableSetLabeler:
         """
         Returns the propositions of the given rectangle.
 
-        Intersects the rectangle with regions and position intervals.
+        Intersects the rectangle with regions and position intervals. Since this method does not split the rectangle,
+        it adds the propositions of the first intersecting region and position interval.
         """
         proposition_holder = PropositionHolder()
         # retrieve propositions from the intersecting lanelet region
@@ -99,22 +102,18 @@ class ReachableSetLabeler:
         A lanelet is examined against a list of lanelets of the lane/route of the other object.
         """
         # examine if the propagated set is conflicting with the vehicles
-        for propagated_set in list_propagated_sets:
-            for vehicle in self.semantic_model.vehicle_model.list_vehicles:
-                # if not vehicle.behind_node_at_step(step, base_set):
-                #     continue
-
-                # iterate through lanelet ids of the region
-                for id_lanelet_propagated_set in propagated_set.set_ids_lanelets:
-                    # iterate through lanelet ids of the lane of the vehicle
-                    for id_lanelet_lane_vehicle in vehicle.lane.list_ids_lanelets:
-                        # use cached results
-                        if id_lanelet_lane_vehicle in \
-                                self.semantic_model.lanelet_model.dict_id_lanelet_to_set_ids_lanelets_intersecting[
-                                    id_lanelet_propagated_set]:
-                            propagated_set.proposition_holder.add_propositions(
-                                {Prop.in_conflict_with(vehicle.id_vehicle)},
-                                PropGroup.TRAFFIC_STATUS)
+        for propagated_set, vehicle in itertools.product(list_propagated_sets,
+                                                         self.semantic_model.vehicle_model.list_vehicles):
+            # iterate through lanelet ids of the region and lanelet ids of the lane of the vehicle
+            for id_lanelet_propagated_set, id_lanelet_lane_vehicle in itertools.product(propagated_set.set_ids_lanelets,
+                                                                                        vehicle.lane.list_ids_lanelets):
+                # use cached results
+                if id_lanelet_lane_vehicle in \
+                        self.semantic_model.lanelet_model.dict_id_lanelet_to_set_ids_lanelets_intersecting[
+                            id_lanelet_propagated_set]:
+                    propagated_set.proposition_holder.add_proposition(
+                        Prop.in_conflict_with(vehicle.id_vehicle),
+                        PropGroup.TRAFFIC_STATUS)
 
         # examine if the vehicles are in conflict with the propagated set
         for propagated_set in list_propagated_sets:
@@ -135,16 +134,15 @@ class ReachableSetLabeler:
                 if p_lon_min_propagated_set > p_lon_ref_max_vehicle:
                     continue
 
-                # iterate through lanelet ids of the route
-                for id_lanelet_route in self.semantic_model.config.planning.route.list_ids_lanelets:
-                    # iterate through lanelet ids of the vehicle
-                    for id_lanelet_vehicle in vehicle.lanelet_ids_at_step(step):
-                        if id_lanelet_vehicle in \
-                                self.semantic_model.lanelet_model.dict_id_lanelet_to_set_ids_lanelets_intersecting[
-                                    id_lanelet_route]:
-                            propagated_set.proposition_holder.add_propositions(
-                                {Prop.in_conflict_by(vehicle.id_vehicle)},
-                                PropGroup.VEHICLE)
+                # iterate through lanelet ids of the route and lanelet ids of the vehicle
+                for id_lanelet_route, id_lanelet_vehicle in itertools.product(
+                        self.semantic_model.config.planning.route.list_ids_lanelets, vehicle.lanelet_ids_at_step(step)):
+                    if id_lanelet_vehicle in \
+                            self.semantic_model.lanelet_model.dict_id_lanelet_to_set_ids_lanelets_intersecting[
+                                id_lanelet_route]:
+                        propagated_set.proposition_holder.add_proposition(
+                            Prop.in_conflict_by(vehicle.id_vehicle),
+                            PropGroup.VEHICLE)
 
         return list_propagated_sets
 
@@ -159,12 +157,12 @@ class ReachableSetLabeler:
         if not self.semantic_model.config.semantic_model.incoming_element_route:
             return list_propagated_sets
 
-        for propagated_set in list_propagated_sets:
-            # todo: this should only be computed for vehicles entering an intersection from other directions
-            for vehicle in self.semantic_model.vehicle_model.list_vehicles:
-                if vehicle.braking_caused_by_node_at_step(step, propagated_set):
-                    propagated_set.proposition_holder.add_propositions({Prop.causes_braking_for(vehicle.id_vehicle)},
-                                                                       PropGroup.TRAFFIC_STATUS)
+        # todo: this should only be computed for vehicles entering an intersection from other directions
+        for propagated_set, vehicle in itertools.product(list_propagated_sets,
+                                                         self.semantic_model.vehicle_model.list_vehicles):
+            if vehicle.braking_caused_by_node_at_step(step, propagated_set):
+                propagated_set.proposition_holder.add_proposition(Prop.causes_braking_for(vehicle.id_vehicle),
+                                                                  PropGroup.TRAFFIC_STATUS)
 
         return list_propagated_sets
 
@@ -221,8 +219,7 @@ class ReachableSetLabeler:
         else:
             dict_relevant = region.map_group_to_propositions_at_step(step)
 
-        for group in dict_relevant:
-            set_propositions = dict_relevant[group]
+        for group, set_propositions in dict_relevant.items():
             propagated_set.proposition_holder.add_propositions(set_propositions, group)
 
         # add lanelet ids of the region to propagated set
@@ -247,31 +244,32 @@ class ReachableSetLabeler:
         list_intervals_lon = self.semantic_model.vehicle_model.dict_step_to_position_intervals[step]["lon"]
         list_intervals_lat = self.semantic_model.vehicle_model.dict_step_to_position_intervals[step]["lat"]
 
-        list_reachable_sets_split_lon = []
-        for interval_lon in list_intervals_lon:
-            # propagated set intersects with the longitudinal interval
-            if interval_lon.intersects(reachable_set.p_lon_min, reachable_set.p_lon_max):
-                propagated_set_split = reach_operation.split_reach_node_to_interval(reachable_set, interval_lon, "lon")
-                if propagated_set_split:
-                    list_reachable_sets_split_lon.append(propagated_set_split)
+        list_reachable_sets_split_lon = self._split_reachable_set_wrt_intervals(reachable_set, list_intervals_lon,
+                                                                                reachable_set.p_lon_min,
+                                                                                reachable_set.p_lon_max, "lon")
 
-            # early termination, since the rest of intervals will definitely not intersect with the base set
-            elif interval_lon.p_min > reachable_set.polygon_lon.p_max:
-                break
+        list_reachable_sets_split = list(itertools.chain.from_iterable(
+            self._split_reachable_set_wrt_intervals(reachable_set_split, list_intervals_lat,
+                                                    reachable_set_split.p_lat_min,
+                                                    reachable_set_split.p_lat_max, "lat")
+            for reachable_set_split in list_reachable_sets_split_lon))
 
+        return list_reachable_sets_split
+
+    @staticmethod
+    def _split_reachable_set_wrt_intervals(reachable_set: SemanticReachNode, intervals: List[PositionInterval],
+                                           reach_min: float, reach_max: float, direction: str) \
+            -> List[SemanticReachNode]:
         list_reachable_sets_split = []
-        for propagated in list_reachable_sets_split_lon:
-            for interval_lat in list_intervals_lat:
-                # propagated set intersects with the lateral interval
-                if interval_lat.intersects(propagated.p_lat_min, propagated.p_lat_max):
-                    propagated_set_split = reach_operation.split_reach_node_to_interval(propagated, interval_lat, "lat")
-                    if propagated_set_split:
-                        list_reachable_sets_split.append(propagated_set_split)
+        for interval in intervals:
+            if interval.intersects(reach_min, reach_max):
+                propagated_set_split = reach_operation.split_reach_node_to_interval(reachable_set, interval, direction)
+                if propagated_set_split:
+                    list_reachable_sets_split.append(propagated_set_split)
 
-                # early termination, since the rest of intervals will definitely not intersect with the base set
-                elif interval_lat.p_min > propagated.polygon_lat.p_max:
-                    break
-
+            # early termination, since the rest of intervals will definitely not intersect with the reachable set
+            elif interval.p_min > reach_max:
+                break
         return list_reachable_sets_split
 
     @staticmethod
