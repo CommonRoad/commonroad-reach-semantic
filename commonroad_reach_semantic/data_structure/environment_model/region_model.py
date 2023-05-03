@@ -1,3 +1,4 @@
+import itertools
 import logging
 from typing import List
 
@@ -197,35 +198,28 @@ class RegionModel:
         """
         Updates traffic light status of the region.
         """
-        for region in self.list_regions:
+        props = [
+            Prop.at_red_left_traffic_light(),
+            Prop.at_red_straight_traffic_light(),
+            Prop.at_red_right_traffic_light()
+        ]
+        traffic_light_directions = [
+            # left
+            [TrafficLightDirection.LEFT, TrafficLightDirection.LEFT_STRAIGHT,
+             TrafficLightDirection.LEFT_RIGHT, TrafficLightDirection.ALL],
+            # straight
+            [TrafficLightDirection.STRAIGHT, TrafficLightDirection.LEFT_STRAIGHT,
+             TrafficLightDirection.STRAIGHT_RIGHT, TrafficLightDirection.ALL],
+            # right
+            [TrafficLightDirection.RIGHT, TrafficLightDirection.LEFT_RIGHT,
+             TrafficLightDirection.STRAIGHT_RIGHT, TrafficLightDirection.ALL]
+        ]
+
+        for region, step in itertools.product(self.list_regions, range(self.step_start, self.step_end + 1)):
             for traffic_light in region.set_traffic_lights_active:
-                for step in range(self.step_end + 1):
-                    state_light = traffic_light.get_state_at_time_step(step)
+                state_light = traffic_light.get_state_at_time_step(step)
 
-                    # red left
-                    if state_light in [TrafficLightState.RED, TrafficLightState.RED_YELLOW]:
-                        if traffic_light.direction in [TrafficLightDirection.LEFT,
-                                                       TrafficLightDirection.LEFT_STRAIGHT,
-                                                       TrafficLightDirection.LEFT_RIGHT,
-                                                       TrafficLightDirection.ALL]:
-                            region.proposition_holder.add_proposition(Prop.at_red_left_traffic_light(), PropGroup.TRAFFIC_LIGHT,
-                                                                      step)
-
-                    # red straight
-                    if state_light in [TrafficLightState.RED, TrafficLightState.RED_YELLOW]:
-                        if traffic_light.direction in [TrafficLightDirection.STRAIGHT,
-                                                       TrafficLightDirection.LEFT_STRAIGHT,
-                                                       TrafficLightDirection.STRAIGHT_RIGHT,
-                                                       TrafficLightDirection.ALL]:
-                            region.proposition_holder.add_proposition(Prop.at_red_straight_traffic_light(),
-                                                                      PropGroup.TRAFFIC_LIGHT,
-                                                                      step)
-
-                    # red right
-                    if state_light in [TrafficLightState.RED, TrafficLightState.RED_YELLOW]:
-                        if traffic_light.direction in [TrafficLightDirection.RIGHT,
-                                                       TrafficLightDirection.STRAIGHT_RIGHT,
-                                                       TrafficLightDirection.LEFT_RIGHT,
-                                                       TrafficLightDirection.ALL]:
-                            region.proposition_holder.add_proposition(Prop.at_red_right_traffic_light(),
-                                                                      PropGroup.TRAFFIC_LIGHT, step)
+                if state_light in [TrafficLightState.RED, TrafficLightState.RED_YELLOW]:
+                    for prop, directions in zip(props, traffic_light_directions):
+                        if traffic_light.direction in directions:
+                            region.proposition_holder.add_proposition(prop, PropGroup.TRAFFIC_LIGHT, step)
