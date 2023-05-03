@@ -27,12 +27,11 @@ class VehicleModel:
     set_ids_vehicles_entering_intersection: Set[int]
     dict_step_to_position_intervals: Dict[int, Dict[str, List[PositionInterval]]]
 
-    def __init__(self, config: SemanticConfiguration, lanelet_model: LaneletModel,
-                 step_start: int, step_end: int) -> None:
+    def __init__(self, config: SemanticConfiguration, lanelet_model: LaneletModel) -> None:
         self.config = config
         self.lanelet_model = lanelet_model
-        self.step_start = step_start
-        self.step_end = step_end
+        self.step_start = self.config.planning.step_start
+        self.step_end = self.step_start + self.config.planning.steps_computation
 
         self.list_vehicles: List[Vehicle] = list()
         self.set_ids_vehicles_entering_intersection = set()
