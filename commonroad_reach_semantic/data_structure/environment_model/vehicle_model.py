@@ -42,6 +42,13 @@ class VehicleModel:
         self._create_vehicles()
         self._create_position_intervals()
 
+    def determine_traffic_priorities(self, dict_traffic_sign_to_priorities: Dict):
+        """
+        Determines the traffic priorities of the vehicles in the scenario.
+        """
+        for vehicle in self.list_vehicles:
+            vehicle.determine_priorities(dict_traffic_sign_to_priorities)
+
     def _create_vehicles(self) -> None:
         """
         Creates vehicle objects from relevant obstacles in the scenario.

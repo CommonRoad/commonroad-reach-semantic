@@ -1,6 +1,6 @@
 import itertools
 import logging
-from typing import List
+from typing import List, Dict
 
 from commonroad.scenario.traffic_sign import TrafficLightState, TrafficLightDirection
 
@@ -37,6 +37,14 @@ class RegionModel:
 
         self._create_lanelet_regions()
         self._determine_propositions()
+
+    def determine_traffic_priorities(self, dict_traffic_sign_to_priorities: Dict):
+        """
+        Determines the traffic priorities of the regions in the scenario.
+        """
+        for region in self.list_regions:
+            region.determine_priorities(dict_traffic_sign_to_priorities)
+            region.examine_priorities_against_vehicles(self.vehicle_model.list_vehicles)
 
     def _create_lanelet_regions(self) -> None:
         """

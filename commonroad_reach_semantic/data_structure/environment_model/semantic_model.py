@@ -98,23 +98,12 @@ class SemanticModel:
         """
         if self.config.semantic_model.incoming_element_route:
             # vehicles
-            for vehicle in self.vehicle_model.list_vehicles:
-                vehicle.determine_priorities(dict_traffic_sign_to_priorities)
+            self.vehicle_model.determine_traffic_priorities(dict_traffic_sign_to_priorities)
 
             # lanelet regions
-            for region in self.region_model.list_regions:
-                region.determine_priorities(dict_traffic_sign_to_priorities)
-                region.examine_priorities_against_vehicles(self.vehicle_model.list_vehicles)
+            self.region_model.determine_traffic_priorities(dict_traffic_sign_to_priorities)
 
             logger.info("Traffic priorities determined.")
-
-    def find_vehicle_by_id(self, id_vehicle: int):
-        """
-        Returns the vehicle object by its id.
-        """
-        for vehicle in self.vehicle_model.list_vehicles:
-            if vehicle.id_vehicle == id_vehicle:
-                return vehicle
 
     def label_traffic_propositions(self, step,
                                    list_propagated_sets: Union[
