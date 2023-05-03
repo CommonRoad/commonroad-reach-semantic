@@ -5,6 +5,7 @@ from typing import List
 from commonroad.scenario.traffic_sign import TrafficLightState, TrafficLightDirection
 
 import commonroad_reach_semantic.utility.region as util_region
+from commonroad_reach_semantic.data_structure.config.outgoing_direction import OutgoingDirection
 from commonroad_reach_semantic.data_structure.config.semantic_configuration import SemanticConfiguration
 from commonroad_reach_semantic.data_structure.environment_model.lanelet_model import LaneletModel
 from commonroad_reach_semantic.data_structure.environment_model.region import Region
@@ -178,15 +179,11 @@ class RegionModel:
         """
         Updates the intersection outgoing relations between the region the vehicles over time.
         """
-        list_directions = ["left", "straight", "right"]
         for region, vehicle, step in itertools.product(self.list_regions, self.vehicle_model.list_vehicles,
                                                        range(self.step_start, self.step_end + 1)):
-            for dir_region, dir_vehicle in itertools.product(list_directions, repeat=2):
-                # TODO: get rid of eval
-                if eval(f"region.set_ids_lanelets_outgoing_{dir_region}").intersection(
-                        eval(f"vehicle.{dir_vehicle}_outgoings_at_step(step)")):
-                    proposition = eval(
-                        f"Prop.{dir_region}_out_same_as_{dir_vehicle}_out(vehicle.id_vehicle)")
+            for dir_region, dir_vehicle in itertools.product(OutgoingDirection, repeat=2):
+                if region.outgoing_lanelet_ids(dir_region).intersection(vehicle.outgoings_at_step(step, dir_vehicle)):
+                    proposition = Prop.region_out_same_as_vehicle_out(dir_region, dir_vehicle, vehicle.id_vehicle)
                     region.proposition_holder.add_proposition(proposition, PropGroup.PRIORITY, step)
 
     def _label_traffic_light_status_propositions(self) -> None:

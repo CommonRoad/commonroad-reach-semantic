@@ -1,5 +1,7 @@
 import enum
 
+from commonroad_reach_semantic.data_structure.config.outgoing_direction import OutgoingDirection
+
 
 @enum.unique
 class PropositionGroup(enum.Enum):
@@ -205,40 +207,9 @@ class Proposition:
         return f"OnOncomingOf_V{id_obstacle}"
 
     @staticmethod
-    def left_out_same_as_left_out(id_obstacle: int = None) -> str:
-        return f"LeftOut_SameAs_V{id_obstacle}_LeftOut"
-
-    @staticmethod
-    def left_out_same_as_straight_out(id_obstacle: int = None) -> str:
-        return f"LeftOut_SameAs_V{id_obstacle}_StraightOut"
-
-    @staticmethod
-    def left_out_same_as_right_out(id_obstacle: int = None) -> str:
-        return f"LeftOut_SameAs_V{id_obstacle}_RightOut"
-
-    @staticmethod
-    def straight_out_same_as_left_out(id_obstacle: int = None) -> str:
-        return f"StraightOut_SameAs_V{id_obstacle}_LeftOut"
-
-    @staticmethod
-    def straight_out_same_as_straight_out(id_obstacle: int = None) -> str:
-        return f"StraightOut_SameAs_V{id_obstacle}_StraightOut"
-
-    @staticmethod
-    def straight_out_same_as_right_out(id_obstacle: int = None) -> str:
-        return f"StraightOut_SameAs_V{id_obstacle}_RightOut"
-
-    @staticmethod
-    def right_out_same_as_left_out(id_obstacle: int = None) -> str:
-        return f"RightOut_SameAs_V{id_obstacle}_LeftOut"
-
-    @staticmethod
-    def right_out_same_as_straight_out(id_obstacle: int = None) -> str:
-        return f"RightOut_SameAs_V{id_obstacle}_StraightOut"
-
-    @staticmethod
-    def right_out_same_as_right_out(id_obstacle: int = None) -> str:
-        return f"RightOut_SameAs_V{id_obstacle}_RightOut"
+    def region_out_same_as_vehicle_out(region_dir: OutgoingDirection, vehicle_dir: OutgoingDirection,
+                                       id_obstacle: int = None) -> str:
+        return f"{region_dir}Out_SameAs_V{id_obstacle}_{vehicle_dir}Out"
 
     @staticmethod
     def in_conflict_with(id_obstacle: int = None) -> str:
