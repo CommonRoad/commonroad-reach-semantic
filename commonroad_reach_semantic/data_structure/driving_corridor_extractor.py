@@ -416,6 +416,7 @@ class DrivingCorridorExtractor:
         corridor. These unreachable reach nodes are removed.
         """
         # deep copy is required to not affect other corridors since they might reference the same auto/kripke nodes.
+        # TODO: this is not a proper deep copy!
         set_corridors_pruned = {corridor.clone() for corridor in set_corridors}
         set_corridors_keep = set()
         set_nodes_auto_corridors_keep = set()

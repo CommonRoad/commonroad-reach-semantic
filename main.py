@@ -47,15 +47,15 @@ def main():
     spot_interface.check()
 
     # ==== instantiate a driving corridor extractor
-    dc_extractor = DrivingCorridorExtractor(spot_interface)
-    dc_extractor.extract_corridors(search=True)
-    corridor_optimal = dc_extractor.determine_optimal_corridor()
+    # dc_extractor = DrivingCorridorExtractor(spot_interface)
+    # dc_extractor.extract_corridors(search=True)
+    # corridor_optimal = dc_extractor.determine_optimal_corridor()
 
     # ==== plot computation results
     util_visual.plot_scenario_with_regions(semantic_model, "CVLN")
     util_visual.plot_scenario_with_reachable_sets(reach_interface, save_gif=True)
     util_visual.plot_scenario_with_kripke_nodes(spot_interface, plot_accepting=True, save_gif=True)
-    util_visual.plot_scenario_with_driving_corridor(spot_interface, corridor_optimal, save_gif=True)
+    # util_visual.plot_scenario_with_driving_corridor(spot_interface, corridor_optimal, save_gif=True)
 
 
 if __name__ == "__main__":
