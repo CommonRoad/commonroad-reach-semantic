@@ -21,12 +21,12 @@ class ReachableSetLabeler:
     def __init__(self, semantic_model: SemanticModel):
         self.semantic_model = semantic_model
 
-    def label_initial_state(self, drivable_areas: List[ReachPolygon], reachable_sets: List[SemanticReachNode],
-                            step_start: int) -> None:
+    def label_initial_state(self, reachable_sets: List[SemanticReachNode], step_start: int) -> None:
         """
         Assigns proposition labels to initial reachable sets and drivable areas.
         """
-        for drivable_area, reachable_set in zip(drivable_areas, reachable_sets):
+        for reachable_set in reachable_sets:
+            drivable_area = reachable_set.position_rectangle
             propositions = self._obtain_propositions_for_rectangle(drivable_area, step_start)
             reachable_set.proposition_holder.merge(propositions)
         self.label_traffic_propositions(step_start, reachable_sets)
