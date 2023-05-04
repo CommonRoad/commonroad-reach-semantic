@@ -12,13 +12,13 @@ from commonroad_reach_semantic.data_structure.config.semantic_configuration impo
 from commonroad_reach_semantic.data_structure.environment_model.semantic_model import SemanticModel
 from commonroad_reach_semantic.data_structure.model_checking.finite_automaton import FiniteAutomaton
 from commonroad_reach_semantic.data_structure.reach.semantic_reach_node import SemanticReachNode
-from commonroad_reach_semantic.data_structure.reach.semantic_reach_set import SemanticReachableSet
+from commonroad_reach_semantic.data_structure.reach.semantic_reach_set_py import PySemanticReachableSet
 from commonroad_reach_semantic.data_structure.rule.traffic_rule_interface import TrafficRuleInterface
 
 logger = logging.getLogger(__name__)
 
 
-class PySemanticOTFReachableSet(SemanticReachableSet):
+class PySemanticOTFReachableSet(PySemanticReachableSet):
     """
     Reachable set computation considering temporal constraints on-the-fly with Python backend.
     """
@@ -54,52 +54,6 @@ class PySemanticOTFReachableSet(SemanticReachableSet):
             self.dict_step_to_reachable_set[self.step_start])
 
         logger.debug("PySemanticOTFReachableSet initialized.")
-
-    def _construct_initial_reachable_sets(self) -> List[SemanticReachNode]:
-        tuple_vertices_polygon_lon, tuple_vertices_polygon_lat = \
-            reach_operation.generate_tuples_vertices_polygons_initial(self.config)
-
-        polygon_lon = ReachPolygon.from_rectangle_vertices(*tuple_vertices_polygon_lon)
-        polygon_lat = ReachPolygon.from_rectangle_vertices(*tuple_vertices_polygon_lat)
-
-        return [SemanticReachNode(polygon_lon, polygon_lat, self.config.planning.step_start)]
-
-    def _initialize_zero_state_polygons(self):
-        """
-        Initializes the zero-state polygons of the system.
-
-        Computation of the reachable set of an LTI system requires the zero-state response of the system.
-        """
-        self.polygon_zero_state_lon = reach_operation.create_zero_state_polygon(self.config.planning.dt,
-                                                                                self.config.vehicle.ego.a_lon_min,
-                                                                                self.config.vehicle.ego.a_lon_max)
-
-        self.polygon_zero_state_lat = reach_operation.create_zero_state_polygon(self.config.planning.dt,
-                                                                                self.config.vehicle.ego.a_lat_min,
-                                                                                self.config.vehicle.ego.a_lat_max)
-
-    def compute(self, step_start: int, step_end: int):
-        for step in range(step_start, step_end + 1):
-            logger.debug(f"Computing reachable set for step {step}")
-            self._compute_drivable_area_at_step(step)
-            self._compute_reachable_set_at_step(step)
-            self._list_steps_computed.append(step)
-
-        if self.config.reachable_set.prune_nodes_not_reaching_final_step:
-            self.prune_nodes_not_reaching_final_step()
-
-    def compute_drivable_area_at_step(self, step):
-        logger.debug(f"Computing drivable area for step {step}")
-        self._compute_drivable_area_at_step(step)
-
-        if step not in self._list_steps_computed:
-            self._list_steps_computed.append(step)
-
-    def compute_reachable_set_at_step(self, step):
-        logger.debug(f"Computing reachable set for step {step}")
-        self._compute_reachable_set_at_step(step)
-        if step not in self._list_steps_computed:
-            self._list_steps_computed.append(step)
 
     def _compute_drivable_area_at_step(self, step: int):
         """
@@ -161,81 +115,6 @@ class PySemanticOTFReachableSet(SemanticReachableSet):
         self.dict_step_to_states_to_propagated_set[step] = dict_states_to_propagated_set
         self.dict_step_to_propagated_set[step] = propagated_sets
 
-    def _propagate_reachable_set(self, list_nodes: List[SemanticReachNode]) -> List[SemanticReachNode]:
-        """
-        Propagates nodes of the reachable set.
-        """
-        # TODO: set propagation constraints
-        no_backward_driving = "NoBackwardDrivingRule" in self.rule_interface.list_traffic_rules_activated
-        v_lon_min = max(0, self.config.vehicle.ego.v_lon_min) if no_backward_driving \
-            else self.config.vehicle.ego.v_lon_min
-
-        list_base_sets_propagated = []
-        for node in list_nodes:
-            try:
-                # propagate in both directions
-                polygon_lon_propagated = reach_operation.propagate_polygon(node.polygon_lon,
-                                                                           self.polygon_zero_state_lon,
-                                                                           self.config.planning.dt,
-                                                                           v_lon_min,
-                                                                           self.config.vehicle.ego.v_lon_max)
-
-                polygon_lat_propagated = reach_operation.propagate_polygon(node.polygon_lat,
-                                                                           self.polygon_zero_state_lat,
-                                                                           self.config.planning.dt,
-                                                                           self.config.vehicle.ego.v_lat_min,
-                                                                           self.config.vehicle.ego.v_lat_max)
-            except (ValueError, RuntimeError, AttributeError):
-                util_logger.print_and_log_debug(logger, "Error occurred while propagating polygons.")
-
-            else:
-                base_set_propagated = SemanticReachNode(polygon_lon_propagated, polygon_lat_propagated, node.step)
-                base_set_propagated.source_propagation = node
-                list_base_sets_propagated.append(base_set_propagated)
-
-        return list_base_sets_propagated
-
-    def _collision_check_and_repartition(self, rectangles: List[ReachPolygon], step: int) -> List[ReachPolygon]:
-        mode_repartition = self.config.reachable_set.mode_repartition
-        size_grid = self.config.reachable_set.size_grid
-        size_grid_2nd = self.config.reachable_set.size_grid_2nd
-        radius_terminal_split = self.config.reachable_set.radius_terminal_split
-
-        # repartition, then collision check
-        if mode_repartition == 1:
-            list_rectangles_repartitioned = \
-                reach_operation.create_repartitioned_rectangles(rectangles, size_grid)
-            rectangles = reach_operation.check_collision_and_split_rectangles(self.collision_checker, step,
-                                                                              list_rectangles_repartitioned,
-                                                                              radius_terminal_split)
-
-        # collision check, then repartition
-        elif mode_repartition == 2:
-            list_rectangles_collision_free = \
-                reach_operation.check_collision_and_split_rectangles(self.collision_checker, step,
-                                                                     rectangles,
-                                                                     radius_terminal_split)
-            rectangles = reach_operation.create_repartitioned_rectangles(list_rectangles_collision_free,
-                                                                         size_grid)
-
-        # repartition, collision check, then repartition again
-        elif mode_repartition == 3:
-            list_rectangles_repartitioned = reach_operation.create_repartitioned_rectangles(rectangles,
-                                                                                            size_grid)
-
-            list_rectangles_collision_free = \
-                reach_operation.check_collision_and_split_rectangles(self.collision_checker, step,
-                                                                     list_rectangles_repartitioned,
-                                                                     radius_terminal_split)
-
-            rectangles = reach_operation.create_repartitioned_rectangles(list_rectangles_collision_free,
-                                                                         size_grid_2nd)
-
-        else:
-            raise Exception("Invalid mode for repartition.")
-
-        return rectangles
-
     def _compute_reachable_set_at_step(self, step):
         """
         Computes reachable set for the given step.
@@ -272,45 +151,6 @@ class PySemanticOTFReachableSet(SemanticReachableSet):
 
         self.dict_step_to_reachable_set[step] = list(
             itertools.chain.from_iterable(dict_propositions_to_reachable_set.values()))
-
-    def _reset_reachable_set_at_step(self, step: int, reachable_set: List[SemanticReachNode]):
-        reachable_set_cur: List[SemanticReachNode] = self.dict_step_to_reachable_set[step]
-        for node in reachable_set_cur:
-            for node_parent in node.list_nodes_parent:
-                node_parent.remove_child_node(node)
-
-        self.dict_step_to_reachable_set[step] = reachable_set
-
-    def prune_nodes_not_reaching_final_step(self):
-        util_logger.print_and_log_info(logger, f"\tPruning nodes not reaching final step...")
-        cnt_nodes_before_pruning = cnt_nodes_after_pruning = len(self.reachable_set_at_step(self.step_end))
-
-        for step in range(self.step_end - 1, self.step_start - 1, -1):
-            list_nodes = self.reachable_set_at_step(step)
-            cnt_nodes_before_pruning += len(list_nodes)
-
-            list_idx_nodes_to_be_deleted = list()
-            for idx_node, node in enumerate(list_nodes):
-                # discard the node if it has no child node
-                if not node.list_nodes_child:
-                    list_idx_nodes_to_be_deleted.append(idx_node)
-                    # iterate through its parent nodes and disconnect them
-                    for node_parent in node.list_nodes_parent:
-                        node_parent.remove_child_node(node)
-
-            # update drivable area and reachable set dictionaries
-            self.dict_step_to_drivable_area[step] = [node.position_rectangle
-                                                     for idx_node, node in enumerate(list_nodes)
-                                                     if idx_node not in list_idx_nodes_to_be_deleted]
-            self.dict_step_to_reachable_set[step] = [node for idx_node, node in enumerate(list_nodes)
-                                                     if idx_node not in list_idx_nodes_to_be_deleted]
-
-            cnt_nodes_after_pruning += len(self.dict_step_to_reachable_set[step])
-
-        self._pruned = True
-
-        util_logger.print_and_log_info(logger, f"\t#Nodes before pruning: \t{cnt_nodes_before_pruning}")
-        util_logger.print_and_log_info(logger, f"\t#Nodes after pruning: \t{cnt_nodes_after_pruning}")
 
     def _label_reachable_sets_with_automaton_states(self, reachable_sets: List[SemanticReachNode],
                                                     current_state: Optional[int] = None) -> None:
