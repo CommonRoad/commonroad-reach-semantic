@@ -6,6 +6,7 @@ from commonroad_reach_semantic.data_structure.config.semantic_configuration_buil
 from commonroad_reach_semantic.data_structure.driving_corridor_extractor import DrivingCorridorExtractor
 from commonroad_reach_semantic.data_structure.environment_model.semantic_model import SemanticModel
 from commonroad_reach_semantic.data_structure.model_checking.spot_interface import SpotInterface
+from commonroad_reach_semantic.data_structure.reach.semantic_otf_reach_set_py import PySemanticOTFReachableSet
 from commonroad_reach_semantic.data_structure.reach.semantic_reach_set_cpp import CppSemanticReachableSet
 from commonroad_reach_semantic.data_structure.reach.semantic_reach_set_py import PySemanticReachableSet
 from commonroad_reach_semantic.data_structure.rule.traffic_rule_interface import TrafficRuleInterface
@@ -36,7 +37,8 @@ def main():
 
     # ==== compute reachable sets using reachability interface
     reach_interface = ReachableSetInterface(config)
-    reach_interface._reach = PySemanticReachableSet(config, semantic_model, rule_interface)
+    # reach_interface._reach = PySemanticReachableSet(config, semantic_model, rule_interface)
+    reach_interface._reach = PySemanticOTFReachableSet(config, semantic_model, rule_interface)
     # reach_interface._reach = CppSemanticReachableSet(config, semantic_model, rule_interface)
     reach_interface.compute_reachable_sets()
 
