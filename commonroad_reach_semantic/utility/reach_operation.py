@@ -134,6 +134,7 @@ def construct_reach_node(rectangle_drivable_area: ReachPolygon,
         proposition_holder = list_propagated_set[0].proposition_holder.clone()
         reach_node = SemanticReachNode(polygon_lon_new, polygon_lat_new, proposition_holder=proposition_holder)
         reach_node.source_propagation = list_nodes_parent
+        reach_node.automaton_states = list_propagated_set[0].automaton_states.copy()
 
         return reach_node
 
