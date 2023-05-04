@@ -1,7 +1,7 @@
 import itertools
 import logging
 from collections import defaultdict
-from typing import List, Optional
+from typing import List, Optional, Dict, FrozenSet
 
 import commonroad_reach.utility.logger as util_logger
 from commonroad_reach.data_structure.collision_checker import CollisionChecker
@@ -25,13 +25,15 @@ class PySemanticOTFReachableSet(SemanticReachableSet):
     """
 
     config: SemanticConfiguration
+    dict_step_to_states_to_drivable_area: Dict[int, Dict[FrozenSet[int], List[ReachPolygon]]]
+    dict_step_to_states_to_propagated_set: Dict[int, Dict[FrozenSet[int], List[SemanticReachNode]]]
 
     def __init__(self, config: SemanticConfiguration, semantic_model: SemanticModel,
                  rule_interface: TrafficRuleInterface):
         super().__init__(config, semantic_model, rule_interface)
 
-        self.dict_step_to_propositions_to_drivable_area = dict()
-        self.dict_step_to_propositions_to_propagated_set = dict()
+        self.dict_step_to_states_to_drivable_area = dict()
+        self.dict_step_to_states_to_propagated_set = dict()
 
         self._initialize_zero_state_polygons()
         self.collision_checker = CollisionChecker(self.config)
@@ -141,24 +143,24 @@ class PySemanticOTFReachableSet(SemanticReachableSet):
         self._label_reachable_sets_with_automaton_states(propagated_sets)
         propagated_sets = self._filter_reachable_sets(propagated_sets, step)
 
-        # partition propagated sets by their propositions
-        dict_propositions_to_propagated_set = defaultdict(list)
+        # partition propagated sets by their automaton states
+        dict_states_to_propagated_set: Dict[FrozenSet[int], List[SemanticReachNode]] = defaultdict(list)
         for propagated_set in propagated_sets:
-            dict_propositions_to_propagated_set[propagated_set.proposition_holder].append(propagated_set)
+            dict_states_to_propagated_set[propagated_set.automaton_states].append(propagated_set)
 
-        # merge, collision check, and repartition propagated sets partitioned by their propositions,
-        # because we must not merge sets with different propositions
-        dict_propositions_to_drivable_area = dict()
-        for propositions, propagated_sets_per_proposition in dict_propositions_to_propagated_set.items():
+        # merge, collision check, and repartition propagated sets partitioned by their automaton states,
+        # because we must not merge sets with different states
+        dict_states_to_drivable_area = dict()
+        for automaton_states, propagated_sets_per_proposition in dict_states_to_propagated_set.items():
             list_rectangles_projected = reach_operation.project_propagated_sets_to_position_domain(
                 propagated_sets_per_proposition)
-            dict_propositions_to_drivable_area[propositions] = self._collision_check_and_repartition(
+            dict_states_to_drivable_area[automaton_states] = self._collision_check_and_repartition(
                 list_rectangles_projected, step)
 
         self.dict_step_to_drivable_area[step] = list(
-            itertools.chain.from_iterable(dict_propositions_to_drivable_area.values()))
-        self.dict_step_to_propositions_to_drivable_area[step] = dict_propositions_to_drivable_area
-        self.dict_step_to_propositions_to_propagated_set[step] = dict_propositions_to_propagated_set
+            itertools.chain.from_iterable(dict_states_to_drivable_area.values()))
+        self.dict_step_to_states_to_drivable_area[step] = dict_states_to_drivable_area
+        self.dict_step_to_states_to_propagated_set[step] = dict_states_to_propagated_set
         self.dict_step_to_propagated_set[step] = propagated_sets
 
     def _propagate_reachable_set(self, list_nodes: List[SemanticReachNode]) -> List[SemanticReachNode]:
@@ -244,23 +246,23 @@ class PySemanticOTFReachableSet(SemanticReachableSet):
             1. construct reach nodes from drivable area and the propagated sets.
             2. update parent-child relationship of the nodes.
         """
-        dict_propositions_to_propagated_set = self.dict_step_to_propositions_to_propagated_set[step]
-        dict_propositions_to_drivable_area = self.dict_step_to_propositions_to_drivable_area[step]
+        dict_states_to_propagated_set = self.dict_step_to_states_to_propagated_set[step]
+        dict_states_to_drivable_area = self.dict_step_to_states_to_drivable_area[step]
 
-        if not dict_propositions_to_drivable_area:
+        if not dict_states_to_drivable_area:
             self.dict_step_to_reachable_set[step] = list()
             return None
 
         # discard drivable area with small area if there are more than one node (this is subject to change)
         num_drivable_area = sum(
-            [len(list_drivable) for list_drivable in dict_propositions_to_drivable_area.values()])
+            [len(list_drivable) for list_drivable in dict_states_to_drivable_area.values()])
         discard_small_node = (num_drivable_area > 1)
 
-        # work with the reachable sets partitioned by propositions here, because otherwise it could happen
-        # that we merge two reachable sets with different propositions when they intersect with the same drivable area
+        # work with the reachable sets partitioned by automaton states here, because otherwise it could happen
+        # that we merge two reachable sets with different states when they intersect with the same drivable area
         dict_propositions_to_reachable_set = dict()
-        for proposition_holder, drivable_area in dict_propositions_to_drivable_area.items():
-            propagated_set = dict_propositions_to_propagated_set[proposition_holder]
+        for automaton_states, drivable_area in dict_states_to_drivable_area.items():
+            propagated_set = dict_states_to_propagated_set[automaton_states]
 
             list_nodes = semantic_reach_operation.construct_reach_nodes(drivable_area, propagated_set)
             if discard_small_node:
@@ -268,7 +270,7 @@ class PySemanticOTFReachableSet(SemanticReachableSet):
                                                                                     self.config.reachable_set.length_edge_node_min)
             if list_nodes:
                 reachable_set = reach_operation.connect_children_to_parents(step, list_nodes)
-                dict_propositions_to_reachable_set[proposition_holder] = reachable_set
+                dict_propositions_to_reachable_set[automaton_states] = reachable_set
 
         self.dict_step_to_reachable_set[step] = list(
             itertools.chain.from_iterable(dict_propositions_to_reachable_set.values()))
@@ -323,13 +325,15 @@ class PySemanticOTFReachableSet(SemanticReachableSet):
     def _label_automaton_states(self, reachable_set: SemanticReachNode, current_state: int) -> None:
         """Label the reachable set with the automaton states that are reachable given its propositions."""
         reach_props = reachable_set.set_propositions
+        automaton_states = set()
         for next_state, minterms in self.automaton.transitions_from(current_state):
             for minterm in minterms:
                 positive_props = [proposition for proposition, negated in minterm if not negated]
                 negative_props = [proposition for proposition, negated in minterm if negated]
                 if reach_props.issuperset(positive_props) and reach_props.isdisjoint(negative_props):
-                    reachable_set.automaton_states.add(next_state)
+                    automaton_states.add(next_state)
                     break  # inner loop
+        reachable_set.automaton_states = frozenset(automaton_states)
 
     def _filter_reachable_sets(self, reachable_sets: List[SemanticReachNode], step: int) -> List[SemanticReachNode]:
         """Filter reachable sets that cannot be part of an accepting run of the automaton."""

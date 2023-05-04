@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import copy
-from typing import Set
+from typing import Set, FrozenSet
 
 from commonroad_reach.data_structure.reach.reach_node import ReachNode
 from commonroad_reach.pycrreach import ReachPolygon
@@ -18,14 +18,14 @@ class SemanticReachNode(ReachNode):
 
     proposition_holder: PropositionHolder
     set_ids_lanelets: Set[int]
-    automaton_states: Set[int]
+    automaton_states: FrozenSet[int]
 
     def __init__(self, polygon_lon: ReachPolygon, polygon_lat: ReachPolygon,
                  step: int = -1, proposition_holder: PropositionHolder = None) -> None:
         super().__init__(polygon_lon, polygon_lat, step)
         self.proposition_holder = proposition_holder if proposition_holder else PropositionHolder()
         self.set_ids_lanelets = set()
-        self.automaton_states = set()
+        self.automaton_states = frozenset()
 
     @property
     def set_propositions(self) -> Set[str]:
