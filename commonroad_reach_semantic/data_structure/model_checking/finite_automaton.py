@@ -28,7 +28,7 @@ class FiniteAutomaton:
         """The number of the initial state."""
         return self._spot_automaton.get_init_state_number()
 
-    def transitions_from(self, state: int) -> Iterator[int, List[List[tuple[str, bool]]]]:
+    def transitions_from(self, state: int) -> Iterator[tuple[int, List[List[tuple[str, bool]]]]]:
         """Iterate over all transitions outgoing from the given state."""
         for edge in self._spot_automaton.out(state):
             yield edge.dst, self._edge_condition_to_minterms(edge.cond)
