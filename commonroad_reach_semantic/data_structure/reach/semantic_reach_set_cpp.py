@@ -1,11 +1,9 @@
 import logging
 
-from commonroad_reach.data_structure.collision_checker import CollisionChecker
-
 from commonroad_reach_semantic import pycrreachs
-from commonroad_reach_semantic.data_structure.reach.semantic_reach_set import SemanticReachableSet
 from commonroad_reach_semantic.data_structure.config.semantic_configuration import SemanticConfiguration
 from commonroad_reach_semantic.data_structure.environment_model.semantic_model import SemanticModel
+from commonroad_reach_semantic.data_structure.reach.semantic_reach_set import SemanticReachableSet
 from commonroad_reach_semantic.data_structure.rule.traffic_rule_interface import TrafficRuleInterface
 
 logger = logging.getLogger(__name__)
@@ -29,7 +27,6 @@ class CppSemanticReachableSet(SemanticReachableSet):
                  rule_interface: TrafficRuleInterface):
         super().__init__(config, semantic_model, rule_interface)
 
-        self.collision_checker = CollisionChecker(self.config)
         self._reach = pycrreachs.SemanticReachableSet(self.config.convert_to_cpp_configuration(),
                                                       self.collision_checker.cpp_collision_checker,
                                                       pycrreachs.SemanticModel(semantic_model),

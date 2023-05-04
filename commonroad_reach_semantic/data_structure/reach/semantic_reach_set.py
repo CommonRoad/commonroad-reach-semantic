@@ -1,5 +1,6 @@
 from abc import ABC
 
+from commonroad_reach.data_structure.collision_checker import CollisionChecker
 from commonroad_reach.data_structure.reach.reach_set import ReachableSet
 
 from commonroad_reach_semantic.data_structure.config.semantic_configuration import SemanticConfiguration
@@ -14,3 +15,4 @@ class SemanticReachableSet(ReachableSet, ABC):
         super().__init__(config)
         self.rule_interface = rule_interface
         self.labeler = ReachableSetLabeler(semantic_model)
+        self.collision_checker = CollisionChecker(self.config)

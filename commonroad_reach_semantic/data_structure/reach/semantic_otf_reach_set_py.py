@@ -4,7 +4,6 @@ from collections import defaultdict
 from typing import List, Optional, Dict, FrozenSet
 
 import commonroad_reach.utility.logger as util_logger
-from commonroad_reach.data_structure.collision_checker import CollisionChecker
 from commonroad_reach.data_structure.reach.reach_polygon import ReachPolygon
 from commonroad_reach.utility import reach_operation
 
@@ -36,7 +35,6 @@ class PySemanticOTFReachableSet(SemanticReachableSet):
         self.dict_step_to_states_to_propagated_set = dict()
 
         self._initialize_zero_state_polygons()
-        self.collision_checker = CollisionChecker(self.config)
 
         # Construct finite automaton from traffic rules
         concatenated_specifications = "(" + ") & (".join(self.rule_interface.list_specifications_ltl) + ")"

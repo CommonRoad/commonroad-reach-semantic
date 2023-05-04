@@ -4,7 +4,6 @@ from collections import defaultdict
 from typing import List
 
 import commonroad_reach.utility.logger as util_logger
-from commonroad_reach.data_structure.collision_checker import CollisionChecker
 from commonroad_reach.data_structure.reach.reach_polygon import ReachPolygon
 from commonroad_reach.utility import reach_operation
 
@@ -37,7 +36,6 @@ class PySemanticReachableSet(SemanticReachableSet):
 
         self.labeler.label_initial_state(self.dict_step_to_reachable_set[self.step_start], self.step_start)
         self._initialize_zero_state_polygons()
-        self.collision_checker = CollisionChecker(self.config)
 
         logger.debug("PySemanticReachableSet initialized.")
 
