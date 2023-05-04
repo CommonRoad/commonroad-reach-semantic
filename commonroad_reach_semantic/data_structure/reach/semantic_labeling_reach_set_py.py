@@ -17,7 +17,7 @@ from commonroad_reach_semantic.data_structure.rule.traffic_rule_interface import
 logger = logging.getLogger(__name__)
 
 
-class PySemanticReachableSet(SemanticReachableSet):
+class PySemanticLabelingReachableSet(SemanticReachableSet):
     """
     Reachable set computation considering temporal constraints with Python backend.
     """
@@ -37,7 +37,7 @@ class PySemanticReachableSet(SemanticReachableSet):
         self.labeler.label_initial_state(self.dict_step_to_reachable_set[self.step_start], self.step_start)
         self._initialize_zero_state_polygons()
 
-        logger.debug("PySemanticReachableSet initialized.")
+        logger.debug("PySemanticLabelingReachableSet initialized.")
 
     def _construct_initial_reachable_set(self) -> List[SemanticReachNode]:
         tuple_vertices_polygon_lon, tuple_vertices_polygon_lat = \

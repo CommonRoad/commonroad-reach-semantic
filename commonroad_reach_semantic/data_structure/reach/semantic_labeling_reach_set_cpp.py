@@ -9,7 +9,7 @@ from commonroad_reach_semantic.data_structure.rule.traffic_rule_interface import
 logger = logging.getLogger(__name__)
 
 
-class CppSemanticReachableSet(SemanticReachableSet):
+class CppSemanticLabelingReachableSet(SemanticReachableSet):
     """
     Reachable set computation with C++ backend.
     """
@@ -32,7 +32,7 @@ class CppSemanticReachableSet(SemanticReachableSet):
                                                       pycrreachs.SemanticModel(semantic_model),
                                                       pycrreachs.TrafficRuleInterface(rule_interface))
 
-        logger.info("CppSemanticReachableSet initialized.")
+        logger.info("CppSemanticLabelingReachableSet initialized.")
 
     def compute(self, step_start: int, step_end: int):
         for step in range(step_start, step_end + 1):
