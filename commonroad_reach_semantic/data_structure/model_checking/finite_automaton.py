@@ -50,10 +50,4 @@ class FiniteAutomaton:
         # will be in DNF --> bbd_to_formula computes an irredundant sum of products
         # https://spot.lre.epita.fr/doxygen/namespacespot.html#aba9b9efe994006c29a6d77da94897df8
         formula_dnf = spot.bdd_to_formula(cond, self._bdict)
-        try:
-            return [
-                [util_spot.extract_atomic_proposition(c) for c in util_spot.conjuncts(d)]
-                for d in util_spot.disjuncts(formula_dnf)
-            ]
-        except ValueError as err:
-            raise ValueError(f"Formula {formula_dnf} is not in DNF: {err}")
+        return util_spot.extract_minterms_from_dnf(formula_dnf)

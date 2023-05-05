@@ -1,4 +1,4 @@
-from typing import Dict, Set, Iterator
+from typing import Dict, Set, Iterator, List
 
 import networkx as nx
 import spot
@@ -126,3 +126,13 @@ def extract_atomic_proposition(literal: spot.formula) -> tuple[str, bool]:
         return literal.ap_name(), False
     else:
         raise ValueError(f"{literal} is not a (negated) literal")
+
+
+def extract_minterms_from_dnf(formula_dnf: spot.formula) -> List[List[tuple[str, bool]]]:
+    try:
+        return [
+            [extract_atomic_proposition(c) for c in conjuncts(d)]
+            for d in disjuncts(formula_dnf)
+        ]
+    except ValueError as err:
+        raise ValueError(f"Formula {formula_dnf} is not in DNF: {err}")
