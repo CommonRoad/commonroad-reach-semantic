@@ -1,0 +1,22 @@
+distance_drives_right_most: 1.5
+# distance within which a vehicle is examined for being caused a hard braking
+distance_braking: 15
+# acceleration beyond which it is considered a hard braking
+acceleration_braking_hard: -4
+# mode for handling LTL specifications with Spot
+# 1: concatenate specifications and handle them with a single automaton
+# 2: handle specifications with multiple automata
+mode_spot: 2
+# clauses should be preceded and followed by a whitespace
+# TPL: timed propositional logic
+# CTL: computation tree logic, checked with PyNuSMV (uses TRUE, FALSE, .. in NuSMV 2.5.4)
+# MTL: metric temporal logic, checked with NuSMV (uses TRUE, FALSE, .. in NuSMV 2.6.0)
+# LTL: linear temporal logic, checked with Spot
+activated_rules:
+  - NoBackwardDrivingRule
+  - NoOppositeDrivingRule
+  - LineMarkingRule
+  - TrafficLightRule
+  - PriorityRule
+  - RightBeforeLeftRule
+  - LeftTurningRule

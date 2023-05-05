@@ -1,0 +1,28 @@
+planning:
+  dt: 0.2
+  steps_computation: 15
+  coordinate_system: "CVLN"
+
+reachable_set:
+  mode_computation: 1
+  size_grid: 0.25
+  size_grid_2nd: 0.1
+  radius_terminal_split: 0.7
+
+semantic_model:
+  consider_route_predecessor: no
+  consider_route_successor: no
+
+traffic_rules:
+  activated_rules:
+    # rules to be concretized
+    - NoBackwardDrivingRule
+    - NoOppositeDrivingRule
+    - LineMarkingRule
+    - TrafficLightRule
+    - PriorityRule
+    - RightBeforeLeftRule
+    - LeftTurningRule
+    # rules to be applied directly
+#    - TPL !InLanelet_3 & !InLanelet_4
+    - LTL G(((InLanelet_1 | InLanelet_2) & Behind_V8 & true & F(true)) -> !(!(InLanelet_3 | InLanelet_4) & F( InLanelet_3 | InLanelet_4)))
