@@ -1,16 +1,12 @@
 import itertools
 import logging
 from collections import defaultdict
-from typing import List
 
-import commonroad_reach.utility.logger as util_logger
-from commonroad_reach.data_structure.reach.reach_polygon import ReachPolygon
 from commonroad_reach.utility import reach_operation
 
 import commonroad_reach_semantic.utility.reach_operation as semantic_reach_operation
 from commonroad_reach_semantic.data_structure.config.semantic_configuration import SemanticConfiguration
 from commonroad_reach_semantic.data_structure.environment_model.semantic_model import SemanticModel
-from commonroad_reach_semantic.data_structure.reach.semantic_reach_node import SemanticReachNode
 from commonroad_reach_semantic.data_structure.reach.semantic_reach_set_py import PySemanticReachableSet
 from commonroad_reach_semantic.data_structure.rule.traffic_rule_interface import TrafficRuleInterface
 
@@ -66,11 +62,11 @@ class PySemanticLabelingReachableSet(PySemanticReachableSet):
             propagated_sets)
 
         # discard the ones colliding with vehicles
-        propagated_sets = (propagated_set for propagated_set in propagated_sets if
-                           not propagated_set.collides_with_vehicle())
+        propagated_sets = self.labeler.discard_colliding_nodes(propagated_sets)
 
         # examine whether the propagated sets satisfy TPL specifications
-        propagated_sets = self.rule_interface.tpl_checker.examine_tpl_specifications(step, list(propagated_sets))
+        propagated_sets = self.rule_interface.tpl_checker.examine_tpl_specifications(step, propagated_sets,
+                                                                                     self.labeler.reachable_set_to_propositions)
 
         # update traffic propositions of the propagated sets
         propagated_sets = self.labeler.label_traffic_propositions(step, propagated_sets)
@@ -78,7 +74,8 @@ class PySemanticLabelingReachableSet(PySemanticReachableSet):
         # partition propagated sets by their propositions
         dict_propositions_to_propagated_set = defaultdict(list)
         for propagated_set in propagated_sets:
-            dict_propositions_to_propagated_set[propagated_set.proposition_holder].append(propagated_set)
+            dict_propositions_to_propagated_set[self.labeler.reachable_set_to_propositions[propagated_set]].append(
+                propagated_set)
 
         # merge, collision check, and repartition propagated sets partitioned by their propositions,
         # because we must not merge sets with different propositions
@@ -127,6 +124,8 @@ class PySemanticLabelingReachableSet(PySemanticReachableSet):
                                                                                     self.config.reachable_set.length_edge_node_min)
             if list_nodes:
                 reachable_set = reach_operation.connect_children_to_parents(step, list_nodes)
+                # copy propositions for newly constructed nodes
+                self.labeler.copy_propositions(reachable_set, proposition_holder)
                 dict_propositions_to_reachable_set[proposition_holder] = reachable_set
 
         self.dict_step_to_reachable_set[step] = list(

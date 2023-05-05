@@ -4,6 +4,7 @@ from typing import List, Dict, Set
 
 from commonroad_reach_semantic.data_structure.config.semantic_configuration import SemanticConfiguration
 from commonroad_reach_semantic.data_structure.reach.semantic_reach_node import SemanticReachNode
+from commonroad_reach_semantic.data_structure.rule.proposition_holder import PropositionHolder
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +22,6 @@ class TPLChecker:
     def __init__(self, config: SemanticConfiguration) -> None:
         self.config = config
         self.list_specifications_tpl = list()
-
 
         # mandatory and forbidden propositions
         self.dict_step_to_propositions_mandatory = defaultdict(set)
@@ -62,7 +62,8 @@ class TPLChecker:
 
         logger.info("Mandatory and forbidden propositions extracted.")
 
-    def examine_tpl_specifications(self, step: int, list_propagated_sets: List[SemanticReachNode]) -> List[
+    def examine_tpl_specifications(self, step: int, list_propagated_sets: List[SemanticReachNode],
+                                   reachable_set_to_propositions: Dict[SemanticReachNode, PropositionHolder]) -> List[
         SemanticReachNode]:
         """
         Examines whether the given propagated sets satisfy the TPL specifications.
@@ -71,8 +72,10 @@ class TPLChecker:
         set_propositions_forbidden = self.dict_step_to_propositions_forbidden[step]
 
         list_propagated_sets_keep = [propagated_set for propagated_set in list_propagated_sets
-                                     if propagated_set.set_propositions.issuperset(set_propositions_mandatory)]
+                                     if reachable_set_to_propositions[propagated_set].set_propositions.issuperset(
+                set_propositions_mandatory)]
         list_propagated_sets_keep = [propagated_set for propagated_set in list_propagated_sets_keep
-                                     if propagated_set.set_propositions.isdisjoint(set_propositions_forbidden)]
+                                     if reachable_set_to_propositions[propagated_set].set_propositions.isdisjoint(
+                set_propositions_forbidden)]
 
         return list_propagated_sets_keep

@@ -66,30 +66,6 @@ class SemanticModel:
             logger.info("Traffic priorities determined.")
 
     @staticmethod
-    def discard_colliding_nodes(list_propagated_set: List[SemanticReachNode]) -> List[SemanticReachNode]:
-        """
-        Returns a list of propagated sets that do not collide with vehicles.
-        """
-        list_nodes_keep = []
-
-        for propagated_set in list_propagated_set:
-            colliding = False
-            set_propositions = propagated_set.set_propositions()
-            for proposition in set_propositions:
-                # check if it is aligned with and besides a vehicle
-                if P.aligned_with() in proposition:
-                    id_vehicle = int(proposition.split("_")[1][1:])
-
-                    if P.beside(id_vehicle) in set_propositions:
-                        colliding = True
-                        break
-
-            if not colliding:
-                list_nodes_keep.append(propagated_set)
-
-        return list_nodes_keep
-
-    @staticmethod
     def call_python_dummy(step, node):
         """
         Dummy function to be called from C++.

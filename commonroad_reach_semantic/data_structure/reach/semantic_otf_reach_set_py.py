@@ -84,11 +84,11 @@ class PySemanticOTFReachableSet(PySemanticReachableSet):
             propagated_sets)
 
         # discard the ones colliding with vehicles
-        propagated_sets = (propagated_set for propagated_set in propagated_sets if
-                           not propagated_set.collides_with_vehicle())
+        propagated_sets = self.labeler.discard_colliding_nodes(propagated_sets)
 
         # examine whether the propagated sets satisfy TPL specifications
-        propagated_sets = self.rule_interface.tpl_checker.examine_tpl_specifications(step, list(propagated_sets))
+        propagated_sets = self.rule_interface.tpl_checker.examine_tpl_specifications(step, propagated_sets,
+                                                                                     self.labeler.reachable_set_to_propositions)
 
         # update traffic propositions of the propagated sets
         propagated_sets = self.labeler.label_traffic_propositions(step, propagated_sets)
@@ -167,7 +167,7 @@ class PySemanticOTFReachableSet(PySemanticReachableSet):
 
     def _label_automaton_states(self, reachable_set: SemanticReachNode, current_state: int) -> None:
         """Label the reachable set with the automaton states that are reachable given its propositions."""
-        reach_props = reachable_set.set_propositions
+        reach_props = self.labeler.reachable_set_to_propositions[reachable_set].set_propositions
         automaton_states = set()
         for next_state, minterms in self.automaton.transitions_from(current_state):
             for minterm in minterms:
@@ -184,7 +184,7 @@ class PySemanticOTFReachableSet(PySemanticReachableSet):
         return [
             reachable_set for reachable_set in reachable_sets
             if self.reachable_set_to_label[reachable_set] and (
-                        not is_final_step or self._has_accepting_state(reachable_set))
+                    not is_final_step or self._has_accepting_state(reachable_set))
         ]
 
     def _has_accepting_state(self, reachable_set: SemanticReachNode) -> bool:

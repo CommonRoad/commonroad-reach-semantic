@@ -1,5 +1,6 @@
 import itertools
-from typing import Union, List
+from collections import defaultdict
+from typing import Union, List, Dict
 
 from commonroad_reach.pycrreach import ReachPolygon
 
@@ -17,9 +18,11 @@ from commonroad_reach_semantic.utility import reach_operation
 class ReachableSetLabeler:
     """Splits reachable sets and labels the parts according to the semantic model."""
     semantic_model: SemanticModel
+    reachable_set_to_propositions: Dict[SemanticReachNode, PropositionHolder]
 
     def __init__(self, semantic_model: SemanticModel):
         self.semantic_model = semantic_model
+        self.reachable_set_to_propositions = defaultdict(PropositionHolder)
 
     def label_initial_state(self, reachable_sets: List[SemanticReachNode], step_start: int) -> None:
         """
@@ -28,7 +31,7 @@ class ReachableSetLabeler:
         for reachable_set in reachable_sets:
             drivable_area = reachable_set.position_rectangle
             propositions = self._obtain_propositions_for_rectangle(drivable_area, step_start)
-            reachable_set.proposition_holder.merge(propositions)
+            self.reachable_set_to_propositions[reachable_set].merge(propositions)
         self.label_traffic_propositions(step_start, reachable_sets)
 
     def _obtain_propositions_for_rectangle(self, rectangle: ReachPolygon, step: int) -> PropositionHolder:
@@ -87,7 +90,7 @@ class ReachableSetLabeler:
         """
         set_propositions = self.semantic_model.traffic_status_model.dict_step_to_traffic_status_propositions[step]
         for propagated_set in list_propagated_sets:
-            propagated_set.proposition_holder.add_propositions(set_propositions, PropGroup.TRAFFIC_STATUS)
+            self.reachable_set_to_propositions[propagated_set].add_propositions(set_propositions, PropGroup.TRAFFIC_STATUS)
 
         return list_propagated_sets
 
@@ -111,7 +114,7 @@ class ReachableSetLabeler:
                 if id_lanelet_lane_vehicle in \
                         self.semantic_model.lanelet_model.dict_id_lanelet_to_set_ids_lanelets_intersecting[
                             id_lanelet_propagated_set]:
-                    propagated_set.proposition_holder.add_proposition(
+                    self.reachable_set_to_propositions[propagated_set].add_proposition(
                         Prop.in_conflict_with(vehicle.id_vehicle),
                         PropGroup.TRAFFIC_STATUS)
 
@@ -140,7 +143,7 @@ class ReachableSetLabeler:
                     if id_lanelet_vehicle in \
                             self.semantic_model.lanelet_model.dict_id_lanelet_to_set_ids_lanelets_intersecting[
                                 id_lanelet_route]:
-                        propagated_set.proposition_holder.add_proposition(
+                        self.reachable_set_to_propositions[propagated_set].add_proposition(
                             Prop.in_conflict_by(vehicle.id_vehicle),
                             PropGroup.VEHICLE)
 
@@ -161,7 +164,7 @@ class ReachableSetLabeler:
         for propagated_set, vehicle in itertools.product(list_propagated_sets,
                                                          self.semantic_model.vehicle_model.list_vehicles):
             if vehicle.braking_caused_by_node_at_step(step, propagated_set):
-                propagated_set.proposition_holder.add_proposition(Prop.causes_braking_for(vehicle.id_vehicle),
+                self.reachable_set_to_propositions[propagated_set].add_proposition(Prop.causes_braking_for(vehicle.id_vehicle),
                                                                   PropGroup.TRAFFIC_STATUS)
 
         return list_propagated_sets
@@ -197,6 +200,7 @@ class ReachableSetLabeler:
             # clone the propagated set and split in the position domain, update the propositions
             # TODO: Find out, why there was a try-except for AttributeError here
             reachable_set_new = reachable_set.clone()
+            self.reachable_set_to_propositions[reachable_set_new] = self.reachable_set_to_propositions[reachable_set].clone()
             reachable_set_new.intersect_in_position_domain(*bounds_polygon_intersection)
             reachable_set_new = self._update_propositions_with_region(reachable_set_new, region, step)
 
@@ -220,7 +224,7 @@ class ReachableSetLabeler:
             dict_relevant = region.map_group_to_propositions_at_step(step)
 
         for group, set_propositions in dict_relevant.items():
-            propagated_set.proposition_holder.add_propositions(set_propositions, group)
+            self.reachable_set_to_propositions[propagated_set].add_propositions(set_propositions, group)
 
         # add lanelet ids of the region to propagated set
         if isinstance(propagated_set, SemanticReachNode):
@@ -231,7 +235,7 @@ class ReachableSetLabeler:
 
         # add lanelet transition as temporary propositions
         set_propositions = self._obtain_lanelet_transition_propositions(propagated_set)
-        propagated_set.proposition_holder.add_propositions(set_propositions, PropGroup.TEMPORARY)
+        self.reachable_set_to_propositions[propagated_set].add_propositions(set_propositions, PropGroup.TEMPORARY)
 
         return propagated_set
 
@@ -256,8 +260,7 @@ class ReachableSetLabeler:
 
         return list_reachable_sets_split
 
-    @staticmethod
-    def _split_reachable_set_wrt_intervals(reachable_set: SemanticReachNode, intervals: List[PositionInterval],
+    def _split_reachable_set_wrt_intervals(self, reachable_set: SemanticReachNode, intervals: List[PositionInterval],
                                            reach_min: float, reach_max: float, direction: str) \
             -> List[SemanticReachNode]:
         list_reachable_sets_split = []
@@ -265,6 +268,10 @@ class ReachableSetLabeler:
             if interval.intersects(reach_min, reach_max):
                 propagated_set_split = reach_operation.split_reach_node_to_interval(reachable_set, interval, direction)
                 if propagated_set_split:
+                    self.reachable_set_to_propositions[propagated_set_split] = self.reachable_set_to_propositions[
+                        reachable_set].clone()
+                    self.reachable_set_to_propositions[propagated_set_split].add_propositions(interval.set_propositions,
+                                                                                              PropGroup.POSITION)
                     list_reachable_sets_split.append(propagated_set_split)
 
             # early termination, since the rest of intervals will definitely not intersect with the reachable set
@@ -272,21 +279,18 @@ class ReachableSetLabeler:
                 break
         return list_reachable_sets_split
 
-    @staticmethod
-    def _obtain_lanelet_transition_propositions(propagated_set: Union[SemanticReachNode, pycrreachs.SemanticReachNode]):
+    def _obtain_lanelet_transition_propositions(self, propagated_set: Union[SemanticReachNode, pycrreachs.SemanticReachNode]):
         """
         Returns the set of lanelet transition propositions.
         """
         set_propositions = set()
         # retrieve lanelet propositions from the source
         if isinstance(propagated_set, SemanticReachNode):
-            set_propositions_position_source = \
-                propagated_set.source_propagation.proposition_holder.propositions_in_group(group=PropGroup.POSITION)
-
+            source_node = propagated_set.source_propagation
         else:
-            set_propositions_position_source = \
-                propagated_set.vec_nodes_source[0].proposition_holder.propositions_in_group(PropGroup.POSITION)
+            source_node = propagated_set.vec_nodes_source[0]
 
+        set_propositions_position_source = self.reachable_set_to_propositions[source_node].propositions_in_group(PropGroup.POSITION)
         set_ids_lanelets_source = {int(proposition.split("_")[1]) for proposition in set_propositions_position_source
                                    if Prop.in_lanelet() in proposition}
 
@@ -297,3 +301,31 @@ class ReachableSetLabeler:
                     set_propositions.add(Prop.lanelet_transition(id_lanelet_source, id_lanelet_base_set))
 
         return set_propositions
+
+    def discard_colliding_nodes(self, list_propagated_set: List[SemanticReachNode]) -> List[SemanticReachNode]:
+        """
+        Returns a list of propagated sets that do not collide with vehicles.
+        """
+        list_nodes_keep = []
+
+        for propagated_set in list_propagated_set:
+            colliding = False
+            set_propositions = self.reachable_set_to_propositions[propagated_set].set_propositions
+            for proposition in set_propositions:
+                # check if it is aligned with and besides a vehicle
+                if Prop.aligned_with() in proposition:
+                    id_vehicle = int(proposition.split("_")[1][1:])
+
+                    if Prop.beside(id_vehicle) in set_propositions:
+                        colliding = True
+                        break
+
+            if not colliding:
+                list_nodes_keep.append(propagated_set)
+
+        return list_nodes_keep
+
+    def copy_propositions(self, reachable_sets: List[SemanticReachNode], proposition_holder: PropositionHolder) -> None:
+        """Label every node in reachable_sets with the propositions in proposition_holder."""
+        for reachable_set in reachable_sets:
+            self.reachable_set_to_propositions[reachable_set] = proposition_holder.clone()

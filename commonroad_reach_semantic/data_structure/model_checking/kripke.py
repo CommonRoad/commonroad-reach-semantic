@@ -7,10 +7,10 @@ from typing import List, Set, Optional, Dict, Union
 import buddy
 import numpy as np
 import spot
-from commonroad_reach_semantic import pycrreachs
 from commonroad_reach.data_structure.reach.reach_interface import ReachableSetInterface
 from commonroad_reach.utility import logger as util_logger
 
+from commonroad_reach_semantic import pycrreachs
 from commonroad_reach_semantic.data_structure.reach.semantic_reach_node import SemanticReachNode
 from commonroad_reach_semantic.utility import reach_operation as util_reach
 from commonroad_reach_semantic.utility import spot as util_spot
@@ -368,8 +368,8 @@ class KripkeStructure:
 
             for reach_node in self.reach_interface.reachable_set_at_step(step):
                 # determine relevant propositions of the reach nodes
-                set_propositions_relevant = reach_node.proposition_holder.propositions(
-                    include_temporary=False).intersection(self.cls_set_propositions_relevant)
+                set_propositions_relevant = self.reach_interface._reach.labeler.reachable_set_to_propositions[
+                    reach_node].propositions(include_temporary=False).intersection(self.cls_set_propositions_relevant)
                 set_propositions_relevant.add("true")
                 set_propositions_relevant = frozenset(set_propositions_relevant)
 

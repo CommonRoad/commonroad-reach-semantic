@@ -40,7 +40,6 @@ def split_reach_node_to_interval(node: SemanticReachNode, interval: PositionInte
     Returns a reach node adapted to the input position interval.
     """
     node_split = node.clone()
-    node_split.proposition_holder.add_propositions(interval.set_propositions, PropGroup.POSITION)
 
     if direction == "lon":
         node_split.polygon_lon = node_split.polygon_lon.intersect_halfspace(1, 0, interval.p_max)
@@ -131,8 +130,7 @@ def construct_reach_node(rectangle_drivable_area: ReachPolygon,
     if list_vertices_polygon_lon_new and list_vertices_polygon_lat_new:
         polygon_lon_new = ReachPolygon.from_polygon(ReachPolygon(list_vertices_polygon_lon_new).convex_hull)
         polygon_lat_new = ReachPolygon.from_polygon(ReachPolygon(list_vertices_polygon_lat_new).convex_hull)
-        proposition_holder = list_propagated_set[0].proposition_holder.clone()
-        reach_node = SemanticReachNode(polygon_lon_new, polygon_lat_new, proposition_holder=proposition_holder)
+        reach_node = SemanticReachNode(polygon_lon_new, polygon_lat_new)
         reach_node.source_propagation = list_nodes_parent
 
         return reach_node

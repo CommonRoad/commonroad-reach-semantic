@@ -32,7 +32,7 @@ class ColorMapper:
         # determine number of colors
 
         different_propositions = {
-            frozenset(reach_node.proposition_holder.set_propositions)
+            frozenset(reach_interface._reach.labeler.reachable_set_to_propositions[reach_node].set_propositions)
             for step in steps
             for reach_node in reach_interface.reachable_set_at_step(step)
         }
@@ -114,7 +114,7 @@ def plot_scenario_with_reachable_sets(reach_interface: ReachableSetInterface, fi
             planning_problem.draw(renderer, draw_params)
 
         dict_nodes_reach = reach_interface.reachable_set_at_step(step)
-        draw_reachable_sets(dict_nodes_reach, config, renderer, draw_params, mapper)
+        draw_reachable_sets(dict_nodes_reach, config, renderer, draw_params, mapper, reach_interface)
 
         # plot traffic signs
         for sign in scenario.lanelet_network.traffic_signs:
@@ -255,7 +255,7 @@ def plot_scenario_with_kripke_nodes(spot_interface: SpotInterface, plot_acceptin
         if config.debug.draw_planning_problem:
             planning_problem.draw(renderer, draw_params)
 
-        draw_kripke_nodes(dict_step_to_set_nodes_kripke[step], config, renderer, draw_params, mapper)
+        draw_kripke_nodes(dict_step_to_set_nodes_kripke[step], config, renderer, draw_params, mapper, reach_interface)
 
         # plot traffic signs
         for sign in scenario.lanelet_network.traffic_signs:
@@ -352,7 +352,7 @@ def plot_scenario_with_driving_corridor(spot_interface: SpotInterface, corridor:
         set_nodes_reach = set()
         for node_kripke in dict_step_to_set_nodes_kripke[step]:
             set_nodes_reach.update(node_kripke.set_nodes_reach)
-        draw_reachable_sets(set_nodes_reach, config, renderer, draw_params, mapper)
+        draw_reachable_sets(set_nodes_reach, config, renderer, draw_params, mapper, reach_interface)
 
         # plot traffic signs
         for sign in scenario.lanelet_network.traffic_signs:
@@ -443,14 +443,14 @@ def compute_plot_limits_from_lanelet_network(lanelet_network: LaneletNetwork, ma
     return plot_limits
 
 
-def draw_reachable_sets(nodes, config: SemanticConfiguration, renderer, draw_params, mapper: ColorMapper):
+def draw_reachable_sets(nodes, config: SemanticConfiguration, renderer, draw_params, mapper: ColorMapper, reach_interface: ReachableSetInterface):
     backend = "CPP" if config.reachable_set.mode_computation == 2 else "PYTHON"
     coordinate_system = config.planning.coordinate_system
 
     if coordinate_system == "CART":
         for node in nodes:
             vertices = node.position_rectangle.vertices if backend == "PYTHON" else node.position_rectangle().vertices()
-            draw_params.shape.facecolor = mapper.map_to_color(node.proposition_holder.set_propositions)
+            draw_params.shape.facecolor = mapper.map_to_color(reach_interface._reach.labeler.reachable_set_to_propositions[node].set_propositions)
             Polygon(vertices=np.array(vertices)).draw(renderer, draw_params)
 
     elif coordinate_system == "CVLN":
@@ -458,14 +458,15 @@ def draw_reachable_sets(nodes, config: SemanticConfiguration, renderer, draw_par
             position_rectangle = node.position_rectangle if backend == "PYTHON" else node.position_rectangle()
             list_polygons_cart = util_coordinate_system.convert_to_cartesian_polygons(position_rectangle,
                                                                                       config.planning.CLCS, True)
-            draw_params.shape.facecolor = mapper.map_to_color(node.proposition_holder.set_propositions)
+            draw_params.shape.facecolor = mapper.map_to_color(reach_interface._reach.labeler.reachable_set_to_propositions[node].set_propositions)
             for polygon in list_polygons_cart:
                 Polygon(vertices=np.array(polygon.vertices)).draw(renderer, draw_params)
 
 
 def draw_kripke_nodes(set_nodes_kripke: Set[KripkeNode], config: SemanticConfiguration, renderer,
                       draw_params: MPDrawParams,
-                      mapper: ColorMapper):
+                      mapper: ColorMapper,
+                      reach_interface: ReachableSetInterface):
     backend = "CPP" if config.reachable_set.mode_computation == 2 else "PYTHON"
     coordinate_system = config.planning.coordinate_system
 
@@ -476,7 +477,7 @@ def draw_kripke_nodes(set_nodes_kripke: Set[KripkeNode], config: SemanticConfigu
             for node in node_kripke.set_nodes_reach:
                 vertices = node.position_rectangle.vertices if backend == "PYTHON" \
                     else node.position_rectangle().vertices()
-                draw_params.shape.facecolor = mapper.map_to_color(node.proposition_holder.set_propositions)
+                draw_params.shape.facecolor = mapper.map_to_color(reach_interface._reach.labeler.reachable_set_to_propositions[node].set_propositions)
                 Polygon(vertices=np.array(vertices)).draw(renderer, draw_params_nodes)
 
         elif coordinate_system == "CVLN":
@@ -484,7 +485,7 @@ def draw_kripke_nodes(set_nodes_kripke: Set[KripkeNode], config: SemanticConfigu
                 position_rectangle = node.position_rectangle if backend == "PYTHON" else node.position_rectangle()
                 list_polygons_cart = util_coordinate_system.convert_to_cartesian_polygons(position_rectangle,
                                                                                           config.planning.CLCS, True)
-                draw_params_nodes.shape.facecolor = mapper.map_to_color(node.proposition_holder.set_propositions)
+                draw_params_nodes.shape.facecolor = mapper.map_to_color(reach_interface._reach.labeler.reachable_set_to_propositions[node].set_propositions)
                 for polygon in list_polygons_cart:
                     Polygon(vertices=np.array(polygon.vertices)).draw(renderer, draw_params_nodes)
 
