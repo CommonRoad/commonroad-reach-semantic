@@ -143,7 +143,7 @@ class PySemanticOTFReachableSet(PySemanticReachableSet):
         for automaton_states, drivable_area in dict_states_to_drivable_area.items():
             propagated_sets = dict_states_to_propagated_set[automaton_states]
 
-            list_nodes = semantic_reach_operation.construct_reach_nodes(drivable_area, propagated_sets)
+            list_nodes = reach_operation.construct_reach_nodes(drivable_area, propagated_sets)
             if discard_small_node:
                 list_nodes = semantic_reach_operation.discard_nodes_with_short_edge(list_nodes,
                                                                                     self.config.reachable_set.length_edge_node_min)

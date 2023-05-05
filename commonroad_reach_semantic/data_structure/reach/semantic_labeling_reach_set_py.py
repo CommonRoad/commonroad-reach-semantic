@@ -118,7 +118,7 @@ class PySemanticLabelingReachableSet(PySemanticReachableSet):
         for proposition_holder, drivable_area in dict_propositions_to_drivable_area.items():
             propagated_sets = dict_propositions_to_propagated_set[proposition_holder]
 
-            list_nodes = semantic_reach_operation.construct_reach_nodes(drivable_area, propagated_sets)
+            list_nodes = reach_operation.construct_reach_nodes(drivable_area, propagated_sets)
             if discard_small_node:
                 list_nodes = semantic_reach_operation.discard_nodes_with_short_edge(list_nodes,
                                                                                     self.config.reachable_set.length_edge_node_min)
