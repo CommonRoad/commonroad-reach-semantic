@@ -1,9 +1,8 @@
 import itertools
 import logging
 from collections import defaultdict
-from typing import List, Optional, Dict, FrozenSet
+from typing import List, Dict, FrozenSet
 
-import commonroad_reach.utility.logger as util_logger
 from commonroad_reach.data_structure.reach.reach_polygon import ReachPolygon
 from commonroad_reach.utility import reach_operation
 
@@ -26,6 +25,7 @@ class PySemanticOTFReachableSet(PySemanticReachableSet):
     config: SemanticConfiguration
     dict_step_to_states_to_drivable_area: Dict[int, Dict[FrozenSet[int], List[ReachPolygon]]]
     dict_step_to_states_to_propagated_set: Dict[int, Dict[FrozenSet[int], List[SemanticReachNode]]]
+    reachable_set_to_label: Dict[SemanticReachNode, FrozenSet[int]]
 
     def __init__(self, config: SemanticConfiguration, semantic_model: SemanticModel,
                  rule_interface: TrafficRuleInterface):
@@ -33,6 +33,8 @@ class PySemanticOTFReachableSet(PySemanticReachableSet):
 
         self.dict_step_to_states_to_drivable_area = dict()
         self.dict_step_to_states_to_propagated_set = dict()
+
+        self.reachable_set_to_label = dict()
 
         self._initialize_zero_state_polygons()
 
@@ -45,7 +47,7 @@ class PySemanticOTFReachableSet(PySemanticReachableSet):
 
         # Label initial state with propositions and automaton states
         self.labeler.label_initial_state(initial_reachable_sets, self.step_start)
-        self._label_reachable_sets_with_automaton_states(initial_reachable_sets, self.automaton.initial_state)
+        self._label_reachable_sets_with_automaton_states(initial_reachable_sets, initial_step=True)
         initial_reachable_sets = self._filter_reachable_sets(initial_reachable_sets, self.step_start)
 
         # Compute initial drivable area
@@ -98,7 +100,7 @@ class PySemanticOTFReachableSet(PySemanticReachableSet):
         # partition propagated sets by their automaton states
         dict_states_to_propagated_set: Dict[FrozenSet[int], List[SemanticReachNode]] = defaultdict(list)
         for propagated_set in propagated_sets:
-            dict_states_to_propagated_set[propagated_set.automaton_states].append(propagated_set)
+            dict_states_to_propagated_set[self.reachable_set_to_label[propagated_set]].append(propagated_set)
 
         # merge, collision check, and repartition propagated sets partitioned by their automaton states,
         # because we must not merge sets with different states
@@ -147,16 +149,19 @@ class PySemanticOTFReachableSet(PySemanticReachableSet):
                                                                                     self.config.reachable_set.length_edge_node_min)
             if list_nodes:
                 reachable_set = reach_operation.connect_children_to_parents(step, list_nodes)
+                # assign label to all newly constructed reach nodes
+                for node in reachable_set:
+                    self.reachable_set_to_label[node] = automaton_states
                 dict_propositions_to_reachable_set[automaton_states] = reachable_set
 
         self.dict_step_to_reachable_set[step] = list(
             itertools.chain.from_iterable(dict_propositions_to_reachable_set.values()))
 
     def _label_reachable_sets_with_automaton_states(self, reachable_sets: List[SemanticReachNode],
-                                                    current_state: Optional[int] = None) -> None:
+                                                    initial_step: bool = False) -> None:
         for reachable_set in reachable_sets:
-            automaton_states = reachable_set.source_propagation.automaton_states if current_state is None else {
-                current_state}
+            automaton_states = self.reachable_set_to_label[
+                reachable_set.source_propagation] if not initial_step else {self.automaton.initial_state}
             for automaton_state in automaton_states:
                 self._label_automaton_states(reachable_set, automaton_state)
 
@@ -171,18 +176,19 @@ class PySemanticOTFReachableSet(PySemanticReachableSet):
                 if reach_props.issuperset(positive_props) and reach_props.isdisjoint(negative_props):
                     automaton_states.add(next_state)
                     break  # inner loop
-        reachable_set.automaton_states = frozenset(automaton_states)
+        self.reachable_set_to_label[reachable_set] = frozenset(automaton_states)
 
     def _filter_reachable_sets(self, reachable_sets: List[SemanticReachNode], step: int) -> List[SemanticReachNode]:
         """Filter reachable sets that cannot be part of an accepting run of the automaton."""
         is_final_step = (step == self.step_end)
         return [
             reachable_set for reachable_set in reachable_sets
-            if reachable_set.automaton_states and (not is_final_step or self._has_accepting_state(reachable_set))
+            if self.reachable_set_to_label[reachable_set] and (
+                        not is_final_step or self._has_accepting_state(reachable_set))
         ]
 
     def _has_accepting_state(self, reachable_set: SemanticReachNode) -> bool:
-        return any(self.automaton.is_accepting_state(state) for state in reachable_set.automaton_states)
+        return any(self.automaton.is_accepting_state(state) for state in self.reachable_set_to_label[reachable_set])
 
     def _split_reachable_set(self, reachable_set: SemanticReachNode, current_state: int) -> List[
         tuple[SemanticReachNode, int]]:

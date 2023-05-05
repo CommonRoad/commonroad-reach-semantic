@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import copy
-from typing import Set, FrozenSet
+from typing import Set
 
 from commonroad_reach.data_structure.reach.reach_node import ReachNode
 from commonroad_reach.pycrreach import ReachPolygon
@@ -13,19 +13,17 @@ from commonroad_reach_semantic.data_structure.rule.proposition_holder import Pro
 class SemanticReachNode(ReachNode):
     """Node within the reachability graph.
 
-    Compared to its base class, this one is labeled with a set of propositions and a set of automaton states.
+    Compared to its base class, this one is labeled with a set of propositions.
     """
 
     proposition_holder: PropositionHolder
     set_ids_lanelets: Set[int]
-    automaton_states: FrozenSet[int]
 
     def __init__(self, polygon_lon: ReachPolygon, polygon_lat: ReachPolygon,
                  step: int = -1, proposition_holder: PropositionHolder = None) -> None:
         super().__init__(polygon_lon, polygon_lat, step)
         self.proposition_holder = proposition_holder if proposition_holder else PropositionHolder()
         self.set_ids_lanelets = set()
-        self.automaton_states = frozenset()
 
     @property
     def set_propositions(self) -> Set[str]:
@@ -60,6 +58,5 @@ class SemanticReachNode(ReachNode):
         node_clone.list_nodes_child = copy.deepcopy(self.list_nodes_child)
         node_clone.source_propagation = self.source_propagation
         node_clone.set_ids_lanelets = self.set_ids_lanelets.copy()
-        node_clone.automaton_states = self.automaton_states.copy()
 
         return node_clone
