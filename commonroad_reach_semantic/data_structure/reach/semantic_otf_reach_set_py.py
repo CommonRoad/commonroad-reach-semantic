@@ -141,18 +141,18 @@ class PySemanticOTFReachableSet(PySemanticReachableSet):
         # that we merge two reachable sets with different states when they intersect with the same drivable area
         dict_propositions_to_reachable_set = dict()
         for automaton_states, drivable_area in dict_states_to_drivable_area.items():
-            propagated_set = dict_states_to_propagated_set[automaton_states]
+            propagated_sets = dict_states_to_propagated_set[automaton_states]
 
-            list_nodes = semantic_reach_operation.construct_reach_nodes(drivable_area, propagated_set)
+            list_nodes = semantic_reach_operation.construct_reach_nodes(drivable_area, propagated_sets)
             if discard_small_node:
                 list_nodes = semantic_reach_operation.discard_nodes_with_short_edge(list_nodes,
                                                                                     self.config.reachable_set.length_edge_node_min)
             if list_nodes:
-                reachable_set = reach_operation.connect_children_to_parents(step, list_nodes)
+                reachable_sets = reach_operation.connect_children_to_parents(step, list_nodes)
                 # assign label to all newly constructed reach nodes
-                for node in reachable_set:
+                for node in reachable_sets:
                     self.reachable_set_to_label[node] = automaton_states
-                dict_propositions_to_reachable_set[automaton_states] = reachable_set
+                dict_propositions_to_reachable_set[automaton_states] = reachable_sets
 
         self.dict_step_to_reachable_set[step] = list(
             itertools.chain.from_iterable(dict_propositions_to_reachable_set.values()))

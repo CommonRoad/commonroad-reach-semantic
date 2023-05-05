@@ -116,17 +116,18 @@ class PySemanticLabelingReachableSet(PySemanticReachableSet):
         # that we merge two reachable sets with different propositions when they intersect with the same drivable area
         dict_propositions_to_reachable_set = dict()
         for proposition_holder, drivable_area in dict_propositions_to_drivable_area.items():
-            propagated_set = dict_propositions_to_propagated_set[proposition_holder]
+            propagated_sets = dict_propositions_to_propagated_set[proposition_holder]
 
-            list_nodes = semantic_reach_operation.construct_reach_nodes(drivable_area, propagated_set)
+            list_nodes = semantic_reach_operation.construct_reach_nodes(drivable_area, propagated_sets)
             if discard_small_node:
                 list_nodes = semantic_reach_operation.discard_nodes_with_short_edge(list_nodes,
                                                                                     self.config.reachable_set.length_edge_node_min)
             if list_nodes:
-                reachable_set = reach_operation.connect_children_to_parents(step, list_nodes)
-                # copy propositions for newly constructed nodes
-                self.labeler.copy_propositions(reachable_set, proposition_holder)
-                dict_propositions_to_reachable_set[proposition_holder] = reachable_set
+                reachable_sets = reach_operation.connect_children_to_parents(step, list_nodes)
+                # copy propositions for newly constructed nodes. Because all propagated sets are labeled with the same
+                # propositions, we simply use the first as reference.
+                self.labeler.copy_labels(propagated_sets[0], *reachable_sets)
+                dict_propositions_to_reachable_set[proposition_holder] = reachable_sets
 
         self.dict_step_to_reachable_set[step] = list(
             itertools.chain.from_iterable(dict_propositions_to_reachable_set.values()))

@@ -16,12 +16,9 @@ class SemanticReachNode(ReachNode):
     Compared to its base class, this one is labeled with a set of propositions.
     """
 
-    set_ids_lanelets: Set[int]
-
     def __init__(self, polygon_lon: ReachPolygon, polygon_lat: ReachPolygon,
                  step: int = -1) -> None:
         super().__init__(polygon_lon, polygon_lat, step)
-        self.set_ids_lanelets = set()
 
     def clone(self) -> SemanticReachNode:
         """
@@ -33,6 +30,5 @@ class SemanticReachNode(ReachNode):
         node_clone.list_nodes_parent = copy.deepcopy(self.list_nodes_parent)
         node_clone.list_nodes_child = copy.deepcopy(self.list_nodes_child)
         node_clone.source_propagation = self.source_propagation
-        node_clone.set_ids_lanelets = self.set_ids_lanelets.copy()
 
         return node_clone
