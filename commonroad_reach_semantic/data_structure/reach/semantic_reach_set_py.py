@@ -3,12 +3,12 @@ from abc import ABC, abstractmethod
 from typing import List
 
 import commonroad_reach.utility.logger as util_logger
+from commonroad_reach.data_structure.reach.reach_node import ReachNode
 from commonroad_reach.data_structure.reach.reach_polygon import ReachPolygon
 from commonroad_reach.utility import reach_operation
 
 from commonroad_reach_semantic.data_structure.config.semantic_configuration import SemanticConfiguration
 from commonroad_reach_semantic.data_structure.environment_model.semantic_model import SemanticModel
-from commonroad_reach_semantic.data_structure.reach.semantic_reach_node import SemanticReachNode
 from commonroad_reach_semantic.data_structure.reach.semantic_reach_set import SemanticReachableSet
 from commonroad_reach_semantic.data_structure.rule.traffic_rule_interface import TrafficRuleInterface
 
@@ -22,14 +22,14 @@ class PySemanticReachableSet(SemanticReachableSet, ABC):
                  rule_interface: TrafficRuleInterface) -> None:
         super().__init__(config, semantic_model, rule_interface)
 
-    def _construct_initial_reachable_sets(self) -> List[SemanticReachNode]:
+    def _construct_initial_reachable_sets(self) -> List[ReachNode]:
         tuple_vertices_polygon_lon, tuple_vertices_polygon_lat = \
             reach_operation.generate_tuples_vertices_polygons_initial(self.config)
 
         polygon_lon = ReachPolygon.from_rectangle_vertices(*tuple_vertices_polygon_lon)
         polygon_lat = ReachPolygon.from_rectangle_vertices(*tuple_vertices_polygon_lat)
 
-        return [SemanticReachNode(polygon_lon, polygon_lat, self.config.planning.step_start)]
+        return [ReachNode(polygon_lon, polygon_lat, self.config.planning.step_start)]
 
     def _initialize_zero_state_polygons(self):
         """
@@ -76,7 +76,7 @@ class PySemanticReachableSet(SemanticReachableSet, ABC):
     def _compute_reachable_set_at_step(self, step: int):
         pass
 
-    def _propagate_reachable_set(self, list_nodes: List[SemanticReachNode]) -> List[SemanticReachNode]:
+    def _propagate_reachable_set(self, list_nodes: List[ReachNode]) -> List[ReachNode]:
         """
         Propagates nodes of the reachable set.
         """
@@ -104,7 +104,7 @@ class PySemanticReachableSet(SemanticReachableSet, ABC):
                 util_logger.print_and_log_debug(logger, "Error occurred while propagating polygons.")
 
             else:
-                base_set_propagated = SemanticReachNode(polygon_lon_propagated, polygon_lat_propagated, node.step)
+                base_set_propagated = ReachNode(polygon_lon_propagated, polygon_lat_propagated, node.step)
                 base_set_propagated.source_propagation = node
                 list_base_sets_propagated.append(base_set_propagated)
 
@@ -151,8 +151,8 @@ class PySemanticReachableSet(SemanticReachableSet, ABC):
 
         return rectangles
 
-    def _reset_reachable_set_at_step(self, step: int, reachable_set: List[SemanticReachNode]):
-        reachable_set_cur: List[SemanticReachNode] = self.dict_step_to_reachable_set[step]
+    def _reset_reachable_set_at_step(self, step: int, reachable_set: List[ReachNode]):
+        reachable_set_cur: List[ReachNode] = self.dict_step_to_reachable_set[step]
         for node in reachable_set_cur:
             for node_parent in node.list_nodes_parent:
                 node_parent.remove_child_node(node)

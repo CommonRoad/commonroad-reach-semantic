@@ -2,8 +2,9 @@ import logging
 from collections import defaultdict
 from typing import List, Dict, Set
 
+from commonroad_reach.data_structure.reach.reach_node import ReachNode
+
 from commonroad_reach_semantic.data_structure.config.semantic_configuration import SemanticConfiguration
-from commonroad_reach_semantic.data_structure.reach.semantic_reach_node import SemanticReachNode
 from commonroad_reach_semantic.data_structure.rule.proposition_holder import PropositionHolder
 
 logger = logging.getLogger(__name__)
@@ -62,9 +63,9 @@ class TPLChecker:
 
         logger.info("Mandatory and forbidden propositions extracted.")
 
-    def examine_tpl_specifications(self, step: int, list_propagated_sets: List[SemanticReachNode],
-                                   reachable_set_to_propositions: Dict[SemanticReachNode, PropositionHolder]) -> List[
-        SemanticReachNode]:
+    def examine_tpl_specifications(self, step: int, list_propagated_sets: List[ReachNode],
+                                   reachable_set_to_propositions: Dict[ReachNode, PropositionHolder]) -> List[
+        ReachNode]:
         """
         Examines whether the given propagated sets satisfy the TPL specifications.
         """

@@ -1,5 +1,5 @@
 import logging
-from typing import List, Dict
+from typing import Dict
 
 import commonroad_reach.utility.logger as util_logger
 
@@ -8,8 +8,6 @@ from commonroad_reach_semantic.data_structure.environment_model.lanelet_model im
 from commonroad_reach_semantic.data_structure.environment_model.region_model import RegionModel
 from commonroad_reach_semantic.data_structure.environment_model.traffic_status_model import TrafficStatusModel
 from commonroad_reach_semantic.data_structure.environment_model.vehicle_model import VehicleModel
-from commonroad_reach_semantic.data_structure.reach.semantic_reach_node import SemanticReachNode
-from commonroad_reach_semantic.data_structure.rule.proposition import Proposition as P
 
 logger = logging.getLogger(__name__)
 

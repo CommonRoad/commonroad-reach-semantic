@@ -2,13 +2,13 @@ import itertools
 from collections import defaultdict
 from typing import Union, List, Dict, FrozenSet
 
+from commonroad_reach.data_structure.reach.reach_node import ReachNode
 from commonroad_reach.pycrreach import ReachPolygon
 
 from commonroad_reach_semantic import pycrreachs
 from commonroad_reach_semantic.data_structure.environment_model.position_interval import PositionInterval
 from commonroad_reach_semantic.data_structure.environment_model.region import Region
 from commonroad_reach_semantic.data_structure.environment_model.semantic_model import SemanticModel
-from commonroad_reach_semantic.data_structure.reach.semantic_reach_node import SemanticReachNode
 from commonroad_reach_semantic.data_structure.rule.proposition import Proposition as Prop
 from commonroad_reach_semantic.data_structure.rule.proposition import PropositionGroup as PropGroup
 from commonroad_reach_semantic.data_structure.rule.proposition_holder import PropositionHolder
@@ -18,15 +18,15 @@ from commonroad_reach_semantic.utility import reach_operation
 class ReachableSetLabeler:
     """Splits reachable sets and labels the parts according to the semantic model."""
     semantic_model: SemanticModel
-    reachable_set_to_propositions: Dict[SemanticReachNode, PropositionHolder]
-    reachable_set_to_lanelet_ids: Dict[SemanticReachNode, FrozenSet[int]]
+    reachable_set_to_propositions: Dict[ReachNode, PropositionHolder]
+    reachable_set_to_lanelet_ids: Dict[ReachNode, FrozenSet[int]]
 
     def __init__(self, semantic_model: SemanticModel):
         self.semantic_model = semantic_model
         self.reachable_set_to_propositions = defaultdict(PropositionHolder)
         self.reachable_set_to_lanelet_ids = dict()
 
-    def label_initial_state(self, reachable_sets: List[SemanticReachNode], step_start: int) -> None:
+    def label_initial_state(self, reachable_sets: List[ReachNode], step_start: int) -> None:
         """
         Assigns proposition labels to initial reachable sets and drivable areas.
         """
@@ -73,8 +73,8 @@ class ReachableSetLabeler:
 
     def label_traffic_propositions(self, step,
                                    list_propagated_sets: Union[
-                                       List[SemanticReachNode], List[pycrreachs.SemanticReachNode]]) \
-            -> Union[List[SemanticReachNode], List[pycrreachs.SemanticReachNode]]:
+                                       List[ReachNode], List[pycrreachs.SemanticReachNode]]) \
+            -> Union[List[ReachNode], List[pycrreachs.SemanticReachNode]]:
         """
         Labels propagated sets with propositions related to traffic status.
         """
@@ -89,8 +89,8 @@ class ReachableSetLabeler:
 
     def _label_traffic_status_propositions(self, step,
                                            list_propagated_sets: Union[
-                                               List[SemanticReachNode], List[pycrreachs.SemanticReachNode]]) \
-            -> Union[List[SemanticReachNode], List[pycrreachs.SemanticReachNode]]:
+                                               List[ReachNode], List[pycrreachs.SemanticReachNode]]) \
+            -> Union[List[ReachNode], List[pycrreachs.SemanticReachNode]]:
         """
         Labels propagated sets with traffic status propositions.
         """
@@ -103,8 +103,8 @@ class ReachableSetLabeler:
 
     def _label_in_conflict_area_propositions(self, step,
                                              list_propagated_sets: Union[
-                                                 List[SemanticReachNode], List[pycrreachs.SemanticReachNode]]) \
-            -> Union[List[SemanticReachNode], List[pycrreachs.SemanticReachNode]]:
+                                                 List[ReachNode], List[pycrreachs.SemanticReachNode]]) \
+            -> Union[List[ReachNode], List[pycrreachs.SemanticReachNode]]:
         """
         Labels propagated sets with propositions related to conflict status between them and the vehicles.
 
@@ -128,7 +128,7 @@ class ReachableSetLabeler:
 
         # examine if the vehicles are in conflict with the propagated set
         for propagated_set in list_propagated_sets:
-            if isinstance(propagated_set, SemanticReachNode):
+            if isinstance(propagated_set, ReachNode):
                 p_lon_min = propagated_set.p_lon_min
             else:
                 p_lon_min = propagated_set.p_lon_min()
@@ -159,8 +159,8 @@ class ReachableSetLabeler:
 
     def _label_causes_braking_propositions(self, step: int,
                                            list_propagated_sets: Union[
-                                               List[SemanticReachNode], List[pycrreachs.SemanticReachNode]]) \
-            -> Union[List[SemanticReachNode], List[pycrreachs.SemanticReachNode]]:
+                                               List[ReachNode], List[pycrreachs.SemanticReachNode]]) \
+            -> Union[List[ReachNode], List[pycrreachs.SemanticReachNode]]:
         """
         Labels propagated sets with propositions related to causes braking to other vehicles.
         """
@@ -178,7 +178,7 @@ class ReachableSetLabeler:
 
         return list_propagated_sets
 
-    def split_wrt_regions(self, step: int, reachable_set: SemanticReachNode) -> List[SemanticReachNode]:
+    def split_wrt_regions(self, step: int, reachable_set: ReachNode) -> List[ReachNode]:
         """
         Splits a reachable set w.r.t lanelet regions.
 
@@ -218,7 +218,7 @@ class ReachableSetLabeler:
 
         return list_sets_split
 
-    def _update_propositions_with_region(self, propagated_set: Union[SemanticReachNode, pycrreachs.SemanticReachNode],
+    def _update_propositions_with_region(self, propagated_set: Union[ReachNode, pycrreachs.SemanticReachNode],
                                          region: Union[Region, pycrreachs.Region], step: int):
         """
         Updates the propositions of the propagated set with the proposition of the lanelet region.
@@ -246,7 +246,7 @@ class ReachableSetLabeler:
         return propagated_set
 
     def split_wrt_position_intervals(self, step: int,
-                                     reachable_set: SemanticReachNode) -> List[SemanticReachNode]:
+                                     reachable_set: ReachNode) -> List[ReachNode]:
         """
         Splits the reachable set w.r.t position intervals.
         """
@@ -266,9 +266,9 @@ class ReachableSetLabeler:
 
         return list_reachable_sets_split
 
-    def _split_reachable_set_wrt_intervals(self, reachable_set: SemanticReachNode, intervals: List[PositionInterval],
+    def _split_reachable_set_wrt_intervals(self, reachable_set: ReachNode, intervals: List[PositionInterval],
                                            reach_min: float, reach_max: float, direction: str) \
-            -> List[SemanticReachNode]:
+            -> List[ReachNode]:
         list_reachable_sets_split = []
         for interval in intervals:
             if interval.intersects(reach_min, reach_max):
@@ -285,13 +285,13 @@ class ReachableSetLabeler:
         return list_reachable_sets_split
 
     def _obtain_lanelet_transition_propositions(self,
-                                                propagated_set: Union[SemanticReachNode, pycrreachs.SemanticReachNode]):
+                                                propagated_set: Union[ReachNode, pycrreachs.SemanticReachNode]):
         """
         Returns the set of lanelet transition propositions.
         """
         set_propositions = set()
         # retrieve lanelet propositions from the source
-        if isinstance(propagated_set, SemanticReachNode):
+        if isinstance(propagated_set, ReachNode):
             source_node = propagated_set.source_propagation
         else:
             source_node = propagated_set.vec_nodes_source[0]
@@ -309,7 +309,7 @@ class ReachableSetLabeler:
 
         return set_propositions
 
-    def discard_colliding_nodes(self, list_propagated_set: List[SemanticReachNode]) -> List[SemanticReachNode]:
+    def discard_colliding_nodes(self, list_propagated_set: List[ReachNode]) -> List[ReachNode]:
         """
         Returns a list of propagated sets that do not collide with vehicles.
         """
@@ -332,7 +332,7 @@ class ReachableSetLabeler:
 
         return list_nodes_keep
 
-    def copy_labels(self, source_reachable_set: SemanticReachNode, *reachable_sets: SemanticReachNode) -> None:
+    def copy_labels(self, source_reachable_set: ReachNode, *reachable_sets: ReachNode) -> None:
         """Copy the labels of source_reachable_set to every node in reachable_sets."""
         for reachable_set in reachable_sets:
             self.reachable_set_to_propositions[reachable_set] = self.reachable_set_to_propositions[

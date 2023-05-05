@@ -11,8 +11,6 @@ from commonroad_reach.utility import logger as util_logger
 
 from commonroad_reach_semantic import pycrreachs
 from commonroad_reach_semantic.data_structure.environment_model.position_interval import PositionInterval
-from commonroad_reach_semantic.data_structure.rule.proposition import PropositionGroup as PropGroup
-from commonroad_reach_semantic.data_structure.reach.semantic_reach_node import SemanticReachNode
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +33,7 @@ def are_intersecting_lanelets(lanelet_1: Lanelet, lanelet_2: Lanelet) -> bool:
     return False
 
 
-def split_reach_node_to_interval(node: SemanticReachNode, interval: PositionInterval, direction: str):
+def split_reach_node_to_interval(node: ReachNode, interval: PositionInterval, direction: str):
     """
     Returns a reach node adapted to the input position interval.
     """
@@ -60,7 +58,7 @@ def split_reach_node_to_interval(node: SemanticReachNode, interval: PositionInte
 
 
 def construct_reach_nodes(drivable_area: List[ReachPolygon],
-                          list_propagated_set: List[SemanticReachNode]) -> List[SemanticReachNode]:
+                          list_propagated_set: List[ReachNode]) -> List[ReachNode]:
     """
     Constructs nodes of the reachability graph.
 
@@ -91,8 +89,8 @@ def construct_reach_nodes(drivable_area: List[ReachPolygon],
 
 
 def construct_reach_node(rectangle_drivable_area: ReachPolygon,
-                         list_propagated_set: List[SemanticReachNode],
-                         list_idx_propagated_sets_adjacent: List[int]) -> Optional[SemanticReachNode]:
+                         list_propagated_set: List[ReachNode],
+                         list_idx_propagated_sets_adjacent: List[int]) -> Optional[ReachNode]:
     """
     Returns a reach node constructed from the propagated sets.
 
@@ -130,7 +128,7 @@ def construct_reach_node(rectangle_drivable_area: ReachPolygon,
     if list_vertices_polygon_lon_new and list_vertices_polygon_lat_new:
         polygon_lon_new = ReachPolygon.from_polygon(ReachPolygon(list_vertices_polygon_lon_new).convex_hull)
         polygon_lat_new = ReachPolygon.from_polygon(ReachPolygon(list_vertices_polygon_lat_new).convex_hull)
-        reach_node = SemanticReachNode(polygon_lon_new, polygon_lat_new)
+        reach_node = ReachNode(polygon_lon_new, polygon_lat_new)
         reach_node.source_propagation = list_nodes_parent
 
         return reach_node
@@ -173,7 +171,7 @@ def determine_connected_components(list_nodes_reach):
     return list_lists_nodes_connected
 
 
-def determine_connected_reach_nodes(list_nodes_reach: Union[List[SemanticReachNode], List[pycrreachs.SemanticReachNode]]):
+def determine_connected_reach_nodes(list_nodes_reach: Union[List[ReachNode], List[pycrreachs.SemanticReachNode]]):
     """
     Determines connected sets in the position domain.
 
@@ -186,7 +184,7 @@ def determine_connected_reach_nodes(list_nodes_reach: Union[List[SemanticReachNo
         return dict_adjacency
 
     else:
-        if isinstance(list_nodes_reach[0], SemanticReachNode):
+        if isinstance(list_nodes_reach[0], ReachNode):
             list_position_rectangles = [node_reach.position_rectangle for node_reach in list_nodes_reach]
 
         else:
