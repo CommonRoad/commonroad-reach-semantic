@@ -1,6 +1,6 @@
 import itertools
 from collections import defaultdict
-from typing import Union, List, Dict
+from typing import Union, List, Dict, Set
 
 from commonroad_reach.pycrreach import ReachPolygon
 
@@ -30,11 +30,12 @@ class ReachableSetLabeler:
         """
         for reachable_set in reachable_sets:
             drivable_area = reachable_set.position_rectangle
-            propositions = self._obtain_propositions_for_rectangle(drivable_area, step_start)
+            propositions, set_ids_lanelets = self._obtain_propositions_for_rectangle(drivable_area, step_start)
             self.reachable_set_to_propositions[reachable_set].merge(propositions)
+            reachable_set.set_ids_lanelets = set_ids_lanelets
         self.label_traffic_propositions(step_start, reachable_sets)
 
-    def _obtain_propositions_for_rectangle(self, rectangle: ReachPolygon, step: int) -> PropositionHolder:
+    def _obtain_propositions_for_rectangle(self, rectangle: ReachPolygon, step: int) -> tuple[PropositionHolder, Set[int]]:
         """
         Returns the propositions of the given rectangle.
 
@@ -42,11 +43,13 @@ class ReachableSetLabeler:
         it adds the propositions of the first intersecting region and position interval.
         """
         proposition_holder = PropositionHolder()
+        set_ids_lanelets = set()
         # retrieve propositions from the intersecting lanelet region
         for region in self.semantic_model.region_model.list_regions:
             if region.polygon_cvln.intersects(rectangle):
                 for group, set_propositions in region.dict_group_to_propositions_at_step(step).items():
                     proposition_holder.add_propositions(set_propositions, group)
+                set_ids_lanelets.update(region.set_ids_lanelets)
                 break
 
         # retrieve vehicle-related propositions from position intervals
@@ -63,7 +66,7 @@ class ReachableSetLabeler:
                 proposition_holder.add_propositions(interval_lat.set_propositions, PropGroup.POSITION)
                 break
 
-        return proposition_holder
+        return proposition_holder, set_ids_lanelets
 
     def label_traffic_propositions(self, step,
                                    list_propagated_sets: Union[
