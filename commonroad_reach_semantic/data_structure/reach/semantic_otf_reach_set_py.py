@@ -11,6 +11,7 @@ import commonroad_reach_semantic.utility.reach_operation as semantic_reach_opera
 from commonroad_reach_semantic.data_structure.config.semantic_configuration import SemanticConfiguration
 from commonroad_reach_semantic.data_structure.environment_model.semantic_model import SemanticModel
 from commonroad_reach_semantic.data_structure.model_checking.finite_automaton import FiniteAutomaton
+from commonroad_reach_semantic.data_structure.reach.predicate import Predicate
 from commonroad_reach_semantic.data_structure.reach.semantic_reach_set_py import PySemanticReachableSet
 from commonroad_reach_semantic.data_structure.rule.traffic_rule_interface import TrafficRuleInterface
 
@@ -76,25 +77,29 @@ class PySemanticOTFReachableSet(PySemanticReachableSet):
 
         propagated_sets = self._propagate_reachable_set(reachable_set_previous)
 
-        # split w.r.t regions and position intervals
+        # # split w.r.t regions and position intervals
+        # propagated_sets = itertools.chain.from_iterable(
+        #     self.labeler.split_wrt_regions(step, propagated_set) for propagated_set in propagated_sets)
+        # propagated_sets = itertools.chain.from_iterable(
+        #     self.labeler.split_wrt_position_intervals(step, propagated_set) for propagated_set in
+        #     propagated_sets)
+        #
+        # # discard the ones colliding with vehicles
+        # propagated_sets = self.labeler.discard_colliding_nodes(propagated_sets)
+        #
+        # # examine whether the propagated sets satisfy TPL specifications
+        # propagated_sets = self.rule_interface.tpl_checker.examine_tpl_specifications(step, propagated_sets,
+        #                                                                              self.labeler.reachable_set_to_propositions)
+        #
+        # # update traffic propositions of the propagated sets
+        # propagated_sets = self.labeler.label_traffic_propositions(step, propagated_sets)
+        #
+        # # label propagated sets with automaton states and filter
+        # self._label_reachable_sets_with_automaton_states(propagated_sets)
+        # propagated_sets = self._filter_reachable_sets(propagated_sets, step)
+
         propagated_sets = itertools.chain.from_iterable(
-            self.labeler.split_wrt_regions(step, propagated_set) for propagated_set in propagated_sets)
-        propagated_sets = itertools.chain.from_iterable(
-            self.labeler.split_wrt_position_intervals(step, propagated_set) for propagated_set in
-            propagated_sets)
-
-        # discard the ones colliding with vehicles
-        propagated_sets = self.labeler.discard_colliding_nodes(propagated_sets)
-
-        # examine whether the propagated sets satisfy TPL specifications
-        propagated_sets = self.rule_interface.tpl_checker.examine_tpl_specifications(step, propagated_sets,
-                                                                                     self.labeler.reachable_set_to_propositions)
-
-        # update traffic propositions of the propagated sets
-        propagated_sets = self.labeler.label_traffic_propositions(step, propagated_sets)
-
-        # label propagated sets with automaton states and filter
-        self._label_reachable_sets_with_automaton_states(propagated_sets)
+            self._split_reachable_set(step, propagated_set) for propagated_set in propagated_sets)
         propagated_sets = self._filter_reachable_sets(propagated_sets, step)
 
         # partition propagated sets by their automaton states
@@ -189,21 +194,18 @@ class PySemanticOTFReachableSet(PySemanticReachableSet):
     def _has_accepting_state(self, reachable_set: ReachNode) -> bool:
         return any(self.automaton.is_accepting_state(state) for state in self.reachable_set_to_label[reachable_set])
 
-    def _split_reachable_set(self, reachable_set: ReachNode, current_state: int) -> List[tuple[ReachNode, int]]:
+    def _split_reachable_set(self, step: int, reachable_set: ReachNode) -> List[ReachNode]:
         split_sets = list()
-        for next_state, minterms in self.automaton.transitions_from(current_state):
+        current_states = self.reachable_set_to_label[reachable_set.source_propagation]
+        for next_state, minterms in self.automaton.combined_transitions_from(current_states):
             for minterm in minterms:
-                constrained_reachable_set = reachable_set.clone()
+                constrained_reachable_sets = [reachable_set]
                 for proposition, negated in minterm:
-                    # consider only position propositions for now
-                    # TODO: Constrain reachable set to (negated) proposition
-                    if negated:
-                        pass
-                    else:
-                        # see split_wrt_regions, so something like
-                        # constrained_reachable_set.intersect_in_position_domain(*proposition.area.intersection(reachable_set.position_rectangle).bounds)
-                        pass
-                    pass
-                # TODO: Check if constrained reachable set is empty --> only add if not empty
-                split_sets.append((constrained_reachable_set, next_state))
+                    pred = Predicate.from_proposition(proposition)
+                    constrained_reachable_sets = list(itertools.chain.from_iterable(
+                        pred.restrict_reach_node(step, node, self.labeler.semantic_model, negated)
+                        for node in constrained_reachable_sets))
+                for constrained_reachable_set in constrained_reachable_sets:
+                    self.reachable_set_to_label[constrained_reachable_set] = frozenset({next_state})
+                split_sets += constrained_reachable_sets
         return split_sets

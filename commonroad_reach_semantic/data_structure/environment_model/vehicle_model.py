@@ -1,7 +1,8 @@
 import itertools
 import logging
 from collections import defaultdict
-from typing import List, Union, Set, Dict
+from functools import lru_cache
+from typing import List, Union, Set, Dict, Optional
 
 import numpy as np
 from commonroad.scenario.lanelet import LaneletType
@@ -47,6 +48,16 @@ class VehicleModel:
         """
         for vehicle in self.list_vehicles:
             vehicle.determine_priorities(dict_traffic_sign_to_priorities)
+
+    @lru_cache(maxsize=None)
+    def find_vehicle_by_id(self, id_vehicle: int) -> Optional[Vehicle]:
+        """
+        Returns the vehicle object with the given id.
+        """
+        for vehicle in self.list_vehicles:
+            if vehicle.id_vehicle == id_vehicle:
+                return vehicle
+        return None
 
     def _create_vehicles(self) -> None:
         """
