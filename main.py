@@ -43,10 +43,10 @@ def main():
     reach_interface.compute_reachable_sets()
 
     # ==== construct an interface to interact with Spot
-    spot_interface = SpotInterface(reach_interface, rule_interface)
-    spot_interface.translate_ltl_formulas()
-    spot_interface.translate_reachability_graph()
-    spot_interface.check()
+    # spot_interface = SpotInterface(reach_interface, rule_interface)
+    # spot_interface.translate_ltl_formulas()
+    # spot_interface.translate_reachability_graph()
+    # spot_interface.check()
 
     # ==== instantiate a driving corridor extractor
     # dc_extractor = DrivingCorridorExtractor(spot_interface)
@@ -56,7 +56,7 @@ def main():
     # ==== plot computation results
     util_visual.plot_scenario_with_regions(semantic_model, "CVLN")
     util_visual.plot_scenario_with_reachable_sets(reach_interface, save_gif=True)
-    util_visual.plot_scenario_with_kripke_nodes(spot_interface, plot_accepting=True, save_gif=True)
+    # util_visual.plot_scenario_with_kripke_nodes(spot_interface, plot_accepting=True, save_gif=True)
     # util_visual.plot_scenario_with_driving_corridor(spot_interface, corridor_optimal, save_gif=True)
 
 
