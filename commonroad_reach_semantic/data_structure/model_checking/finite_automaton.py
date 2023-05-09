@@ -1,4 +1,6 @@
-from typing import Iterator, List
+import functools
+from collections import defaultdict
+from typing import Iterator, List, Set, Dict
 
 import buddy
 import spot
@@ -32,6 +34,18 @@ class FiniteAutomaton:
         """Iterate over all transitions outgoing from the given state."""
         for edge in self._spot_automaton.out(state):
             yield edge.dst, self._edge_condition_to_minterms(edge.cond)
+
+    def combined_transitions_from(self, states: Set[int]) -> Iterator[tuple[int, List[List[tuple[str, bool]]]]]:
+        """Iterate over all transitions outgoing from the given set of states.
+
+        Tries to minimize the minterms by combining the conditions of the outgoing edges leading to the same destination.
+        """
+        dst_state_to_conditions: Dict[int, List[buddy.bdd]] = defaultdict(list)
+        for state in states:
+            for edge in self._spot_automaton.out(state):
+                dst_state_to_conditions[edge.dst].append(edge.cond)
+        for dst_state, conditions in dst_state_to_conditions.items():
+            yield dst_state, self._edge_condition_to_minterms(functools.reduce(buddy.bdd_or, conditions))
 
     def is_accepting_state(self, state: int) -> bool:
         """Check whether the given state is an accepting state.

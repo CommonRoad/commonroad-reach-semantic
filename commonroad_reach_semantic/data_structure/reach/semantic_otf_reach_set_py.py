@@ -1,7 +1,7 @@
 import itertools
 import logging
 from collections import defaultdict
-from typing import List, Dict, FrozenSet
+from typing import List, Dict, FrozenSet, Set
 
 from commonroad_reach.data_structure.reach.reach_node import ReachNode
 from commonroad_reach.data_structure.reach.reach_polygon import ReachPolygon
@@ -162,14 +162,13 @@ class PySemanticOTFReachableSet(PySemanticReachableSet):
         for reachable_set in reachable_sets:
             automaton_states = self.reachable_set_to_label[
                 reachable_set.source_propagation] if not initial_step else {self.automaton.initial_state}
-            for automaton_state in automaton_states:
-                self._label_automaton_states(reachable_set, automaton_state)
+            self._label_automaton_states(reachable_set, automaton_states)
 
-    def _label_automaton_states(self, reachable_set: ReachNode, current_state: int) -> None:
+    def _label_automaton_states(self, reachable_set: ReachNode, current_states: Set[int]) -> None:
         """Label the reachable set with the automaton states that are reachable given its propositions."""
         reach_props = self.labeler.reachable_set_to_propositions[reachable_set].set_propositions
         automaton_states = set()
-        for next_state, minterms in self.automaton.transitions_from(current_state):
+        for next_state, minterms in self.automaton.combined_transitions_from(current_states):
             for minterm in minterms:
                 positive_props = [proposition for proposition, negated in minterm if not negated]
                 negative_props = [proposition for proposition, negated in minterm if negated]
