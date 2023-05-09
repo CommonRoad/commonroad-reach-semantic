@@ -199,7 +199,7 @@ class PySemanticOTFReachableSet(PySemanticReachableSet):
         current_states = self.reachable_set_to_label[reachable_set.source_propagation]
         for next_state, minterms in self.automaton.combined_transitions_from(current_states):
             for minterm in minterms:
-                constrained_reachable_sets = [reachable_set]
+                constrained_reachable_sets = [reachable_set.clone()]
                 for proposition, negated in minterm:
                     pred = Predicate.from_proposition(proposition)
                     constrained_reachable_sets = list(itertools.chain.from_iterable(
