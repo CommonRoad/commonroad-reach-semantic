@@ -26,6 +26,8 @@ class Predicate(ABC):
             return InStraightSuccessorPredicate()
         elif re.fullmatch(r"InIntersection", proposition):
             return InIntersectionPredicate()
+        elif matched := re.fullmatch(r"CausesBrakingFor_V(\d+)", proposition):
+            return CausesBrakingPredicate(int(matched.group(1)))
         elif matched := re.fullmatch(r"InConflictWith_V(\d+)", proposition):
             return InConflictAreaOfVehiclePredicate(int(matched.group(1)))
         elif matched := re.fullmatch(r"InConflictBy_V(\d+)", proposition):
@@ -254,6 +256,59 @@ class InIntersectionPredicate(Predicate):
         return split_sets
 
 
+class CausesBrakingPredicate(Predicate):
+
+    def __init__(self, obstacle_id: int):
+        self.obstacle_id = obstacle_id
+
+    def to_proposition(self) -> str:
+        return Prop.causes_braking_for(self.obstacle_id)
+
+    def restrict_reach_node_mandatory(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel) -> List[
+        ReachNode]:
+        if vehicle := semantic_model.vehicle_model.find_vehicle_by_id(self.obstacle_id):
+            # ensure small distance
+            try:
+                p_lon_ego_max_vehicle = vehicle.p_lon_ego(step) + vehicle.shape.length / 2
+            except KeyError:
+                # no prediction for vehicle at step, so we assume it is not present anymore/yet
+                # thus, we cannot cause it to brake
+                return []
+            # small distance means we are closer to the vehicle than `distance_braking` in the rule config
+
+            # calculate the minimal stopping distance of the vehicle (without braking harder than allowed)
+            v_lon_ego_vehicle = vehicle.v_lon_ego(step)
+            reaction_distance = v_lon_ego_vehicle * semantic_model.config.vehicle.other.t_react
+            braking_distance = - (v_lon_ego_vehicle ** 2) / (2 * semantic_model.config.traffic_rule.acceleration_braking_hard)
+            stopping_distance = reaction_distance + braking_distance
+
+            # the reach node is close enough to cause hard braking if it is closer than
+            # the stopping distance of the vehicle using maximum allowed braking acceleration OR
+            # the distance defined by the traffic rule
+            max_lon_distance = max(stopping_distance, semantic_model.config.traffic_rule.distance_braking)
+            p_lon_ego_max_reach_node = p_lon_ego_max_vehicle + max_lon_distance + \
+                semantic_model.config.vehicle.ego.radius_inflation
+
+            # ensure reach node is in front of vehicle
+            # adding the vehicle length/2 is copied from vehicle.py without me fully understanding what it achieves
+            p_lon_ego_min_reach_node = p_lon_ego_max_vehicle + \
+                semantic_model.config.vehicle.other.length / 2 - \
+                semantic_model.config.vehicle.ego.radius_inflation
+
+            # TODO: transform this to the curvilinear coordinate system and intersect with reach node
+            # could maybe do this by creating a Polygon with unbounded lateral position first,
+            # transforming the Polygon to the curvilinear coordinate system,
+            # and then intersecting with the reach node
+
+            raise NotImplementedError
+        else:
+            raise RuntimeError(f"Vehicle {self.obstacle_id} not found")
+
+    def restrict_reach_node_forbidden(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel) -> List[
+        ReachNode]:
+        raise NotImplementedError
+
+
 class InConflictAreaOfVehiclePredicate(Predicate):
 
     def __init__(self, vehicle_id: int):
@@ -346,7 +401,6 @@ class VehicleInConflictAreaPredicate(Predicate):
         else:
             # there is no conflict, so return the reach node unchanged
             return [reach_node]
-
 
     def _p_lon_max_for_conflict_at_step(self, step: int, semantic_model: SemanticModel) -> float:
         if vehicle := semantic_model.vehicle_model.find_vehicle_by_id(self.vehicle_id):
