@@ -1,7 +1,7 @@
 import itertools
 import logging
 from collections import defaultdict
-from typing import List, Dict, FrozenSet, Set
+from typing import List, Dict, FrozenSet, Set, Tuple
 
 from commonroad_reach.data_structure.reach.reach_node import ReachNode
 from commonroad_reach.data_structure.reach.reach_polygon import ReachPolygon
@@ -197,15 +197,35 @@ class PySemanticOTFReachableSet(PySemanticReachableSet):
     def _split_reachable_set(self, step: int, reachable_set: ReachNode) -> List[ReachNode]:
         split_sets = list()
         current_states = self.reachable_set_to_label[reachable_set.source_propagation]
+        minterm_to_constrained_sets: Dict[Tuple[Tuple[str, bool]], List[ReachNode]] = dict()
+        split_set_to_state: Dict[ReachNode, Set[int]] = defaultdict(set)
+
         for next_state, minterms in self.automaton.combined_transitions_from(current_states):
             for minterm in minterms:
-                constrained_reachable_sets = [reachable_set.clone()]
-                for proposition, negated in minterm:
-                    pred = Predicate.from_proposition(proposition)
-                    constrained_reachable_sets = list(itertools.chain.from_iterable(
-                        pred.restrict_reach_node(step, node, self.labeler.semantic_model, negated)
-                        for node in constrained_reachable_sets))
+                minterm_tuple = tuple(minterm)
+                # if we saw that minterm already, reuse the constrained sets
+                if minterm_tuple in minterm_to_constrained_sets:
+                    constrained_reachable_sets = minterm_to_constrained_sets[minterm_tuple]
+                else:
+                    constrained_reachable_sets = self._split_reachable_set_to_minterm(step, reachable_set, minterm)
+                    minterm_to_constrained_sets[minterm_tuple] = constrained_reachable_sets
+
                 for constrained_reachable_set in constrained_reachable_sets:
-                    self.reachable_set_to_label[constrained_reachable_set] = frozenset({next_state})
+                    split_set_to_state[constrained_reachable_set].add(next_state)
                 split_sets += constrained_reachable_sets
+
+        # freeze automaton states
+        for split_set, states in split_set_to_state.items():
+            self.reachable_set_to_label[split_set] = frozenset(states)
+
         return split_sets
+
+    def _split_reachable_set_to_minterm(self, step: int, reachable_set: ReachNode, minterm: List[Tuple[str, bool]]) -> \
+            List[ReachNode]:
+        constrained_reachable_sets = [reachable_set.clone()]
+        for proposition, negated in minterm:
+            pred = Predicate.from_proposition(proposition)
+            constrained_reachable_sets = list(itertools.chain.from_iterable(
+                pred.restrict_reach_node(step, node, self.labeler.semantic_model, negated)
+                for node in constrained_reachable_sets))
+        return constrained_reachable_sets
