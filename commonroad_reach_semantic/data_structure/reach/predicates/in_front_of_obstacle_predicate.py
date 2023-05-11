@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Set
 
 from commonroad_reach.data_structure.reach.reach_node import ReachNode
 
@@ -16,16 +16,16 @@ class InFrontOfObstaclePredicate(predicate.Predicate):
     def to_proposition(self) -> str:
         return Prop.in_front_of(self.obstacle_id)
 
-    def restrict_reach_node_mandatory(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel) -> List[
-        ReachNode]:
+    def _restrict_reach_node_mandatory(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel,
+                                       _node_lanelet_ids: Optional[Set[int]] = None) -> List[ReachNode]:
         if vehicle_front := self._get_vehicle_front(step, semantic_model):
             reach_node.intersect_in_position_domain(p_lon_min=vehicle_front)
             return [reach_node]
         else:
             raise RuntimeError(f"Vehicle {self.obstacle_id} not found")
 
-    def restrict_reach_node_forbidden(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel) -> List[
-        ReachNode]:
+    def _restrict_reach_node_forbidden(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel,
+                                       _node_lanelet_ids: Optional[Set[int]] = None) -> List[ReachNode]:
         if vehicle_front := self._get_vehicle_front(step, semantic_model):
             reach_node.intersect_in_position_domain(p_lon_max=vehicle_front)
             return [reach_node]

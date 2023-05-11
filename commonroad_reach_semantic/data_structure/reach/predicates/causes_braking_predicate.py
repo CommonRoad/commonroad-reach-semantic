@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Set
 
 import commonroad_reach.utility.coordinate_system as util_cosy
 import numpy as np
@@ -21,8 +21,8 @@ class CausesBrakingPredicate(predicate.Predicate):
     def to_proposition(self) -> str:
         return Prop.causes_braking_for(self.obstacle_id)
 
-    def restrict_reach_node_mandatory(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel) -> List[
-        ReachNode]:
+    def _restrict_reach_node_mandatory(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel,
+                                       _node_lanelet_ids: Optional[Set[int]] = None) -> List[ReachNode]:
         if vehicle := semantic_model.vehicle_model.find_vehicle_by_id(self.obstacle_id):
             if p_lon_min_max_ego := self._get_min_max_lon_to_cause_braking(step, semantic_model, vehicle):
                 p_lon_ego_min, p_lon_ego_max = p_lon_min_max_ego
@@ -50,8 +50,8 @@ class CausesBrakingPredicate(predicate.Predicate):
         else:
             raise RuntimeError(f"Vehicle {self.obstacle_id} not found")
 
-    def restrict_reach_node_forbidden(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel) -> List[
-        ReachNode]:
+    def _restrict_reach_node_forbidden(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel,
+                                       _node_lanelet_ids: Optional[Set[int]] = None) -> List[ReachNode]:
         if vehicle := semantic_model.vehicle_model.find_vehicle_by_id(self.obstacle_id):
             if p_lon_min_max_ego := self._get_min_max_lon_to_cause_braking(step, semantic_model, vehicle):
                 p_lon_ego_min, p_lon_ego_max = p_lon_min_max_ego

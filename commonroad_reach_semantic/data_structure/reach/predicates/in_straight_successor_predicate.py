@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Set, Optional
 
 from commonroad_reach.data_structure.reach.reach_node import ReachNode
 
@@ -9,11 +9,15 @@ from commonroad_reach_semantic.data_structure.rule.proposition import Propositio
 
 class InStraightSuccessorPredicate(predicate.Predicate):
 
+    def __init__(self, negated: bool):
+        super().__init__(negated)
+        self.needs_lanelets = True
+
     def to_proposition(self) -> str:
         return Prop.in_straight_successor()
 
-    def restrict_reach_node_mandatory(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel) -> List[
-        ReachNode]:
+    def _restrict_reach_node_mandatory(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel,
+                                       node_lanelet_ids: Optional[Set[int]] = None) -> List[ReachNode]:
         lanelet_ids = semantic_model.config.semantic_model.incoming_element_route.successors_straight
         split_sets = []
         for region in semantic_model.region_model.list_regions:
@@ -22,8 +26,8 @@ class InStraightSuccessorPredicate(predicate.Predicate):
                     split_sets.append(reach_node_new)
         return split_sets
 
-    def restrict_reach_node_forbidden(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel) -> List[
-        ReachNode]:
+    def _restrict_reach_node_forbidden(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel,
+                                       node_lanelet_ids: Optional[Set[int]] = None) -> List[ReachNode]:
         lanelet_ids = semantic_model.config.semantic_model.incoming_element_route.successors_straight
         split_sets = []
         for region in semantic_model.region_model.list_regions:

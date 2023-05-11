@@ -1,6 +1,6 @@
 import itertools
 from functools import lru_cache
-from typing import List
+from typing import List, Optional, Set
 
 from commonroad_reach.data_structure.reach.reach_node import ReachNode
 
@@ -18,8 +18,8 @@ class VehicleInConflictAreaPredicate(predicate.Predicate):
     def to_proposition(self) -> str:
         return Prop.in_conflict_by(self.vehicle_id)
 
-    def restrict_reach_node_mandatory(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel) -> List[
-        ReachNode]:
+    def _restrict_reach_node_mandatory(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel,
+                                       _node_lanelet_ids: Optional[Set[int]] = None) -> List[ReachNode]:
         p_lon_max = self._p_lon_max_for_conflict_at_step(step, semantic_model)
         # If the minimal longitudinal position of the reach node is greater than the maximum,
         # it lies entirely in front of the vehicle --> discard the reach node as no conflict occurs
@@ -35,8 +35,8 @@ class VehicleInConflictAreaPredicate(predicate.Predicate):
             # there is no conflict, so discard the reach node
             return []
 
-    def restrict_reach_node_forbidden(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel) -> List[
-        ReachNode]:
+    def _restrict_reach_node_forbidden(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel,
+                                       _node_lanelet_ids: Optional[Set[int]] = None) -> List[ReachNode]:
         p_lon_max = self._p_lon_max_for_conflict_at_step(step, semantic_model)
         # If the minimal longitudinal position of the reach node is greater than the maximum,
         # it lies entirely in front of the vehicle --> keep the reach node unchanged as no conflict occurs

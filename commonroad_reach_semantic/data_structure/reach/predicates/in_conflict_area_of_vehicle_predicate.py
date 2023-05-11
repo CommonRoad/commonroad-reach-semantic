@@ -12,12 +12,13 @@ class InConflictAreaOfVehiclePredicate(predicate.Predicate):
     def __init__(self, vehicle_id: int, negated: bool):
         super().__init__(negated)
         self.vehicle_id = vehicle_id
+        self.needs_lanelets = True
 
     def to_proposition(self) -> str:
         return Prop.in_conflict_with(self.vehicle_id)
 
-    def restrict_reach_node_mandatory(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel) -> List[
-        ReachNode]:
+    def _restrict_reach_node_mandatory(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel,
+                                       node_lanelet_ids: Optional[Set[int]] = None) -> List[ReachNode]:
         if vehicle_lanelet_ids := self._get_vehicle_lanelet_ids(semantic_model):
             intersecting_lanelet_ids = {
                 intersecting
@@ -34,8 +35,8 @@ class InConflictAreaOfVehiclePredicate(predicate.Predicate):
         else:
             raise RuntimeError(f"Vehicle {self.vehicle_id} not found")
 
-    def restrict_reach_node_forbidden(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel) -> List[
-        ReachNode]:
+    def _restrict_reach_node_forbidden(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel,
+                                       node_lanelet_ids: Optional[Set[int]] = None) -> List[ReachNode]:
         if vehicle_lanelet_ids := self._get_vehicle_lanelet_ids(semantic_model):
             intersecting_lanelet_ids = {
                 intersecting

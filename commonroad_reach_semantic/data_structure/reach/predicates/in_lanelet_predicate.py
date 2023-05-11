@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional, Set
 
 from commonroad_reach.data_structure.reach.reach_node import ReachNode
 
@@ -11,12 +11,13 @@ class InLaneletPredicate(predicate.Predicate):
     def __init__(self, lanelet_id: int, negated: bool):
         super().__init__(negated)
         self.lanelet_id = lanelet_id
+        self.needs_lanelets = True
 
     def to_proposition(self) -> str:
         return Prop.in_lanelet(self.lanelet_id)
 
-    def restrict_reach_node_mandatory(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel) -> List[
-        ReachNode]:
+    def _restrict_reach_node_mandatory(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel,
+                                       node_lanelet_ids: Optional[Set[int]] = None) -> List[ReachNode]:
         split_sets = []
         for region in semantic_model.region_model.list_regions:
             if self.lanelet_id in region.set_ids_lanelets:
@@ -24,8 +25,8 @@ class InLaneletPredicate(predicate.Predicate):
                     split_sets.append(reach_node_new)
         return split_sets
 
-    def restrict_reach_node_forbidden(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel) -> List[
-        ReachNode]:
+    def _restrict_reach_node_forbidden(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel,
+                                       node_lanelet_ids: Optional[Set[int]] = None) -> List[ReachNode]:
         split_sets = []
         for region in semantic_model.region_model.list_regions:
             if self.lanelet_id not in region.set_ids_lanelets:

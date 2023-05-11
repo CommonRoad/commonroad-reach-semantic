@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Set
 
 from commonroad_reach.data_structure.reach.reach_node import ReachNode
 
@@ -16,8 +16,8 @@ class BesideObstaclePredicate(predicate.Predicate):
     def to_proposition(self) -> str:
         return Prop.beside(self.obstacle_id)
 
-    def restrict_reach_node_mandatory(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel) -> List[
-        ReachNode]:
+    def _restrict_reach_node_mandatory(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel,
+                                       _node_lanelet_ids: Optional[Set[int]] = None) -> List[ReachNode]:
         if front_rear := self._get_vehicle_front_rear(step, semantic_model):
             vehicle_front, vehicle_rear = front_rear
             reach_node.intersect_in_position_domain(p_lon_min=vehicle_rear, p_lon_max=vehicle_front)
@@ -25,8 +25,8 @@ class BesideObstaclePredicate(predicate.Predicate):
         else:
             raise RuntimeError(f"Vehicle {self.obstacle_id} not found")
 
-    def restrict_reach_node_forbidden(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel) -> List[
-        ReachNode]:
+    def _restrict_reach_node_forbidden(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel,
+                                       _node_lanelet_ids: Optional[Set[int]] = None) -> List[ReachNode]:
         if front_rear := self._get_vehicle_front_rear(step, semantic_model):
             vehicle_front, vehicle_rear = front_rear
             behind = reach_node.clone()

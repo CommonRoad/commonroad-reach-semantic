@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Optional
+from typing import List, Optional, Set
 
 from commonroad_reach.data_structure.reach.reach_node import ReachNode
 
@@ -8,33 +8,52 @@ from commonroad_reach_semantic.data_structure.environment_model.semantic_model i
 
 
 class Predicate(ABC):
+    """Abstract class for predicates.
+
+    :ivar negated: True iff the predicate is negated
+    :ivar needs_lanelets: True iff the predicate needs information about lanelets to restrict a reach node
+    """
+
     negated: bool
+    needs_lanelets: bool
 
     def __init__(self, negated: bool):
         self.negated = negated
+        self.needs_lanelets = False
 
     @abstractmethod
     def to_proposition(self) -> str:
+        """Returns the proposition corresponding to the predicate."""
         pass
 
-    def restrict_reach_node(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel) -> \
-            List[ReachNode]:
+    def restrict_reach_node(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel,
+                            node_lanelet_ids: Optional[Set[int]] = None) -> List[ReachNode]:
+        """Restrict the reach node according to the predicate.
+
+        :param step: The step for which the reach node was calculated
+        :param reach_node: The reach node to be restricted (might be modified)
+        :param semantic_model: The environment model against which the predicate is evaluated
+        :param node_lanelet_ids: The set of lanelet ids that the reach node is in (only required if needs_lanelets is True)
+        :returns: A list of restricted reach nodes (this is a list, because restricting might require splitting the reach node)
+        """
         if self.negated:
-            restricted_nodes = self.restrict_reach_node_forbidden(step, reach_node, semantic_model)
+            restricted_nodes = self._restrict_reach_node_forbidden(step, reach_node, semantic_model, node_lanelet_ids)
         else:
-            restricted_nodes = self.restrict_reach_node_mandatory(step, reach_node, semantic_model)
+            restricted_nodes = self._restrict_reach_node_mandatory(step, reach_node, semantic_model, node_lanelet_ids)
         return [
             node for node in restricted_nodes if not node.is_empty
         ]
 
     @abstractmethod
-    def restrict_reach_node_mandatory(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel) -> List[
-        ReachNode]:
+    def _restrict_reach_node_mandatory(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel,
+                                       node_lanelet_ids: Optional[Set[int]] = None) -> List[ReachNode]:
+        """Restrict the reach node according to the predicate, assuming that the predicate is not negated."""
         pass
 
     @abstractmethod
-    def restrict_reach_node_forbidden(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel) -> List[
-        ReachNode]:
+    def _restrict_reach_node_forbidden(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel,
+                                       node_lanelet_ids: Optional[Set[int]] = None) -> List[ReachNode]:
+        """Restrict the reach node according to the predicate, assuming that the predicate is negated."""
         pass
 
     @staticmethod
