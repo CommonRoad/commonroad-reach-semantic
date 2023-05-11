@@ -16,20 +16,12 @@ class InLaneletPredicate(predicate.Predicate):
     def to_proposition(self) -> str:
         return Prop.in_lanelet(self.lanelet_id)
 
+    @predicate.needs_lanelets_set
     def _restrict_reach_node_mandatory(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel,
-                                       node_lanelet_ids: Optional[Set[int]] = None) -> List[ReachNode]:
-        split_sets = []
-        for region in semantic_model.region_model.list_regions:
-            if self.lanelet_id in region.set_ids_lanelets:
-                if reach_node_new := self._cut_to_region(reach_node, region):
-                    split_sets.append(reach_node_new)
-        return split_sets
+                                       node_lanelet_ids: Set[int]) -> List[ReachNode]:
+        return [reach_node] if self.lanelet_id in node_lanelet_ids else []
 
+    @predicate.needs_lanelets_set
     def _restrict_reach_node_forbidden(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel,
-                                       node_lanelet_ids: Optional[Set[int]] = None) -> List[ReachNode]:
-        split_sets = []
-        for region in semantic_model.region_model.list_regions:
-            if self.lanelet_id not in region.set_ids_lanelets:
-                if reach_node_new := self._cut_to_region(reach_node, region):
-                    split_sets.append(reach_node_new)
-        return split_sets
+                                       node_lanelet_ids: Set[int]) -> List[ReachNode]:
+        return [reach_node] if self.lanelet_id not in node_lanelet_ids else []

@@ -17,8 +17,9 @@ class InConflictAreaOfVehiclePredicate(predicate.Predicate):
     def to_proposition(self) -> str:
         return Prop.in_conflict_with(self.vehicle_id)
 
+    @predicate.needs_lanelets_set
     def _restrict_reach_node_mandatory(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel,
-                                       node_lanelet_ids: Optional[Set[int]] = None) -> List[ReachNode]:
+                                       node_lanelet_ids: Set[int]) -> List[ReachNode]:
         if vehicle_lanelet_ids := self._get_vehicle_lanelet_ids(semantic_model):
             intersecting_lanelet_ids = {
                 intersecting
@@ -26,17 +27,13 @@ class InConflictAreaOfVehiclePredicate(predicate.Predicate):
                 for intersecting in
                 semantic_model.lanelet_model.dict_id_lanelet_to_set_ids_lanelets_intersecting[lanelet_id]
             }
-            split_sets = []
-            for region in semantic_model.region_model.list_regions:
-                if region.set_ids_lanelets.intersection(intersecting_lanelet_ids):
-                    if reach_node_new := self._cut_to_region(reach_node, region):
-                        split_sets.append(reach_node_new)
-            return split_sets
+            return [reach_node] if node_lanelet_ids.intersection(intersecting_lanelet_ids) else []
         else:
             raise RuntimeError(f"Vehicle {self.vehicle_id} not found")
 
+    @predicate.needs_lanelets_set
     def _restrict_reach_node_forbidden(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel,
-                                       node_lanelet_ids: Optional[Set[int]] = None) -> List[ReachNode]:
+                                       node_lanelet_ids: Set[int]) -> List[ReachNode]:
         if vehicle_lanelet_ids := self._get_vehicle_lanelet_ids(semantic_model):
             intersecting_lanelet_ids = {
                 intersecting
@@ -44,12 +41,7 @@ class InConflictAreaOfVehiclePredicate(predicate.Predicate):
                 for intersecting in
                 semantic_model.lanelet_model.dict_id_lanelet_to_set_ids_lanelets_intersecting[lanelet_id]
             }
-            split_sets = []
-            for region in semantic_model.region_model.list_regions:
-                if region.set_ids_lanelets.isdisjoint(intersecting_lanelet_ids):
-                    if reach_node_new := self._cut_to_region(reach_node, region):
-                        split_sets.append(reach_node_new)
-            return split_sets
+            return [reach_node] if node_lanelet_ids.isdisjoint(intersecting_lanelet_ids) else []
         else:
             raise RuntimeError(f"Vehicle {self.vehicle_id} not found")
 

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Optional, Set
+from typing import List, Optional, Set, Callable
 
 from commonroad_reach.data_structure.reach.reach_node import ReachNode
 
@@ -75,3 +75,16 @@ class Predicate(ABC):
         reach_node_new = reach_node.clone()
         reach_node_new.intersect_in_position_domain(*bounds_polygon_intersection)
         return reach_node_new
+
+
+def needs_lanelets_set(func: Callable[[Predicate, int, ReachNode, SemanticModel, Set[int]], List[ReachNode]]) -> \
+        Callable[[Predicate, int, ReachNode, SemanticModel, Optional[Set[int]]], List[ReachNode]]:
+    """Decorator for predicates that need information about lanelets to restrict a reach node."""
+
+    def check_node_lanelet_ids(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel,
+                               node_lanelet_ids: Optional[Set[int]] = None) -> List[ReachNode]:
+        if node_lanelet_ids is None:
+            raise ValueError(f"{self.__class__.__name__} requires node_lanelet_ids to be set.")
+        return func(self, step, reach_node, semantic_model, node_lanelet_ids)
+
+    return check_node_lanelet_ids
