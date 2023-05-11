@@ -15,24 +15,24 @@ from commonroad_reach_semantic.data_structure.reach.predicates.vehicle_in_confli
     VehicleInConflictAreaPredicate
 
 
-def from_proposition(proposition: str):
+def from_proposition(proposition: str, negated: bool):
     if matched := re.fullmatch(r"InLanelet_(\d+)", proposition):
-        return InLaneletPredicate(int(matched.group(1)))
+        return InLaneletPredicate(int(matched.group(1)), negated)
     elif matched := re.fullmatch(r"Behind_V(\d+)", proposition):
-        return BehindObstaclePredicate(int(matched.group(1)))
+        return BehindObstaclePredicate(int(matched.group(1)), negated)
     elif matched := re.fullmatch(r"Beside_V(\d+)", proposition):
-        return BesideObstaclePredicate(int(matched.group(1)))
+        return BesideObstaclePredicate(int(matched.group(1)), negated)
     elif matched := re.fullmatch(r"InFrontOf_V(\d+)", proposition):
-        return InFrontOfObstaclePredicate(int(matched.group(1)))
+        return InFrontOfObstaclePredicate(int(matched.group(1)), negated)
     elif re.fullmatch(r"InStraightSuc", proposition):
-        return InStraightSuccessorPredicate()
+        return InStraightSuccessorPredicate(negated)
     elif re.fullmatch(r"InIntersection", proposition):
-        return InIntersectionPredicate()
+        return InIntersectionPredicate(negated)
     elif matched := re.fullmatch(r"CausesBrakingFor_V(\d+)", proposition):
-        return CausesBrakingPredicate(int(matched.group(1)))
+        return CausesBrakingPredicate(int(matched.group(1)), negated)
     elif matched := re.fullmatch(r"InConflictWith_V(\d+)", proposition):
-        return InConflictAreaOfVehiclePredicate(int(matched.group(1)))
+        return InConflictAreaOfVehiclePredicate(int(matched.group(1)), negated)
     elif matched := re.fullmatch(r"InConflictBy_V(\d+)", proposition):
-        return VehicleInConflictAreaPredicate(int(matched.group(1)))
+        return VehicleInConflictAreaPredicate(int(matched.group(1)), negated)
     else:
         raise ValueError(f"Unknown proposition: {proposition}")

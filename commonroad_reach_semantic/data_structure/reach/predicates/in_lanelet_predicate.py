@@ -8,7 +8,8 @@ from commonroad_reach_semantic.data_structure.rule.proposition import Propositio
 
 
 class InLaneletPredicate(predicate.Predicate):
-    def __init__(self, lanelet_id: int):
+    def __init__(self, lanelet_id: int, negated: bool):
+        super().__init__(negated)
         self.lanelet_id = lanelet_id
 
     def to_proposition(self) -> str:

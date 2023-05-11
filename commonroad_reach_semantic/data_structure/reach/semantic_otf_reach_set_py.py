@@ -224,8 +224,8 @@ class PySemanticOTFReachableSet(PySemanticReachableSet):
             List[ReachNode]:
         constrained_reachable_sets = [reachable_set.clone()]
         for proposition, negated in minterm:
-            pred = predicates.from_proposition(proposition)
+            pred = predicates.from_proposition(proposition, negated)
             constrained_reachable_sets = list(itertools.chain.from_iterable(
-                pred.restrict_reach_node(step, node, self.labeler.semantic_model, negated)
+                pred.restrict_reach_node(step, node, self.labeler.semantic_model)
                 for node in constrained_reachable_sets))
         return constrained_reachable_sets

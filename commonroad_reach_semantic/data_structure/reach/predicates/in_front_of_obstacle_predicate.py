@@ -9,7 +9,8 @@ from commonroad_reach_semantic.data_structure.rule.proposition import Propositio
 
 class InFrontOfObstaclePredicate(predicate.Predicate):
 
-    def __init__(self, obstacle_id: int):
+    def __init__(self, obstacle_id: int, negated: bool):
+        super().__init__(negated)
         self.obstacle_id = obstacle_id
 
     def to_proposition(self) -> str:

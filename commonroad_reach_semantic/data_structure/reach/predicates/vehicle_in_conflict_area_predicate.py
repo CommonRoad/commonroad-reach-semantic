@@ -11,7 +11,8 @@ from commonroad_reach_semantic.data_structure.rule.proposition import Propositio
 
 class VehicleInConflictAreaPredicate(predicate.Predicate):
 
-    def __init__(self, vehicle_id: int):
+    def __init__(self, vehicle_id: int, negated: bool):
+        super().__init__(negated)
         self.vehicle_id = vehicle_id
 
     def to_proposition(self) -> str:

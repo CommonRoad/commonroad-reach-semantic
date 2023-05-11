@@ -8,14 +8,18 @@ from commonroad_reach_semantic.data_structure.environment_model.semantic_model i
 
 
 class Predicate(ABC):
+    negated: bool
+
+    def __init__(self, negated: bool):
+        self.negated = negated
 
     @abstractmethod
     def to_proposition(self) -> str:
         pass
 
-    def restrict_reach_node(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel, negated: bool) -> \
+    def restrict_reach_node(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel) -> \
             List[ReachNode]:
-        if negated:
+        if self.negated:
             restricted_nodes = self.restrict_reach_node_forbidden(step, reach_node, semantic_model)
         else:
             restricted_nodes = self.restrict_reach_node_mandatory(step, reach_node, semantic_model)
