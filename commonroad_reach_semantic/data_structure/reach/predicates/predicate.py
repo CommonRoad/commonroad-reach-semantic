@@ -3,7 +3,6 @@ from typing import List, Optional, Set, Callable
 
 from commonroad_reach.data_structure.reach.reach_node import ReachNode
 
-from commonroad_reach_semantic.data_structure.environment_model.region import Region
 from commonroad_reach_semantic.data_structure.environment_model.semantic_model import SemanticModel
 
 
@@ -55,26 +54,6 @@ class Predicate(ABC):
                                        node_lanelet_ids: Optional[Set[int]] = None) -> List[ReachNode]:
         """Restrict the reach node according to the predicate, assuming that the predicate is negated."""
         pass
-
-    @staticmethod
-    def _cut_to_region(reach_node: ReachNode, region: Region) -> Optional[ReachNode]:
-        if not region.intersects(reach_node.position_rectangle.bounds, coordinate_system="CVLN"):
-            return None
-
-        # there is a possibility of intersection
-        polygon_intersection = region.polygon_cvln.intersection(reach_node.position_rectangle)
-
-        # empty intersection
-        if not polygon_intersection or polygon_intersection.is_empty:
-            return None
-
-        # over-approximate by restoring the intersected polygon to axis-aligned rectangle
-        bounds_polygon_intersection = polygon_intersection.bounds
-
-        # clone the reach node and cut down to region in the position domain
-        reach_node_new = reach_node.clone()
-        reach_node_new.intersect_in_position_domain(*bounds_polygon_intersection)
-        return reach_node_new
 
 
 def needs_lanelets_set(func: Callable[[Predicate, int, ReachNode, SemanticModel, Set[int]], List[ReachNode]]) -> \
