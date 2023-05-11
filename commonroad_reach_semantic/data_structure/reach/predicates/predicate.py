@@ -65,7 +65,7 @@ class Predicate(ABC):
         polygon_intersection = region.polygon_cvln.intersection(reach_node.position_rectangle)
 
         # empty intersection
-        if polygon_intersection.is_empty:
+        if not polygon_intersection or polygon_intersection.is_empty:
             return None
 
         # over-approximate by restoring the intersected polygon to axis-aligned rectangle

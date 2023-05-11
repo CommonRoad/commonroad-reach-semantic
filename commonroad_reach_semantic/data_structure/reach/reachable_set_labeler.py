@@ -200,7 +200,7 @@ class ReachableSetLabeler:
             polygon_intersection = region.polygon_cvln.intersection(reachable_set.position_rectangle)
 
             # empty intersection
-            if polygon_intersection.is_empty:
+            if not polygon_intersection or polygon_intersection.is_empty:
                 continue
 
             # over-approximate by restoring the intersected polygon to axis-aligned rectangle
