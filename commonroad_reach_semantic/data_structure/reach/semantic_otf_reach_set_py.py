@@ -222,10 +222,28 @@ class PySemanticOTFReachableSet(PySemanticReachableSet):
 
     def _split_reachable_set_to_minterm(self, step: int, reachable_set: ReachNode, minterm: List[Tuple[str, bool]]) -> \
             List[ReachNode]:
-        constrained_reachable_sets = [reachable_set.clone()]
+        predicates_need_lanelets = []
+        predicates_dont_need_lanelets = []
         for proposition, negated in minterm:
             pred = predicates.from_proposition(proposition, negated)
-            constrained_reachable_sets = list(itertools.chain.from_iterable(
+            if pred.needs_lanelets:
+                predicates_need_lanelets.append(pred)
+            else:
+                predicates_dont_need_lanelets.append(pred)
+
+        # restrict with predicates that don't need lanelets
+        restricted_reachable_sets = [reachable_set.clone()]
+        for pred in predicates_dont_need_lanelets:
+            restricted_reachable_sets = list(itertools.chain.from_iterable(
                 pred.restrict_reach_node(step, node, self.labeler.semantic_model)
-                for node in constrained_reachable_sets))
-        return constrained_reachable_sets
+                for node in restricted_reachable_sets))
+
+        # TODO: split to regions
+
+        # restrict with predicates that need lanelets
+        for pred in predicates_need_lanelets:
+            restricted_reachable_sets = list(itertools.chain.from_iterable(
+                pred.restrict_reach_node(step, node, self.labeler.semantic_model, node_lanelet_ids=set())
+                for node in restricted_reachable_sets))
+
+        return restricted_reachable_sets
