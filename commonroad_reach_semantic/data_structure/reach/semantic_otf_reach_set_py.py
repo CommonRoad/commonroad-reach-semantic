@@ -7,11 +7,11 @@ from commonroad_reach.data_structure.reach.reach_node import ReachNode
 from commonroad_reach.data_structure.reach.reach_polygon import ReachPolygon
 from commonroad_reach.utility import reach_operation
 
+import commonroad_reach_semantic.data_structure.reach.predicates as predicates
 import commonroad_reach_semantic.utility.reach_operation as semantic_reach_operation
 from commonroad_reach_semantic.data_structure.config.semantic_configuration import SemanticConfiguration
 from commonroad_reach_semantic.data_structure.environment_model.semantic_model import SemanticModel
 from commonroad_reach_semantic.data_structure.model_checking.finite_automaton import FiniteAutomaton
-import commonroad_reach_semantic.data_structure.reach.predicates as predicates
 from commonroad_reach_semantic.data_structure.reach.semantic_reach_set_py import PySemanticReachableSet
 from commonroad_reach_semantic.data_structure.rule.traffic_rule_interface import TrafficRuleInterface
 
@@ -238,12 +238,17 @@ class PySemanticOTFReachableSet(PySemanticReachableSet):
                 pred.restrict_reach_node(step, node, self.labeler.semantic_model)
                 for node in restricted_reachable_sets))
 
-        # TODO: split to regions
+        # split to regions
+        restricted_reachable_sets = list(itertools.chain.from_iterable(
+                self.labeler.split_wrt_regions(step, restricted_reachable_set)
+                for restricted_reachable_set in restricted_reachable_sets
+        ))
 
         # restrict with predicates that need lanelets
         for pred in predicates_need_lanelets:
             restricted_reachable_sets = list(itertools.chain.from_iterable(
-                pred.restrict_reach_node(step, node, self.labeler.semantic_model, node_lanelet_ids=set())
+                pred.restrict_reach_node(step, node, self.labeler.semantic_model,
+                                         node_lanelet_ids=self.labeler.reachable_set_to_lanelet_ids[node])
                 for node in restricted_reachable_sets))
 
         return restricted_reachable_sets
