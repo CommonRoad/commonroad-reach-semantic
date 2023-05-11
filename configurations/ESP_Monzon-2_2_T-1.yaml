@@ -1,0 +1,39 @@
+planning:
+  dt: 0.2
+  steps_computation: 15
+  coordinate_system: "CVLN"
+
+reachable_set:
+  mode_computation: 1
+  size_grid: 0.25
+  size_grid_2nd: 0.1
+  radius_terminal_split: 0.7
+
+vehicle:
+  ego:
+    # velocity in m/s
+    v_lon_min: 4.0
+    v_lon_max: 30.0
+    v_lat_min: -4.0
+    v_lat_max: 4.0
+    # absolute max velocity
+    v_max: 30.0
+
+debug:
+  # visualization settings
+  # draw the reference the path
+  draw_ref_path: True
+  # draw the planning problem
+  draw_planning_problem: True
+  # visualize dynamic obstacles with icons
+  draw_icons: True
+  # visualize lanelet IDs
+  draw_lanelet_labels: True
+
+traffic_rules:
+  activated_rules:
+    - NoBackwardDrivingRule
+#    - NoOppositeDrivingRule
+    - LineMarkingRule
+    - TrafficLightRule
+    - LTL ! F (InLanelet_14942 | InLanelet_17360)
