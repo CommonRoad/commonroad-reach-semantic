@@ -14,6 +14,7 @@ namespace semantic_reach{
     private:
         /// Python handle for semantic model
         SemanticModelPtr semantic_model;
+        SemanticConfigurationPtr config;
 
         /// Returns the propositions of the given rectangle.
         ///
@@ -47,7 +48,7 @@ namespace semantic_reach{
     public:
         std::map<SemanticReachNodePtr, PropositionHolder> reachable_set_to_propositions;
         std::map<SemanticReachNodePtr, std::set<int>> reachable_set_to_lanelet_ids;
-        ReachableSetLabeler(SemanticModelPtr semantic_model_py_obj);
+        ReachableSetLabeler(SemanticModelPtr semantic_model_py_obj, SemanticConfigurationPtr config);
 
         /// Assigns proposition labels to initial reachable sets and drivable areas.
         void label_initial_state(const std::vector<SemanticReachNodePtr>& reachable_sets, int step_start);
@@ -63,7 +64,7 @@ namespace semantic_reach{
         std::vector<SemanticReachNodePtr> split_wrt_regions(int step, const std::vector<SemanticReachNodePtr> &reachable_sets);
 
         /// Splits the reachable set w.r.t position intervals.
-        std::vector<SemanticReachNodePtr> split_wrt_position_intervals(int step, std::vector<SemanticReachNodePtr> reachable_sets);
+        std::vector<SemanticReachNodePtr> split_wrt_position_intervals(int step, const std::vector<SemanticReachNodePtr>& reachable_sets);
 
         /// Returns a list of propagated sets that do not collide with vehicles.
         std::vector<SemanticReachNodePtr> discard_colliding_nodes(const std::vector<SemanticReachNodePtr>& reachable_sets);

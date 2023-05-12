@@ -28,3 +28,14 @@ SemanticModel::SemanticModel(py::handle const &obj_semantic_model_py) {
         map_step_to_traffic_status_propositions[step.cast<int>()] = dict_step_to_traffic_status_propositions[step].cast<set<string>>();
     }
 }
+
+std::set<int>
+SemanticModel::get_braking_vehicle_ids(int step, const semantic_reach::SemanticReachNodePtr &reachable_set) {
+    std::set<int> braking_vehicle_ids{};
+    for (auto const &vehicle: obj_semantic_model_py.attr("vehicle_model").attr("list_vehicles")) {
+        if (vehicle.attr("braking_caused_by_node_at_step")(step, reachable_set).cast<bool>()) {
+            braking_vehicle_ids.insert(vehicle.attr("id_vehicle").cast<int>());
+        }
+    }
+    return braking_vehicle_ids;
+}

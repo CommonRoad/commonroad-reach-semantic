@@ -5,9 +5,11 @@
 
 using namespace semantic_reach;
 
-ReachableSetLabeler::ReachableSetLabeler(SemanticModelPtr semantic_model) : semantic_model(std::move(semantic_model)),
-                                                                            reachable_set_to_propositions(),
-                                                                            reachable_set_to_lanelet_ids() {}
+ReachableSetLabeler::ReachableSetLabeler(SemanticModelPtr semantic_model, SemanticConfigurationPtr config)
+        : semantic_model(std::move(semantic_model)),
+          config(std::move(config)),
+          reachable_set_to_propositions(),
+          reachable_set_to_lanelet_ids() {}
 
 void ReachableSetLabeler::label_initial_state(const std::vector<SemanticReachNodePtr> &reachable_sets, int step_start) {
     for (const auto &reachable_set: reachable_sets) {
@@ -86,7 +88,17 @@ ReachableSetLabeler::_label_in_conflict_area_propositions(int step, std::vector<
 
 std::vector<SemanticReachNodePtr>
 ReachableSetLabeler::_label_causes_braking_propositions(int step, std::vector<SemanticReachNodePtr> reachable_sets) {
-    // TODO: implement
+    if (!config->semantic_model().is_intersection) {
+        return reachable_sets;
+    }
+
+    for (const auto &reachable_set: reachable_sets) {
+        auto braking_caused_for_vehicles_with_id = semantic_model->get_braking_vehicle_ids(step, reachable_set);
+        for (const auto &vehicle_id: braking_caused_for_vehicles_with_id) {
+            reachable_set_to_propositions[reachable_set].add_proposition(Proposition::causes_braking_for(vehicle_id),
+                                                                         PropositionGroup::TRAFFIC_STATUS);
+        }
+    }
     return reachable_sets;
 }
 
@@ -151,7 +163,7 @@ ReachableSetLabeler::_update_propositions_with_region(semantic_reach::SemanticRe
 }
 
 std::vector<SemanticReachNodePtr>
-ReachableSetLabeler::split_wrt_position_intervals(int step, std::vector<SemanticReachNodePtr> reachable_sets) {
+ReachableSetLabeler::split_wrt_position_intervals(int step, const std::vector<SemanticReachNodePtr> &reachable_sets) {
     auto vec_intervals_lon = semantic_model->map_step_to_position_intervals[step]["lon"];
     auto vec_intervals_lat = semantic_model->map_step_to_position_intervals[step]["lat"];
 
@@ -226,7 +238,7 @@ ReachableSetLabeler::_obtain_lanelet_transition_propositions(
 }
 
 std::vector<SemanticReachNodePtr>
-ReachableSetLabeler::discard_colliding_nodes(const std::vector<SemanticReachNodePtr>& reachable_sets) {
+ReachableSetLabeler::discard_colliding_nodes(const std::vector<SemanticReachNodePtr> &reachable_sets) {
     std::vector<SemanticReachNodePtr> vec_nodes_keep{};
 
     for (const auto &reachable_set: reachable_sets) {

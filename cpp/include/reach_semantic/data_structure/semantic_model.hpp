@@ -22,6 +22,8 @@ public:
     std::map<int, std::set<std::string>> map_step_to_traffic_status_propositions;
 
     explicit SemanticModel(py::handle const& obj_semantic_model_py);
+
+    std::set<int> get_braking_vehicle_ids(int step, const SemanticReachNodePtr& reachable_set);
 };
 
 using SemanticModelPtr = shared_ptr<SemanticModel>;

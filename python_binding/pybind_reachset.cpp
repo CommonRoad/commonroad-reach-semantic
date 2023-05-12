@@ -38,7 +38,7 @@ void export_reachable_set_interface(py::module &m) {
 
 void export_reachable_set_labeler(py::module &m) {
     py::class_<ReachableSetLabeler, shared_ptr<ReachableSetLabeler>>(m, "ReachableSetLabeler")
-            .def(py::init<SemanticModelPtr>(), py::arg("semantic_model"))
+            .def(py::init<SemanticModelPtr, SemanticConfigurationPtr>(), py::arg("semantic_model"), py::arg("config"))
             .def_readonly("reachable_set_to_propositions", &ReachableSetLabeler::reachable_set_to_propositions)
             .def_readonly("reachable_set_to_lanelet_ids", &ReachableSetLabeler::reachable_set_to_lanelet_ids);
 }

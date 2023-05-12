@@ -44,5 +44,9 @@ public:
     static inline std::string aligned_with(int const& obstacle_id) {
         return aligned_with() + std::to_string(obstacle_id);
     }
+
+    static inline std::string causes_braking_for(int const& vehicle_id) {
+        return "CausesBrakingFor_V" + std::to_string(vehicle_id);
+    }
 };
 }
