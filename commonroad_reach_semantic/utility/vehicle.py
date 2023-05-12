@@ -5,7 +5,9 @@ from commonroad.scenario.lanelet import Lanelet, LaneletType, LaneletNetwork
 from commonroad.scenario.obstacle import StaticObstacle, DynamicObstacle
 
 from commonroad_reach.data_structure.configuration import Configuration
-from commonroad_reach_semantic.data_structure.road_network import RoadNetwork, Lane
+
+from commonroad_reach_semantic.data_structure.config.outgoing_direction import OutgoingDirection
+from commonroad_reach_semantic.data_structure.environment_model.road_network import RoadNetwork, Lane
 
 
 def compute_acceleration(vel_pre: float, vel_cur: float, dt: float):
@@ -192,13 +194,13 @@ def extract_incoming_from_lane(lane: Lane, lanelet_network: LaneletNetwork):
 
     if incoming_element:
         if id_lanelet_successor in incoming_element.successors_left:
-            direction_outgoing = "left"
+            direction_outgoing = OutgoingDirection.LEFT
 
         elif id_lanelet_successor in incoming_element.successors_straight:
-            direction_outgoing = "straight"
+            direction_outgoing = OutgoingDirection.STRAIGHT
 
         elif id_lanelet_successor in incoming_element.successors_right:
-            direction_outgoing = "right"
+            direction_outgoing = OutgoingDirection.RIGHT
 
     return incoming_element, direction_outgoing
 

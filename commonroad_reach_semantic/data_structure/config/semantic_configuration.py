@@ -14,6 +14,7 @@ from commonroad_reach import pycrreach
 
 import commonroad_reach_semantic.utility.vehicle as util_vehicle
 from commonroad_reach_semantic import pycrreachs
+from commonroad_reach_semantic.data_structure.config.outgoing_direction import OutgoingDirection
 
 
 class SemanticConfiguration(Configuration):
@@ -192,13 +193,13 @@ class SemanticModelConfiguration(ConfigurationBase):
         # if there is an incoming element, identify the outgoing direction
         if self.incoming_element_route:
             if id_lanelet_successor in self.incoming_element_route.successors_left:
-                self.direction_outgoing = "left"
+                self.direction_outgoing = OutgoingDirection.LEFT
 
             elif id_lanelet_successor in self.incoming_element_route.successors_straight:
-                self.direction_outgoing = "straight"
+                self.direction_outgoing = OutgoingDirection.STRAIGHT
 
             elif id_lanelet_successor in self.incoming_element_route.successors_right:
-                self.direction_outgoing = "right"
+                self.direction_outgoing = OutgoingDirection.RIGHT
 
             # oncoming lanelet ids
             self.set_ids_lanelets_oncoming = \

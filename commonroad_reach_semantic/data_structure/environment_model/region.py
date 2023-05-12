@@ -9,12 +9,13 @@ from commonroad.scenario.traffic_sign import TrafficSignIDZamunda
 from commonroad_dc.pycrccosy import CurvilinearCoordinateSystem
 from commonroad_reach.data_structure.reach.reach_polygon import ReachPolygon
 
-from commonroad_reach_semantic.data_structure.semantic_configuration import SemanticConfiguration
-from commonroad_reach_semantic.data_structure.proposition_holder import MultiStepPropositionHolder
-from commonroad_reach_semantic.data_structure.road_network import RoadNetwork
-from commonroad_reach_semantic.data_structure.vehicle import Vehicle
-from commonroad_reach_semantic.data_structure.proposition import Proposition as P
-from commonroad_reach_semantic.data_structure.proposition import PropositionGroup as PG
+from commonroad_reach_semantic.data_structure.config.outgoing_direction import OutgoingDirection
+from commonroad_reach_semantic.data_structure.config.semantic_configuration import SemanticConfiguration
+from commonroad_reach_semantic.data_structure.rule.proposition_holder import MultiStepPropositionHolder
+from commonroad_reach_semantic.data_structure.environment_model.road_network import RoadNetwork
+from commonroad_reach_semantic.data_structure.environment_model.vehicle import Vehicle
+from commonroad_reach_semantic.data_structure.rule.proposition import Proposition as P
+from commonroad_reach_semantic.data_structure.rule.proposition import PropositionGroup as PG
 import commonroad_reach_semantic.utility.geometry as util_geometry
 
 
@@ -270,6 +271,15 @@ class Region:
     def bounding_box_cvln(self):
         return self.polygon_cvln.bounds
 
+    def outgoing_lanelet_ids(self, direction: OutgoingDirection) -> Set[int]:
+        match direction:
+            case OutgoingDirection.LEFT:
+                return self.set_ids_lanelets_outgoing_left
+            case OutgoingDirection.STRAIGHT:
+                return self.set_ids_lanelets_outgoing_straight
+            case OutgoingDirection.RIGHT:
+                return self.set_ids_lanelets_outgoing_right
+
     def assign_polygon(self, polygon: ReachPolygon, coordinate: str):
         """Assigns the polygon of the region"""
         if coordinate == "CART":
@@ -467,7 +477,6 @@ class Region:
         Determines traffic priorities based on the given dictionary.
         """
         priority_default = 3  # default priority from traffic sign 102 (right before left)
-        list_directions = ["left", "straight", "right"]
         # obtain priorities for lanelets in the region
         for id_lanelet in self.set_ids_lanelets:
             index_min = np.inf
@@ -489,12 +498,12 @@ class Region:
                         element_index_min = element
 
             try:
-                for direction in list_directions:
+                for direction in OutgoingDirection:
                     self.dict_id_lanelet_to_priorities[id_lanelet][direction] = \
                         dict_traffic_sign_to_priorities[element_index_min.traffic_sign_element_id][direction]
 
             except (KeyError, AttributeError):
-                for direction in list_directions:
+                for direction in OutgoingDirection:
                     self.dict_id_lanelet_to_priorities[id_lanelet][direction] = priority_default
 
         # obtain priorities for the region
@@ -513,12 +522,12 @@ class Region:
                     element_index_min = element
 
         try:
-            for direction in list_directions:
+            for direction in OutgoingDirection:
                 self.dict_direction_to_priority[direction] = \
                     dict_traffic_sign_to_priorities[element_index_min.traffic_sign_element_id][direction]
 
         except (KeyError, AttributeError):
-            for direction in list_directions:
+            for direction in OutgoingDirection:
                 self.dict_direction_to_priority[direction] = priority_default
 
     def examine_priorities_against_vehicles(self, list_vehicles: List[Vehicle]):
@@ -567,20 +576,19 @@ class Region:
         return dispatcher_region, dispatcher_vehicle, dispatcher_same
 
     def _examine_region_priority_over_vehicles(self, list_vehicles: List[Vehicle],
-                                               dict_priority_evaluation: Dict[int, Dict[Tuple[str, str], List]],
+                                               dict_priority_evaluation: Dict[int, Dict[Tuple[OutgoingDirection, OutgoingDirection], List]],
                                                dispatcher: Dict):
         """Examines the priorities of the region against the given list of vehicles.
 
         dict_priority_evaluation maps time step to tuple of directions to list of vehicle ids.
         """
-        list_directions = ["left", "straight", "right"]
         for vehicle in list_vehicles:
             for step in self.proposition_holder.time_variant_propositions():
                 if not vehicle.lanelet_ids_at_step(step):
                     continue
 
-                for direction_region in list_directions:
-                    for direction_vehicle in list_directions:
+                for direction_region in OutgoingDirection:
+                    for direction_vehicle in OutgoingDirection:
                         tuple_directions = (direction_region, direction_vehicle)
                         if tuple_directions not in dict_priority_evaluation[step]:
                             dict_priority_evaluation[step][tuple_directions] = []
@@ -590,7 +598,7 @@ class Region:
                         if not region_has_higher_priority:
                             dict_priority_evaluation[step][tuple_directions].append(vehicle.id_vehicle)
 
-    def _examine_region_priority_over_vehicle(self, vehicle: Vehicle, step: int, tuple_directions: Tuple[str, str],
+    def _examine_region_priority_over_vehicle(self, vehicle: Vehicle, step: int, tuple_directions: Tuple[OutgoingDirection, OutgoingDirection],
                                               dict_direction_to_predicate: Dict[str, Callable]) -> bool:
         """Returns true if the region has a higher priority in the specified direction over the vehicle."""
         direction_region = tuple_directions[0]
@@ -612,20 +620,19 @@ class Region:
         return False
 
     def _examine_vehicles_priority_over_region(self, list_vehicles: List[Vehicle],
-                                               dict_priority_evaluation: Dict[int, Dict[Tuple[str, str], List]],
+                                               dict_priority_evaluation: Dict[int, Dict[Tuple[OutgoingDirection, OutgoingDirection], List]],
                                                dispatcher: Dict):
         """Examines the priorities of the given list of vehicles against the region.
 
         dict_priority_evaluation maps time step to tuple of directions to list of vehicle ids.
         """
-        list_directions = ["left", "straight", "right"]
         for vehicle in list_vehicles:
             for step in self.proposition_holder.time_variant_propositions():
                 if not vehicle.lanelet_ids_at_step(step):
                     continue
 
-                for direction_region in list_directions:
-                    for direction_vehicle in list_directions:
+                for direction_region in OutgoingDirection:
+                    for direction_vehicle in OutgoingDirection:
                         tuple_directions = (direction_region, direction_vehicle)
 
                         vehicle_has_higher_priority = \
@@ -633,7 +640,7 @@ class Region:
                         if vehicle_has_higher_priority:
                             dict_priority_evaluation[step][tuple_directions].remove(vehicle.id_vehicle)
 
-    def examine_vehicle_priority_over_region(self, vehicle: Vehicle, step: int, tuple_directions: Tuple[str, str],
+    def examine_vehicle_priority_over_region(self, vehicle: Vehicle, step: int, tuple_directions: Tuple[OutgoingDirection, OutgoingDirection],
                                              dict_direction_to_predicate: Dict[str, Callable]):
         """Returns true if the vehicle has a higher priority in the specified direction over the region."""
         direction_region = tuple_directions[0]
@@ -654,7 +661,7 @@ class Region:
 
         return False
 
-    def _add_same_priority_propositions(self, dict_priority_evaluation: Dict[int, Dict[Tuple[str, str], List]],
+    def _add_same_priority_propositions(self, dict_priority_evaluation: Dict[int, Dict[Tuple[OutgoingDirection, OutgoingDirection], List]],
                                         dispatcher: Dict):
         """Adds propositions indicating that the region has the same priority as the vehicles.
 

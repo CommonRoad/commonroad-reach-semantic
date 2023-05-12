@@ -10,10 +10,10 @@ import numpy as np
 from commonroad_reach.data_structure.reach.reach_interface import ReachableSetInterface
 
 import commonroad_reach_semantic.utility.spot as util_spot
-from commonroad_reach_semantic.data_structure.automaton_graph import AutomatonNode
-from commonroad_reach_semantic.data_structure.kripke import KripkeNode
-from commonroad_reach_semantic.data_structure.semantic_configuration import SemanticConfiguration
-from commonroad_reach_semantic.data_structure.spot_interface import SpotInterface
+from commonroad_reach_semantic.data_structure.model_checking.automaton_graph import AutomatonNode
+from commonroad_reach_semantic.data_structure.model_checking.kripke import KripkeNode
+from commonroad_reach_semantic.data_structure.config.semantic_configuration import SemanticConfiguration
+from commonroad_reach_semantic.data_structure.model_checking.spot_interface import SpotInterface
 
 logger = logging.getLogger(__name__)
 
@@ -416,6 +416,7 @@ class DrivingCorridorExtractor:
         corridor. These unreachable reach nodes are removed.
         """
         # deep copy is required to not affect other corridors since they might reference the same auto/kripke nodes.
+        # TODO: this is not a proper deep copy!
         set_corridors_pruned = {corridor.clone() for corridor in set_corridors}
         set_corridors_keep = set()
         set_nodes_auto_corridors_keep = set()

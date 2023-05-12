@@ -2,8 +2,8 @@ import enum
 from collections import defaultdict
 from typing import Union, Dict, List, Set, Optional
 
+import commonroad_reach.utility.coordinate_system as util_cosy
 import numpy as np
-from commonroad_reach_semantic import pycrreachs
 from commonroad.geometry.shape import Shape, Rectangle
 from commonroad.scenario.intersection import IntersectionIncomingElement
 from commonroad.scenario.lanelet import LaneletNetwork
@@ -11,13 +11,14 @@ from commonroad.scenario.obstacle import ObstacleType, SignalState, StaticObstac
 from commonroad.scenario.traffic_sign import TrafficSign, TrafficLight
 from commonroad.scenario.trajectory import State
 from commonroad_dc.pycrccosy import CurvilinearCoordinateSystem
+from commonroad_reach.data_structure.reach.reach_node import ReachNode
 from commonroad_route_planner.route import Route
 
-from commonroad_reach_semantic.data_structure.semantic_configuration import SemanticConfiguration
-from commonroad_reach_semantic.data_structure.reach.semantic_reach_node import SemanticReachNode
-from commonroad_reach_semantic.data_structure.road_network import Lane, RoadNetwork
-import commonroad_reach.utility.coordinate_system as util_cosy
 import commonroad_reach_semantic.utility.vehicle as util_vehicle
+from commonroad_reach_semantic import pycrreachs
+from commonroad_reach_semantic.data_structure.config.outgoing_direction import OutgoingDirection
+from commonroad_reach_semantic.data_structure.config.semantic_configuration import SemanticConfiguration
+from commonroad_reach_semantic.data_structure.environment_model.road_network import Lane, RoadNetwork
 
 
 class StateLongitudinal:
@@ -129,7 +130,7 @@ class Vehicle:
                  obstacle_type: ObstacleType,
                  dict_step_to_list_ids_lanelets: Dict[int, List[int]],
                  incoming_element: Optional[IntersectionIncomingElement],
-                 direction_outgoing: str,
+                 direction_outgoing: OutgoingDirection,
                  set_ids_lanelets_outgoing_left: Set[int],
                  set_ids_lanelets_outgoing_straight: Set[int],
                  set_ids_lanelets_outgoing_right: Set[int],
@@ -199,27 +200,38 @@ class Vehicle:
 
     @property
     def set_ids_lanelets_outgoing_lane(self) -> Set[int]:
-        if self.type_outgoing in ["left", "straight", "right"]:
-            return eval(f"self.set_ids_lanelets_outgoing_{self.type_outgoing}")
-
-        else:
-            return set()
+        match self.type_outgoing:
+            case OutgoingDirection.LEFT:
+                return self.set_ids_lanelets_outgoing_left
+            case OutgoingDirection.STRAIGHT:
+                return self.set_ids_lanelets_outgoing_straight
+            case OutgoingDirection.RIGHT:
+                return self.set_ids_lanelets_outgoing_right
+            case _:
+                return set()
 
     @property
     def set_ids_lanelets_successor_incoming(self) -> Set[int]:
         if not self.incoming_element:
             return set()
 
-        else:
-            set_ids_lanelets: Set[int] = eval(f"self.incoming_element.successors_{self.type_outgoing}")
-            set_ids_lanelets_to_add = set()
+        match self.type_outgoing:
+            case OutgoingDirection.LEFT:
+                set_ids_lanelets = self.incoming_element.successors_left
+            case OutgoingDirection.STRAIGHT:
+                set_ids_lanelets = self.incoming_element.successors_straight
+            case OutgoingDirection.RIGHT:
+                set_ids_lanelets = self.incoming_element.successors_right
+            case _:
+                return set()
+        set_ids_lanelets_to_add = set()
 
-            for id_lanelet in set_ids_lanelets:
-                lanelet = self.lanelet_network.find_lanelet_by_id(id_lanelet)
-                set_ids_lanelets_to_add.update(set(lanelet.successor))
+        for id_lanelet in set_ids_lanelets:
+            lanelet = self.lanelet_network.find_lanelet_by_id(id_lanelet)
+            set_ids_lanelets_to_add.update(set(lanelet.successor))
 
-            set_ids_lanelets.update(set_ids_lanelets_to_add)
-            return set_ids_lanelets
+        set_ids_lanelets.update(set_ids_lanelets_to_add)
+        return set_ids_lanelets
 
     def spot_prediction_occupancy_at_step(self, step: int):
         return self.dict_step_to_sonia_prediction_occupancy[step]
@@ -240,10 +252,19 @@ class Vehicle:
         else:
             return None
 
+    def outgoings_at_step(self, step: int, direction: OutgoingDirection) -> Set[int]:
+        match direction:
+            case OutgoingDirection.LEFT:
+                return self.left_outgoings_at_step(step)
+            case OutgoingDirection.STRAIGHT:
+                return self.straight_outgoings_at_step(step)
+            case OutgoingDirection.RIGHT:
+                return self.right_outgoings_at_step(step)
+
     def left_outgoings_at_step(self, step: int) -> Set[int]:
         if self.incoming_element:
             if set(self.lanelet_ids_at_step(step)).intersection(self.incoming_element.incoming_lanelets) or \
-                    self.type_outgoing == "left":
+                    self.type_outgoing == OutgoingDirection.LEFT:
                 return self.set_ids_lanelets_outgoing_left
 
         return set()
@@ -251,7 +272,7 @@ class Vehicle:
     def straight_outgoings_at_step(self, step: int) -> Set[int]:
         if self.incoming_element:
             if set(self.lanelet_ids_at_step(step)).intersection(self.incoming_element.incoming_lanelets) or \
-                    self.type_outgoing == "straight":
+                    self.type_outgoing == OutgoingDirection.STRAIGHT:
                 return self.set_ids_lanelets_outgoing_straight
 
         return set()
@@ -259,13 +280,13 @@ class Vehicle:
     def right_outgoings_at_step(self, step: int) -> Set[int]:
         if self.incoming_element:
             if set(self.lanelet_ids_at_step(step)).intersection(self.incoming_element.incoming_lanelets) or \
-                    self.type_outgoing == "right":
+                    self.type_outgoing == OutgoingDirection.RIGHT:
                 return self.set_ids_lanelets_outgoing_right
 
         return set()
 
-    def retrieve_p_lon_node_ego(self, node: Union[SemanticReachNode, pycrreachs.SemanticReachNode]):
-        if isinstance(node, SemanticReachNode):
+    def retrieve_p_lon_node_ego(self, node: Union[ReachNode, pycrreachs.SemanticReachNode]):
+        if isinstance(node, ReachNode):
             bounds = node.position_rectangle.bounds
 
         else:
@@ -277,11 +298,11 @@ class Vehicle:
 
         return list_p_lon_node
 
-    def behind_node_at_step(self, step: int, node: SemanticReachNode) -> bool:
+    def behind_node_at_step(self, step: int, node: ReachNode) -> bool:
         """Returns True if vehicle is behind the base set."""
         return True if self.front_distance_to_node_at_step(step, node) > 0 else False
 
-    def braking_caused_by_node_at_step(self, step: int, node: Union[SemanticReachNode, pycrreachs.SemanticReachNode]) -> bool:
+    def braking_caused_by_node_at_step(self, step: int, node: Union[ReachNode, pycrreachs.SemanticReachNode]) -> bool:
         """
         Returns whether the vehicle should brake hard due to the reach node.
         """
@@ -291,7 +312,7 @@ class Vehicle:
 
         return small_distance and brake_hard
 
-    def front_distance_to_node_at_step(self, step: int, node: Union[SemanticReachNode, pycrreachs.SemanticReachNode]) -> float:
+    def front_distance_to_node_at_step(self, step: int, node: Union[ReachNode, pycrreachs.SemanticReachNode]) -> float:
         """
         Returns the front distance of the vehicle to the base set.
 
@@ -311,7 +332,7 @@ class Vehicle:
             p_lon_min_node_ego = min(list_p_lon_node_ego) - self.radius_inflation
             return p_lon_min_node_ego - p_lon_max_ego
 
-    def should_brake_hard_due_to_node_at_step(self, step: int, node: Union[SemanticReachNode, pycrreachs.SemanticReachNode]) -> bool:
+    def should_brake_hard_due_to_node_at_step(self, step: int, node: Union[ReachNode, pycrreachs.SemanticReachNode]) -> bool:
         """
         Returns whether the vehicle should brake harder than the predefined threshold due to the reach node.
         """
@@ -494,17 +515,17 @@ class Vehicle:
                             element_index_min = element
 
                 try:
-                    self.dict_id_lanelet_to_priorities[id_lanelet]["left"] = \
-                        dict_traffic_sign_to_priorities[element_index_min.traffic_sign_element_id]["left"]
-                    self.dict_id_lanelet_to_priorities[id_lanelet]["straight"] = \
-                        dict_traffic_sign_to_priorities[element_index_min.traffic_sign_element_id]["straight"]
-                    self.dict_id_lanelet_to_priorities[id_lanelet]["right"] = \
-                        dict_traffic_sign_to_priorities[element_index_min.traffic_sign_element_id]["right"]
+                    self.dict_id_lanelet_to_priorities[id_lanelet][OutgoingDirection.LEFT] = \
+                        dict_traffic_sign_to_priorities[element_index_min.traffic_sign_element_id][OutgoingDirection.LEFT]
+                    self.dict_id_lanelet_to_priorities[id_lanelet][OutgoingDirection.STRAIGHT] = \
+                        dict_traffic_sign_to_priorities[element_index_min.traffic_sign_element_id][OutgoingDirection.STRAIGHT]
+                    self.dict_id_lanelet_to_priorities[id_lanelet][OutgoingDirection.RIGHT] = \
+                        dict_traffic_sign_to_priorities[element_index_min.traffic_sign_element_id][OutgoingDirection.RIGHT]
 
                 except (KeyError, AttributeError):
-                    self.dict_id_lanelet_to_priorities[id_lanelet]["left"] = priority_default
-                    self.dict_id_lanelet_to_priorities[id_lanelet]["straight"] = priority_default
-                    self.dict_id_lanelet_to_priorities[id_lanelet]["right"] = priority_default
+                    self.dict_id_lanelet_to_priorities[id_lanelet][OutgoingDirection.LEFT] = priority_default
+                    self.dict_id_lanelet_to_priorities[id_lanelet][OutgoingDirection.STRAIGHT] = priority_default
+                    self.dict_id_lanelet_to_priorities[id_lanelet][OutgoingDirection.RIGHT] = priority_default
 
         # obtain priorities for the vehicle
         for step, set_traffic_signs in self.dict_step_to_set_traffic_signs.items():
@@ -524,9 +545,9 @@ class Vehicle:
 
             try:
                 self.dict_step_to_priorities[step] = \
-                    (dict_traffic_sign_to_priorities[element_index_min.traffic_sign_element_id]["left"],
-                     dict_traffic_sign_to_priorities[element_index_min.traffic_sign_element_id]["straight"],
-                     dict_traffic_sign_to_priorities[element_index_min.traffic_sign_element_id]["right"])
+                    (dict_traffic_sign_to_priorities[element_index_min.traffic_sign_element_id][OutgoingDirection.LEFT],
+                     dict_traffic_sign_to_priorities[element_index_min.traffic_sign_element_id][OutgoingDirection.STRAIGHT],
+                     dict_traffic_sign_to_priorities[element_index_min.traffic_sign_element_id][OutgoingDirection.RIGHT])
 
             except (KeyError, AttributeError):
                 pass
