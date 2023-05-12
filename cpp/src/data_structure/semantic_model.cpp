@@ -7,12 +7,12 @@ SemanticModel::SemanticModel(py::handle const& obj_semantic_model_py) {
     this->obj_semantic_model_py = obj_semantic_model_py;
 
     // regions
-    for (auto const& obj_region_py: obj_semantic_model_py.attr("list_regions")) {
+    for (auto const& obj_region_py: obj_semantic_model_py.attr("region_model").attr("list_regions")) {
         vec_regions.emplace_back(make_shared<Region>(obj_region_py));
     }
     // position intervals
     auto dict_step_to_position_intervals =
-            obj_semantic_model_py.attr("dict_step_to_position_intervals");
+            obj_semantic_model_py.attr("vehicle_model").attr("dict_step_to_position_intervals");
     for (auto const& step: dict_step_to_position_intervals) {
         for (auto const& direction: dict_step_to_position_intervals[step]) {
             for (auto const& position_interval_py: dict_step_to_position_intervals[step][direction]) {

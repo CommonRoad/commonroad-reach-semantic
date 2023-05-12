@@ -7,9 +7,9 @@ TrafficRuleInterface::TrafficRuleInterface(py::handle const& obj_traffic_rule_py
     this->obj_rule_interface_py = obj_traffic_rule_py;
 
     auto dict_step_to_propositions_mandatory =
-            obj_traffic_rule_py.attr("dict_step_to_propositions_mandatory");
+            obj_traffic_rule_py.attr("tpl_checker").attr("dict_step_to_propositions_mandatory");
     auto dict_step_to_propositions_forbidden =
-            obj_traffic_rule_py.attr("dict_step_to_propositions_forbidden");
+            obj_traffic_rule_py.attr("tpl_checker").attr("dict_step_to_propositions_forbidden");
 
     for (auto const& step: dict_step_to_propositions_mandatory) {
         auto set_propositions_mandatory = dict_step_to_propositions_mandatory[step];
