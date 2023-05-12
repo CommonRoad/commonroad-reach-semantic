@@ -66,7 +66,7 @@ namespace semantic_reach{
         std::vector<SemanticReachNodePtr> split_wrt_position_intervals(int step, std::vector<SemanticReachNodePtr> reachable_sets);
 
         /// Returns a list of propagated sets that do not collide with vehicles.
-        std::vector<SemanticReachNodePtr> discard_colliding_nodes(std::vector<SemanticReachNodePtr> reachable_sets);
+        std::vector<SemanticReachNodePtr> discard_colliding_nodes(const std::vector<SemanticReachNodePtr>& reachable_sets);
 
         /// Copy the labels of source_reachable_set to every node in reachable_sets.
         void copy_labels(const SemanticReachNodePtr& source_reachable_set, const std::vector<SemanticReachNodePtr>& reachable_sets);

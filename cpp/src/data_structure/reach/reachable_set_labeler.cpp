@@ -226,8 +226,28 @@ ReachableSetLabeler::_obtain_lanelet_transition_propositions(
 }
 
 std::vector<SemanticReachNodePtr>
-ReachableSetLabeler::discard_colliding_nodes(std::vector<SemanticReachNodePtr> reachable_sets) {
-    return reachable_sets;
+ReachableSetLabeler::discard_colliding_nodes(const std::vector<SemanticReachNodePtr>& reachable_sets) {
+    std::vector<SemanticReachNodePtr> vec_nodes_keep{};
+
+    for (const auto &reachable_set: reachable_sets) {
+        bool colliding = false;
+        auto set_propositions = reachable_set_to_propositions[reachable_set].set_propositions;
+        for (const auto &proposition: set_propositions) {
+            if (proposition.find(Proposition::aligned_with()) != std::string::npos) {
+                int vehicle_id = std::stoi(proposition.substr(proposition.find('_') + 2));
+                std::string x = Proposition::beside(vehicle_id);
+                if (set_propositions.find(x) != set_propositions.end()) {
+                    colliding = true;
+                    break;
+                }
+            }
+        }
+        if (!colliding) {
+            vec_nodes_keep.emplace_back(reachable_set);
+        }
+    }
+
+    return vec_nodes_keep;
 }
 
 void ReachableSetLabeler::copy_labels(const semantic_reach::SemanticReachNodePtr &source_reachable_set,
