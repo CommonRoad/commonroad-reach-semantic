@@ -26,7 +26,7 @@ SemanticReachableSet::SemanticReachableSet(SemanticConfigurationPtr config, Coll
 }
 
 void SemanticReachableSet::_initialize() {
-    labeler = std::make_unique<ReachableSetLabeler>(semantic_model);
+    labeler = std::make_shared<ReachableSetLabeler>(semantic_model);
 
     step_start = config->planning().step_start;
     step_end = step_start + config->planning().steps_computation;

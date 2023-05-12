@@ -72,5 +72,5 @@ namespace semantic_reach{
         void copy_labels(const SemanticReachNodePtr& source_reachable_set, const std::vector<SemanticReachNodePtr>& reachable_sets);
     };
 
-    using ReachableSetLabelerPtr = std::unique_ptr<ReachableSetLabeler>;
+    using ReachableSetLabelerPtr = std::shared_ptr<ReachableSetLabeler>;
 }

@@ -5,6 +5,7 @@ using namespace semantic_reach;
 
 void export_reach(py::module &m) {
     export_reachable_set_interface(m);
+    export_reachable_set_labeler(m);
 }
 
 void export_reachable_set_interface(py::module &m) {
@@ -26,10 +27,18 @@ void export_reachable_set_interface(py::module &m) {
             .def_readonly("map_step_to_propositions_to_drivable_area",
                           &SemanticReachableSet::map_step_to_propositions_to_drivable_area)
             .def_readonly("config", &SemanticReachableSet::config)
+            .def_readonly("labeler", &SemanticReachableSet::labeler)
             .def("compute", &SemanticReachableSet::compute, py::arg("step_start") = 1, py::arg("step_end") = 0)
             .def("drivable_area_at_step", &SemanticReachableSet::drivable_area_at_step, py::arg("step"))
             .def("reachable_set_at_step", &SemanticReachableSet::reachable_set_at_step, py::arg("step"))
             .def("drivable_area", &SemanticReachableSet::drivable_area)
             .def("reachable_set", &SemanticReachableSet::reachable_set)
             .def("propagated_set", &SemanticReachableSet::propagated_set);
+}
+
+void export_reachable_set_labeler(py::module &m) {
+    py::class_<ReachableSetLabeler, shared_ptr<ReachableSetLabeler>>(m, "ReachableSetLabeler")
+            .def(py::init<SemanticModelPtr>(), py::arg("semantic_model"))
+            .def_readonly("reachable_set_to_propositions", &ReachableSetLabeler::reachable_set_to_propositions)
+            .def_readonly("reachable_set_to_lanelet_ids", &ReachableSetLabeler::reachable_set_to_lanelet_ids);
 }
