@@ -26,11 +26,14 @@ SemanticReachableSet::SemanticReachableSet(SemanticConfigurationPtr config, Coll
 }
 
 void SemanticReachableSet::_initialize() {
+    labeler = std::make_unique<ReachableSetLabeler>(semantic_model);
+
     step_start = config->planning().step_start;
     step_end = step_start + config->planning().steps_computation;
 
+    map_step_to_reachable_set[step_start] = _construct_initial_reachable_sets();
+    map_step_to_drivable_area[step_start] = semantic_reach::project_propagated_sets_to_position_domain(map_step_to_reachable_set[step_start]);
     _initialize_zero_state_polygons();
-    _construct_initial_drivable_area_and_reachable_set();
 
     _vec_steps_computed.emplace_back(step_start);
 }
@@ -46,100 +49,18 @@ void SemanticReachableSet::_initialize_zero_state_polygons() {
                                                        config->vehicle().ego.a_lat_max);
 }
 
-void SemanticReachableSet::_construct_initial_drivable_area_and_reachable_set() {
+std::vector<SemanticReachNodePtr> SemanticReachableSet::_construct_initial_reachable_sets() {
     // initial drivable area
     auto tuple_vertices = generate_tuple_vertices_position_rectangle_initial(config);
-    auto drivable_area_initial = make_shared<reach::ReachPolygon>(std::get<0>(tuple_vertices),
-                                                           std::get<1>(tuple_vertices),
-                                                           std::get<2>(tuple_vertices),
-                                                           std::get<3>(tuple_vertices));
+
     // initial reachable set
     auto [tuple_vertices_polygon_lon, tuple_vertices_polygon_lat] =
             generate_tuples_vertices_polygons_initial(config);
     auto polygon_lon = make_shared<reach::ReachPolygon>(tuple_vertices_polygon_lon);
     auto polygon_lat = make_shared<reach::ReachPolygon>(tuple_vertices_polygon_lat);
 
-    // obtain initial propositions
-    auto proposition_holder = obtain_propositions_for_rectangle(drivable_area_initial, 0);
-    auto node_initial = make_shared<SemanticReachNode>(config->planning().step_start,
-                                               polygon_lon,
-                                               polygon_lat,
-                                               proposition_holder);
-
-    node_initial = label_traffic_propositions(0, vector<SemanticReachNodePtr>{node_initial})[0];
-
-    map_step_to_propositions_to_drivable_area[0][proposition_holder].emplace_back(drivable_area_initial);
-    map_step_to_propositions_to_reachable_set[0][proposition_holder].emplace_back(node_initial);
+    return {std::make_shared<SemanticReachNode>(step_start, polygon_lon, polygon_lat, PropositionHolder())};
 }
-
-/// Intersects the rectangle with regions and position intervals.
-PropositionHolder
-SemanticReachableSet::obtain_propositions_for_rectangle(reach::ReachPolygonPtr const& rectangle, int const& step) const {
-    auto proposition_holder = PropositionHolder();
-
-    /// retrieve propositions from the intersecting lanelet region
-    for (auto const& region: semantic_model->vec_regions) {
-        if (region->intersects(rectangle) and region->polygon_cvln->intersects(rectangle)) {
-            for (auto const& [group, set_propositions]:
-                    region->map_group_to_propositions_at_step(step)) {
-                proposition_holder.add_propositions(set_propositions, group);
-            }
-            break;
-        }
-    }
-
-    /// retrieve vehicle-related propositions from position intervals
-    auto vec_intervals_lon = semantic_model->map_step_to_position_intervals[0]["lon"];
-    auto vec_intervals_lat = semantic_model->map_step_to_position_intervals[0]["lat"];
-
-    for (auto const& interval_lon: vec_intervals_lon) {
-        if (interval_lon->intersects(rectangle->p_lon_min(), rectangle->p_lon_max())) {
-            proposition_holder.add_propositions(interval_lon->set_propositions, PropositionGroup::POSITION);
-            break;
-        }
-    }
-
-    for (auto const& interval_lat: vec_intervals_lat) {
-        if (interval_lat->intersects(rectangle->p_lat_min(), rectangle->p_lat_max())) {
-            proposition_holder.add_propositions(interval_lat->set_propositions, PropositionGroup::POSITION);
-            break;
-        }
-    }
-
-    return proposition_holder;
-}
-
-vector<SemanticReachNodePtr> SemanticReachableSet::label_traffic_propositions(int const& step, vector<SemanticReachNodePtr> vec_nodes) {
-    try {
-        auto vec_nodes_labeled =
-                semantic_model->obj_semantic_model_py.attr("label_traffic_propositions")(step, vec_nodes)
-                        .cast<vector<SemanticReachNodePtr>>();
-
-        return vec_nodes_labeled;
-    }
-    catch (py::error_already_set& e) {
-        cout << "Function: label_traffic_propositions" << endl;
-        py::print(e.what());
-
-        return {};
-    }
-}
-
-//vector<SemanticReachNodePtr> SemanticReachableSet::examine_tpl_specifications(int const& step, vector<SemanticReachNodePtr> vec_nodes) {
-//    try {
-//        auto vec_nodes_labeled =
-//                semantic_model->obj_semantic_model_py.attr("label_traffic_propositions")(step, vec_nodes)
-//                        .cast<vector<SemanticReachNodePtr>>();
-//
-//        return vec_nodes_labeled;
-//    }
-//    catch (py::error_already_set& e) {
-//        cout << "Function: label_traffic_propositions" << endl;
-//        py::print(e.what());
-//
-//        return {};
-//    }
-//}
 
 void SemanticReachableSet::compute(int step_start, int step_end) {
     if (step_start == 0) step_start = this->step_start + 1;
@@ -166,42 +87,51 @@ void SemanticReachableSet::compute(int step_start, int step_end) {
 /// 4. Check for collision and split the repartitioned rectangles into collision-free rectangles.
 /// 5. Merge and repartition the collision-free rectangles again to reduce number of nodes.
 void SemanticReachableSet::_compute_drivable_area_at_step(int const& step) {
-    auto map_propositions_to_reachable_set_previous = map_step_to_propositions_to_reachable_set[step - 1];
-    if (map_propositions_to_reachable_set_previous.empty()) {
+    auto reachable_set_previous = map_step_to_reachable_set[step - 1];
+    if (reachable_set_previous.empty()) {
         map_step_to_propositions_to_propagated_set[step] = {};
         map_step_to_propositions_to_drivable_area[step] = {};
         return;
     }
 
+    auto vec_propagated_set = _propagate_reachable_set(reachable_set_previous);
+
+    // split w.r.t regions and position intervals
+    auto vec_propagated_set_split = labeler->split_wrt_regions(step, vec_propagated_set);
+    vec_propagated_set_split = labeler->split_wrt_position_intervals(step, vec_propagated_set_split);
+
+    // discard the ones colliding with vehicles
+    vec_propagated_set_split = labeler->discard_colliding_nodes(vec_propagated_set_split);
+
+    // examine whether the propagated sets satisfy TPL specifications
+    vec_propagated_set = rule_interface->examine_tpl_specifications(step, vec_propagated_set);
+
+    // update traffic propositions of the propagated sets
+    vec_propagated_set = labeler->label_traffic_propositions(step, vec_propagated_set_split);
+
+    // partition propagated sets by their propositions
     unordered_map<PropositionHolder, vector<SemanticReachNodePtr>, PropositionHolder::HashFunction>
-            dict_proposition_holder_to_propagated_set{};
-
-    // iterate through list of nodes with different sets of propositions
-    for (auto const& [propositions, vec_nodes]: map_propositions_to_reachable_set_previous) {
-        auto vec_propagated_set = _propagate_reachable_set(vec_nodes);
-        // split w.r.t regions and position intervals
-        auto vec_propagated_set_split = _split_wrt_regions(step, vec_propagated_set);
-        vec_propagated_set_split = _split_wrt_intervals(step, vec_propagated_set_split);
-
-        // discard the ones colliding with vehicles
-        vec_propagated_set_split = _discard_colliding_nodes(vec_propagated_set_split);
-
-        // update traffic propositions of the propagated sets
-        vec_propagated_set = label_traffic_propositions(step, vec_propagated_set_split);
-
-        // examine whether the propagated sets satisfy TPL specifications
-        vec_propagated_set = rule_interface->examine_tpl_specifications(step, vec_propagated_set);
-
-        for (auto const& propagated_set: vec_propagated_set) {
-            dict_proposition_holder_to_propagated_set[propagated_set->proposition_holder].emplace_back(propagated_set);
-        }
+            dict_propositions_to_propagated_set{};
+    for (auto const& propagated_set: vec_propagated_set) {
+        dict_propositions_to_propagated_set[labeler->reachable_set_to_propositions[propagated_set]].emplace_back(propagated_set);
     }
-    // compute collision-free drivable areas
-    auto dict_propositions_to_drivable_area =
-            _compute_collision_free_drivable_area(step, dict_proposition_holder_to_propagated_set);
 
-    map_step_to_propositions_to_propagated_set[step] = dict_proposition_holder_to_propagated_set;
+    // merge, collision check, and repartition propagated sets partitioned by their propositions,
+    // because we must not merge sets with different propositions
+    unordered_map<PropositionHolder, vector<reach::ReachPolygonPtr>, PropositionHolder::HashFunction>
+            dict_propositions_to_drivable_area{};
+    std::vector<reach::ReachPolygonPtr> vec_drivable_area{};
+    for (const auto &[propositions, propagated_sets_per_proposition]: dict_propositions_to_propagated_set) {
+        auto vec_rectangles_projected = project_propagated_sets_to_position_domain(propagated_sets_per_proposition);
+        auto drivable_area_at_proposition = _collision_check_and_repartition(vec_rectangles_projected, step);
+        dict_propositions_to_drivable_area[propositions] = drivable_area_at_proposition;
+        vec_drivable_area.insert(vec_drivable_area.end(), drivable_area_at_proposition.begin(),drivable_area_at_proposition.end());
+    }
+
+    map_step_to_drivable_area[step] = vec_drivable_area;
     map_step_to_propositions_to_drivable_area[step] = dict_propositions_to_drivable_area;
+    map_step_to_propositions_to_propagated_set[step] = dict_propositions_to_propagated_set;
+    map_step_to_propagated_set[step] = vec_propagated_set;
 }
 
 
@@ -249,235 +179,51 @@ default(none) shared(vec_nodes, vec_base_sets_propagated)
     return vec_base_sets_propagated;
 }
 
-/// *Steps*:
-/// 1. intersect propagated sets in the position domain with lanelet regions
-/// 2. over-approximate and restore to axis-aligned rectangles
-vector<SemanticReachNodePtr> SemanticReachableSet::_split_wrt_regions(int const& step, vector<SemanticReachNodePtr> const& vec_nodes) {
-    if (vec_nodes.empty()) {
-        return {};
-    }
-
-    vector<SemanticReachNodePtr> vec_nodes_split = {};
-    // iterate through region and examine propagated sets that are intersecting with the region
-    for (auto const& region: semantic_model->vec_regions) {
-        for (auto const& node: vec_nodes) {
-
-            auto rectangle = node->position_rectangle();
-            // there is no possibility of intersection
-            if (!region->intersects(rectangle, "CVLN")) continue;
-
-            auto polygon_intersected = region->polygon_cvln->clone();
-            // there is a possibility of intersection
-            // TODO: Find out, why there was a try-catch here
-            // compute intersection with the position rectangle
-            polygon_intersected->intersect_halfspace(1, 0, rectangle->p_lon_max());
-            polygon_intersected->intersect_halfspace(-1, 0, -rectangle->p_lon_min());
-            polygon_intersected->intersect_halfspace(0, 1, rectangle->p_lat_max());
-            polygon_intersected->intersect_halfspace(0, -1, -rectangle->p_lat_min());
-
-            if (polygon_intersected->empty()) {
-                continue;
-            }
-
-            // over-approximate by restoring to axis-aligned rectangles
-            auto [p_lon_min, p_lat_min, p_lon_max, p_lat_max] = polygon_intersected->bounding_box();
-
-            // TODO: Find out, why there was a try-catch here
-            // clone the propagated set and split in the position domain, update the propositions
-            auto node_new = node->clone();
-            node_new->intersect_in_position_domain(p_lon_min, p_lat_min, p_lon_max, p_lat_max);
-            vec_nodes_split.emplace_back(update_propositions_with_region(node_new, region, step));
-        }
-    }
-
-    return vec_nodes_split;
-}
-
-SemanticReachNodePtr SemanticReachableSet::update_propositions_with_region(SemanticReachNodePtr const& node,
-                                                           RegionPtr const& region, int const& step) {
-
-    return semantic_model->obj_semantic_model_py.attr("update_propositions_with_region")(node, region, step)
-            .cast<SemanticReachNodePtr>();
-}
-
-vector<SemanticReachNodePtr> SemanticReachableSet::_split_wrt_intervals(int const& step, vector<SemanticReachNodePtr> const& vec_nodes) {
-    if (vec_nodes.empty()) {
-        return {};
-    }
-
-    vector<SemanticReachNodePtr> vec_nodes_split = {};
-    vector<SemanticReachNodePtr> vec_nodes_split_lon{};
-    auto vec_intervals_lon = semantic_model->map_step_to_position_intervals[step]["lon"];
-    auto vec_intervals_lat = semantic_model->map_step_to_position_intervals[step]["lat"];
-
-    // longitudinal direction
-    for (auto const& node: vec_nodes) {
-        for (auto const& interval_lon: vec_intervals_lon) {
-            if (interval_lon->intersects(node->p_lon_min(), node->p_lon_max())) {
-                auto node_split = semantic_reach::split_reach_node_wrt_interval(node, interval_lon, "lon");
-                if (node_split) {
-                    vec_nodes_split_lon.emplace_back(node_split);
-                }
-            }
-        }
-    }
-
-    // lateral direction
-    for (auto const& node: vec_nodes_split_lon) {
-        for (auto const& interval_lat: vec_intervals_lat) {
-            if (interval_lat->intersects(node->p_lat_min(), node->p_lat_max())) {
-                auto node_split = semantic_reach::split_reach_node_wrt_interval(node, interval_lat, "lat");
-                if (node_split) {
-                    vec_nodes_split.emplace_back(node_split);
-                }
-            }
-        }
-    }
-
-    return vec_nodes_split;
-}
-
-vector<SemanticReachNodePtr> SemanticReachableSet::_discard_colliding_nodes(vector<SemanticReachNodePtr> const& vec_nodes) {
-    try {
-        auto vec_nodes_keep =
-                semantic_model->obj_semantic_model_py.attr("discard_colliding_nodes")(vec_nodes)
-                        .cast<vector<SemanticReachNodePtr>>();
-
-        return vec_nodes_keep;
-    }
-    catch (py::error_already_set& e) {
-        cout << "Function: _discard_colliding_nodes" << endl;
-        py::print(e.what());
-
-        return {};
-    }
-}
-
-unordered_map<PropositionHolder, vector<reach::ReachPolygonPtr>, PropositionHolder::HashFunction>
-SemanticReachableSet::_compute_collision_free_drivable_area(int const& step,
-                                                    unordered_map<PropositionHolder, vector<SemanticReachNodePtr>,
-                                                            PropositionHolder::HashFunction> const&
-                                                    map_propositions_to_drivable_area) {
+std::vector<reach::ReachPolygonPtr>
+SemanticReachableSet::_collision_check_and_repartition(std::vector<reach::ReachPolygonPtr> rectangles, int const &step) {
     auto mode_repartition = config->reachable_set().mode_repartition;
     auto size_grid = config->reachable_set().size_grid;
     auto size_grid_2nd = config->reachable_set().size_grid_2nd;
     auto radius_terminal_split = config->reachable_set().radius_terminal_split;
-    unordered_map<PropositionHolder, vector<reach::ReachPolygonPtr>, PropositionHolder::HashFunction>
-            map_proposition_holder_to_drivable_area{};
 
-    // individually iterate through lists of propagated sets with different sets of propositions
-    for (auto const& [proposition_holder, vec_propagated_sets]: map_propositions_to_drivable_area) {
-        auto vec_rectangles_projected = semantic_reach::project_propagated_sets_to_position_domain(vec_propagated_sets);
-
-        vector<reach::ReachPolygonPtr> drivable_area{};
-        // repartition, then collision check
-        if (mode_repartition == 1) {
-            // create repartitioned rectangles from the projected base sets
-            vec_rectangles_projected = create_repartitioned_rectangles(vec_rectangles_projected, size_grid);
-            drivable_area = check_collision_and_split_rectangles(step, collision_checker,
-                                                                 vec_rectangles_projected,
-                                                                 radius_terminal_split,
-                                                                 config->reachable_set().num_threads);
-        }
-            // collision check, then repartition
-        else if (mode_repartition == 2) {
-            auto vec_rectangles_collision_free = \
-                        check_collision_and_split_rectangles(step, collision_checker,
-                                                             vec_rectangles_projected,
-                                                             radius_terminal_split,
-                                                             config->reachable_set().num_threads);
-            drivable_area = create_repartitioned_rectangles(vec_rectangles_collision_free, size_grid);
-        }
-
-            // repartition, collision check, then repartition again
-        else if (mode_repartition == 3) {
-            auto vec_rectangles_repartitioned = \
-                        create_repartitioned_rectangles(vec_rectangles_projected, size_grid);
-
-            auto vec_rectangles_collision_free = \
-                        check_collision_and_split_rectangles(step, collision_checker,
+    vector<reach::ReachPolygonPtr> drivable_area{};
+    // repartition, then collision check
+    if (mode_repartition == 1) {
+        // create repartitioned rectangles from the projected base sets
+        auto vec_rectangles_repartitioned = create_repartitioned_rectangles(rectangles, size_grid);
+        drivable_area = check_collision_and_split_rectangles(step, collision_checker,
                                                              vec_rectangles_repartitioned,
                                                              radius_terminal_split,
                                                              config->reachable_set().num_threads);
-
-            drivable_area = create_repartitioned_rectangles(vec_rectangles_collision_free,
-                                                            size_grid_2nd);
-        } else {
-            throw (std::logic_error("Invalid mode for repartition."));
-        }
-
-        map_proposition_holder_to_drivable_area[proposition_holder] = drivable_area;
     }
 
-    return map_proposition_holder_to_drivable_area;
+    // collision check, then repartition
+    else if (mode_repartition == 2) {
+        auto vec_rectangles_collision_free = \
+                    check_collision_and_split_rectangles(step, collision_checker,
+                                                         rectangles,
+                                                         radius_terminal_split,
+                                                         config->reachable_set().num_threads);
+        drivable_area = create_repartitioned_rectangles(vec_rectangles_collision_free, size_grid);
+    }
 
-    // the following code also considers three-circle approximation
-    //vector<reach::ReachPolygonPtr> drivable_area_collision_free{};
-    //// repartition, then collision check
-    //if (config->reachable_set().mode_repartition == 1) {
-    //    auto vec_rectangles_repartitioned = create_repartitioned_rectangles(
-    //            vec_rectangles_projected, config->reachable_set().size_grid);
-    //    if (config->reachable_set().mode_inflation != 3) {
-    //        drivable_area_collision_free = check_collision_and_split_rectangles(
-    //                step, collision_checker,
-    //                vec_rectangles_repartitioned, config->reachable_set().radius_terminal_split,
-    //                config->reachable_set().num_threads);
-    //    } else {
-    //        drivable_area_collision_free = check_collision_and_split_rectangles(
-    //                step, collision_checker, vec_rectangles_repartitioned,
-    //                config->reachable_set().radius_terminal_split,
-    //                config->reachable_set().num_threads,
-    //                config->vehicle().ego.circle_distance,
-    //                *config->planning().CLCS,
-    //                *config->reachable_set().lut_lon_enlargement,
-    //                config->planning().reference_point);
-    //    }
-    //    // collision check, then repartition
-    //} else if (config->reachable_set().mode_repartition == 2) {
-    //    vector<reach::ReachPolygonPtr> vec_rectangles_collision_free{};
-    //    if (config->reachable_set().mode_inflation != 3) {
-    //        vec_rectangles_collision_free = check_collision_and_split_rectangles(
-    //                step, collision_checker,
-    //                vec_rectangles_projected, config->reachable_set().radius_terminal_split,
-    //                config->reachable_set().num_threads);
-    //    } else {
-    //        vec_rectangles_collision_free = check_collision_and_split_rectangles(
-    //                step, collision_checker, vec_rectangles_projected,
-    //                config->reachable_set().radius_terminal_split,
-    //                config->reachable_set().num_threads,
-    //                config->vehicle().ego.circle_distance,
-    //                *config->planning().CLCS,
-    //                *config->reachable_set().lut_lon_enlargement,
-    //                config->planning().reference_point);
-    //    }
-    //    drivable_area_collision_free = create_repartitioned_rectangles(
-    //            vec_rectangles_collision_free, config->reachable_set().size_grid);
-    //    // repartition, collision check, then repartition again
-    //} else if (config->reachable_set().mode_repartition == 3) {
-    //    auto vec_rectangles_repartitioned = create_repartitioned_rectangles(
-    //            vec_rectangles_projected, config->reachable_set().size_grid);
-    //
-    //    vector<reach::ReachPolygonPtr> vec_rectangles_collision_free{};
-    //    if (config->reachable_set().mode_inflation != 3) {
-    //        vec_rectangles_collision_free = check_collision_and_split_rectangles(
-    //                step, collision_checker,
-    //                vec_rectangles_repartitioned, config->reachable_set().radius_terminal_split,
-    //                config->reachable_set().num_threads);
-    //    } else {
-    //        vec_rectangles_collision_free = check_collision_and_split_rectangles(
-    //                step, collision_checker, vec_rectangles_projected,
-    //                config->reachable_set().radius_terminal_split,
-    //                config->reachable_set().num_threads,
-    //                config->vehicle().ego.circle_distance,
-    //                *config->planning().CLCS,
-    //                *config->reachable_set().lut_lon_enlargement,
-    //                config->planning().reference_point);
-    //    }
-    //
-    //    drivable_area_collision_free = create_repartitioned_rectangles(
-    //            vec_rectangles_collision_free, config->reachable_set().size_grid);
-    //
-    //} else throw std::logic_error("Invalid mode for repartition.");
+    // repartition, collision check, then repartition again
+    else if (mode_repartition == 3) {
+        auto vec_rectangles_repartitioned = create_repartitioned_rectangles(rectangles, size_grid);
+
+        auto vec_rectangles_collision_free = \
+                    check_collision_and_split_rectangles(step, collision_checker,
+                                                         vec_rectangles_repartitioned,
+                                                         radius_terminal_split,
+                                                         config->reachable_set().num_threads);
+
+        drivable_area = create_repartitioned_rectangles(vec_rectangles_collision_free,
+                                                        size_grid_2nd);
+    } else {
+        throw (std::logic_error("Invalid mode for repartition."));
+    }
+
+    return drivable_area;
 }
 
 /// *Steps*:
@@ -488,19 +234,23 @@ void SemanticReachableSet::_compute_reachable_set_at_step(int const& step) {
     auto map_propositions_to_drivable_area = map_step_to_propositions_to_drivable_area[step];
 
     if (map_propositions_to_drivable_area.empty()) {
-        map_step_to_propositions_to_reachable_set[step] = {};
+        map_step_to_reachable_set[step] = {};
         return;
     }
 
     auto num_threads = config->reachable_set().num_threads;
+
+    // discard drivable area with small area if there are more than one node (this is subject to change)
     unsigned long num_drivable_area = 0;
     for (auto const& [proposition_holder, drivable_area]: map_propositions_to_drivable_area) {
         num_drivable_area += drivable_area.size();
     }
     bool discard_small_node = (num_drivable_area > 1);
 
-    unordered_map<PropositionHolder, vector<SemanticReachNodePtr>, PropositionHolder::HashFunction>
-            map_propositions_to_reachable_set{};
+    // work with the reachable sets partitioned by propositions here, because otherwise it could happen
+    // that we merge two reachable sets with different propositions when they intersect with the same drivable area
+
+    vector<SemanticReachNodePtr> new_reachable_sets{};
     for (auto const& [proposition_holder, drivable_area]: map_propositions_to_drivable_area) {
         auto propagated_set = map_propositions_to_propagated_set[proposition_holder];
 
@@ -511,11 +261,16 @@ void SemanticReachableSet::_compute_reachable_set_at_step(int const& step) {
         }
 
         if (!vec_nodes.empty()) {
-            auto reachable_set = semantic_reach::connect_children_to_parents(step, vec_nodes, num_threads);
-            map_propositions_to_reachable_set[proposition_holder] = reachable_set;
+            auto reachable_sets = semantic_reach::connect_children_to_parents(step, vec_nodes, num_threads);
+            // copy propositions for newly constructed nodes. Because all propagated sets are labeled with the same
+            // propositions, we simply use the first as reference.
+            labeler->copy_labels(propagated_set[0], reachable_sets);
+            new_reachable_sets.insert(new_reachable_sets.end(),
+                                      std::make_move_iterator(reachable_sets.begin()),
+                                      std::make_move_iterator(reachable_sets.end()));
         }
     }
-    map_step_to_propositions_to_reachable_set[step] = map_propositions_to_reachable_set;
+    map_step_to_reachable_set[step] = new_reachable_sets;
 }
 //
 ///// Iterates through reachability graph backward in time, discards nodes that don't have a child node.

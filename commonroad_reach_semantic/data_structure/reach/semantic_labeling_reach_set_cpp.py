@@ -40,20 +40,18 @@ class CppSemanticLabelingReachableSet(SemanticReachableSet):
             self._reach.compute(step, step)
             self._list_steps_computed.append(step)
 
-        self.dict_step_to_propositions_to_drivable_area = self._reach.map_step_to_propositions_to_drivable_area
-        self.dict_step_to_propositions_to_reachable_set = self._reach.map_step_to_propositions_to_reachable_set
-
-        # self.dict_step_to_drivable_area = self._reach.drivable_area()
-        # self.dict_step_to_reachable_set = self._reach.reachable_set()
+        self.dict_step_to_drivable_area = self._reach.drivable_area
+        self.dict_step_to_reachable_set = self._reach.reachable_set
+        self.dict_step_to_propagated_set = self._reach.propagated_set
 
         if self.config.reachable_set.prune_nodes_not_reaching_final_step:
             self.prune_nodes_not_reaching_final_step()
 
     def drivable_area_at_step(self, step: int):
-        return self._reach.drivable_area_merge_at_step(step)
+        return self._reach.drivable_area_at_step(step)
 
     def reachable_set_at_step(self, step: int):
-        return self._reach.reachable_set_merge_at_step(step)
+        return self._reach.reachable_set_at_step(step)
 
     def prune_nodes_not_reaching_final_step(self):
         # self._reach.prune_nodes_not_reaching_final_step()
