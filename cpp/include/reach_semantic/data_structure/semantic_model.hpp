@@ -1,7 +1,6 @@
 #pragma once
 
 #include "reach_semantic/utility/shared_include.hpp"
-#include "reach_semantic/data_structure/semantic_configuration.hpp"
 #include "reach_semantic/data_structure/traffic_rule.hpp"
 #include "reach_semantic/data_structure/region.hpp"
 #include "reach_semantic/data_structure/position_interval.hpp"
@@ -12,7 +11,6 @@ class SemanticModel {
 public:
     py::handle obj_semantic_model_py;
 
-    SemanticConfigurationPtr config;
     int step_start{};
     int step_end{};
 
