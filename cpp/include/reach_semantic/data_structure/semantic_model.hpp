@@ -21,6 +21,8 @@ public:
     // vehicle position interval
     std::map<int, std::map<std::string, std::vector<PositionIntervalPtr>>> map_step_to_position_intervals;
 
+    std::map<int, std::set<std::string>> map_step_to_traffic_status_propositions;
+
     explicit SemanticModel(py::handle const& obj_semantic_model_py);
 };
 
