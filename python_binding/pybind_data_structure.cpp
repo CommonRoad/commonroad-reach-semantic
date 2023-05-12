@@ -105,9 +105,14 @@ void export_configuration(py::module& m) {
 
     py::class_<SemanticConfiguration, shared_ptr<SemanticConfiguration>, reach::Configuration>(m, "SemanticConfiguration")
             .def(py::init<>())
-            .def_readwrite("reachable_set", &SemanticConfiguration::config_reachable_set);
+            .def_readwrite("reachable_set", &SemanticConfiguration::config_reachable_set)
+            .def_readwrite("semantic_model", &SemanticConfiguration::config_semantic_model);
 
     py::class_<SemanticReachableSetConfiguration, shared_ptr<SemanticReachableSetConfiguration>, reach::ReachableSetConfiguration>(m, "SemanticReachableSetConfiguration")
             .def(py::init<>())
             .def_readwrite("length_edge_node_min", &SemanticReachableSetConfiguration::length_edge_node_min);
+
+    py::class_<SemanticModelConfiguration, shared_ptr<SemanticModelConfiguration>>(m, "SemanticModelConfiguration")
+            .def(py::init<>())
+            .def_readwrite("is_intersection", &SemanticModelConfiguration::is_intersection);
 }

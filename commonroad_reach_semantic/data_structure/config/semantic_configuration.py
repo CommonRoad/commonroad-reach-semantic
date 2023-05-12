@@ -117,6 +117,8 @@ class SemanticConfiguration(Configuration):
             config.reachable_set.lut_lon_enlargement = \
                 pycrreach.LUTLongitudinalEnlargement(self.reachable_set.lut_longitudinal_enlargement)
 
+        config.semantic_model.is_intersection = self.semantic_model.incoming_element_route is not None
+
         return config
 
 
