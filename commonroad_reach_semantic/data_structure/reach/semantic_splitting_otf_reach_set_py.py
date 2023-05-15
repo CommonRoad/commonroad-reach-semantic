@@ -1,7 +1,7 @@
-import itertools
+import more_itertools
 import logging
 from collections import defaultdict
-from typing import List, Dict, FrozenSet, Set, Tuple
+from typing import List, Dict, FrozenSet, Set, Tuple, Iterable
 
 from commonroad_reach.data_structure.reach.reach_node import ReachNode
 from commonroad_reach.data_structure.reach.reach_polygon import ReachPolygon
@@ -47,7 +47,7 @@ class PySemanticSplittingOTFReachableSet(PySemanticReachableSet):
         initial_reachable_sets = self._construct_initial_reachable_sets()
 
         # Label initial state with propositions and automaton states
-        initial_reachable_sets = itertools.chain.from_iterable(
+        initial_reachable_sets = more_itertools.flatten(
             self._split_reachable_set(self.step_start, initial_reachable_set)
             for initial_reachable_set in initial_reachable_sets
         )
@@ -79,8 +79,10 @@ class PySemanticSplittingOTFReachableSet(PySemanticReachableSet):
 
         propagated_sets = self._propagate_reachable_set(reachable_set_previous)
 
-        propagated_sets = itertools.chain.from_iterable(
-            self._split_reachable_set(step, propagated_set) for propagated_set in propagated_sets)
+        propagated_sets = more_itertools.flatten(
+            self._split_reachable_set(step, propagated_set)
+            for propagated_set in propagated_sets
+        )
         propagated_sets = self._filter_reachable_sets(propagated_sets, step)
 
         # partition propagated sets by their automaton states
@@ -97,8 +99,7 @@ class PySemanticSplittingOTFReachableSet(PySemanticReachableSet):
             dict_states_to_drivable_area[automaton_states] = self._collision_check_and_repartition(
                 list_rectangles_projected, step)
 
-        self.dict_step_to_drivable_area[step] = list(
-            itertools.chain.from_iterable(dict_states_to_drivable_area.values()))
+        self.dict_step_to_drivable_area[step] = list(more_itertools.flatten(dict_states_to_drivable_area.values()))
         self.dict_step_to_states_to_drivable_area[step] = dict_states_to_drivable_area
         self.dict_step_to_states_to_propagated_set[step] = dict_states_to_propagated_set
         self.dict_step_to_propagated_set[step] = propagated_sets
@@ -141,9 +142,9 @@ class PySemanticSplittingOTFReachableSet(PySemanticReachableSet):
                 dict_propositions_to_reachable_set[automaton_states] = reachable_sets
 
         self.dict_step_to_reachable_set[step] = list(
-            itertools.chain.from_iterable(dict_propositions_to_reachable_set.values()))
+            more_itertools.flatten(dict_propositions_to_reachable_set.values()))
 
-    def _filter_reachable_sets(self, reachable_sets: List[ReachNode], step: int) -> List[ReachNode]:
+    def _filter_reachable_sets(self, reachable_sets: Iterable[ReachNode], step: int) -> List[ReachNode]:
         """Filter reachable sets that cannot be part of an accepting run of the automaton."""
         is_final_step = (step == self.step_end)
         return [
@@ -196,25 +197,27 @@ class PySemanticSplittingOTFReachableSet(PySemanticReachableSet):
         # restrict with predicates that don't need lanelets
         restricted_reachable_sets = [reachable_set.clone()]
         for pred in predicates_dont_need_lanelets:
-            restricted_reachable_sets = list(itertools.chain.from_iterable(
+            restricted_reachable_sets = list(more_itertools.flatten(
                 pred.restrict_reach_node(step, node, self.labeler.semantic_model)
-                for node in restricted_reachable_sets))
+                for node in restricted_reachable_sets
+            ))
 
         # if there are no predicates that need lanelets, we are done, so we don't need to split to regions
         if not predicates_need_lanelets:
             return restricted_reachable_sets
 
         # split to regions
-        restricted_reachable_sets = list(itertools.chain.from_iterable(
+        restricted_reachable_sets = list(more_itertools.flatten(
             self.labeler.split_wrt_regions(step, restricted_reachable_set)
             for restricted_reachable_set in restricted_reachable_sets
         ))
 
         # restrict with predicates that need lanelets
         for pred in predicates_need_lanelets:
-            restricted_reachable_sets = list(itertools.chain.from_iterable(
+            restricted_reachable_sets = list(more_itertools.flatten(
                 pred.restrict_reach_node(step, node, self.labeler.semantic_model,
                                          node_lanelet_ids=self.labeler.reachable_set_to_lanelet_ids[node])
-                for node in restricted_reachable_sets))
+                for node in restricted_reachable_sets
+            ))
 
         return restricted_reachable_sets

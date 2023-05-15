@@ -1,4 +1,5 @@
 import itertools
+import more_itertools
 from collections import defaultdict
 from typing import Union, List, Dict, FrozenSet
 
@@ -256,7 +257,7 @@ class ReachableSetLabeler:
                                                                                 reachable_set.p_lon_min,
                                                                                 reachable_set.p_lon_max, "lon")
 
-        list_reachable_sets_split = list(itertools.chain.from_iterable(
+        list_reachable_sets_split = list(more_itertools.flatten(
             self._split_reachable_set_wrt_intervals(reachable_set_split, list_intervals_lat,
                                                     reachable_set_split.p_lat_min,
                                                     reachable_set_split.p_lat_max, "lat")

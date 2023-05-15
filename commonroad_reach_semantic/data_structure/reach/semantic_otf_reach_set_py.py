@@ -1,4 +1,4 @@
-import itertools
+import more_itertools
 import logging
 from collections import defaultdict
 from typing import List, Dict, FrozenSet
@@ -77,11 +77,14 @@ class PySemanticOTFReachableSet(PySemanticReachableSet):
         propagated_sets = self._propagate_reachable_set(reachable_set_previous)
 
         # split w.r.t regions and position intervals
-        propagated_sets = itertools.chain.from_iterable(
-            self.labeler.split_wrt_regions(step, propagated_set) for propagated_set in propagated_sets)
-        propagated_sets = itertools.chain.from_iterable(
-            self.labeler.split_wrt_position_intervals(step, propagated_set) for propagated_set in
-            propagated_sets)
+        propagated_sets = more_itertools.flatten(
+            self.labeler.split_wrt_regions(step, propagated_set)
+            for propagated_set in propagated_sets
+        )
+        propagated_sets = more_itertools.flatten(
+            self.labeler.split_wrt_position_intervals(step, propagated_set)
+            for propagated_set in propagated_sets
+        )
 
         # discard the ones colliding with vehicles
         propagated_sets = self.labeler.discard_colliding_nodes(propagated_sets)
@@ -112,7 +115,7 @@ class PySemanticOTFReachableSet(PySemanticReachableSet):
                 list_rectangles_projected, step)
 
         self.dict_step_to_drivable_area[step] = list(
-            itertools.chain.from_iterable(dict_states_to_drivable_area.values()))
+            more_itertools.flatten(dict_states_to_drivable_area.values()))
         self.dict_step_to_states_to_drivable_area[step] = dict_states_to_drivable_area
         self.dict_step_to_states_to_propagated_set[step] = dict_states_to_propagated_set
         self.dict_step_to_propagated_set[step] = propagated_sets
@@ -155,7 +158,7 @@ class PySemanticOTFReachableSet(PySemanticReachableSet):
                 dict_propositions_to_reachable_set[automaton_states] = reachable_sets
 
         self.dict_step_to_reachable_set[step] = list(
-            itertools.chain.from_iterable(dict_propositions_to_reachable_set.values()))
+            more_itertools.flatten(dict_propositions_to_reachable_set.values()))
 
     def _label_reachable_sets_with_automaton_states(self, reachable_sets: List[ReachNode],
                                                     initial_step: bool = False) -> None:

@@ -1,6 +1,6 @@
 import functools
 from collections import defaultdict
-from typing import Iterator, List, Set, Dict
+from typing import Iterator, List, Dict, Iterable
 
 import buddy
 import spot
@@ -35,13 +35,13 @@ class FiniteAutomaton:
         for edge in self._spot_automaton.out(state):
             yield edge.dst, self._edge_condition_to_minterms(edge.cond)
 
-    def combined_transitions_from(self, states: Set[int]) -> Iterator[tuple[int, List[List[tuple[str, bool]]]]]:
-        """Iterate over all transitions outgoing from the given set of states.
+    def combined_transitions_from(self, states: Iterable[int]) -> Iterator[tuple[int, List[List[tuple[str, bool]]]]]:
+        """Iterate over all transitions outgoing from the given states.
 
         Tries to minimize the minterms by combining the conditions of the outgoing edges leading to the same destination.
         """
         dst_state_to_conditions: Dict[int, List[buddy.bdd]] = defaultdict(list)
-        for state in states:
+        for state in frozenset(states):
             for edge in self._spot_automaton.out(state):
                 dst_state_to_conditions[edge.dst].append(edge.cond)
         for dst_state, conditions in dst_state_to_conditions.items():

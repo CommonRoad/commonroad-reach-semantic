@@ -1,4 +1,4 @@
-import itertools
+import more_itertools
 import logging
 from collections import defaultdict
 from functools import lru_cache
@@ -171,11 +171,11 @@ class VehicleModel:
             list_intervals_lat = [interval_lat_initial.clone()]
 
             for vehicle in self.list_vehicles:
-                list_intervals_lon = list(itertools.chain.from_iterable(
+                list_intervals_lon = list(more_itertools.flatten(
                     interval_lon.split_with_respect_to_vehicle(step, vehicle, length_ego / 2, "lon")
                     for interval_lon in list_intervals_lon
                 ))
-                list_intervals_lat = list(itertools.chain.from_iterable(
+                list_intervals_lat = list(more_itertools.flatten(
                     interval_lat.split_with_respect_to_vehicle(step, vehicle, width_ego / 2, "lat")
                     for interval_lat in list_intervals_lat
                 ))

@@ -13,3 +13,4 @@ setuptools>=62.1.0
 pyyaml>=5.3.1
 triangle==20220202
 networkx>=2.6.3
+more-itertools>=9.1.0
