@@ -119,6 +119,7 @@ def extract_atomic_proposition(literal: spot.formula) -> tuple[str, bool]:
     
     :param literal: Formula that is either a literal or a negated literal
     :return: Name of the atomic proposition and whether it is negated or not
+    :raise ValueError: If the formula is not a literal or a negated literal
     """
     if literal._is(spot.op_Not) and literal[0]._is(spot.op_ap):
         return literal[0].ap_name(), True
@@ -129,6 +130,16 @@ def extract_atomic_proposition(literal: spot.formula) -> tuple[str, bool]:
 
 
 def extract_minterms_from_dnf(formula_dnf: spot.formula) -> List[List[tuple[str, bool]]]:
+    """Extract the minterms from a spot formula in DNF.
+
+    The formula is true iff at least one minterm is satisfied.
+    A minterm is a list of possibly negated atomic propositions.
+    It is satisfied iff all its atomic propositions hold.
+
+    :param formula_dnf: A formula in disjunctive normal form
+    :return: The minterms of the formula
+    :raise ValueError: If the formula is not in DNF
+    """
     try:
         return [
             [extract_atomic_proposition(c) for c in conjuncts(d)]

@@ -58,7 +58,7 @@ class FiniteAutomaton:
         """Convert a condition on an automaton edge given as a BDD into a list of minterms.
 
         The condition is true iff at least one minterm is satisfied.
-        A minterm is a list of possible negated atomic propositions.
+        A minterm is a list of possibly negated atomic propositions.
         It is satisfied iff all its atomic propositions hold.
         """
         # will be in DNF --> bbd_to_formula computes an irredundant sum of products
