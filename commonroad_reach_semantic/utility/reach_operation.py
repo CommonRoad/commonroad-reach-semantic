@@ -101,12 +101,7 @@ def determine_connected_reach_nodes(list_nodes_reach: Union[List[ReachNode], Lis
     if not list_nodes_reach:
         return dict_adjacency
 
-    else:
-        if isinstance(list_nodes_reach[0], ReachNode):
-            list_position_rectangles = [node_reach.position_rectangle for node_reach in list_nodes_reach]
-
-        else:
-            list_position_rectangles = [node_reach.position_rectangle for node_reach in list_nodes_reach]
+    list_position_rectangles = [node_reach.position_rectangle for node_reach in list_nodes_reach]
 
     # iterate over all rectangles
     for idx1, position_rect_1 in enumerate(list_position_rectangles):

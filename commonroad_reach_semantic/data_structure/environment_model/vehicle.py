@@ -286,11 +286,7 @@ class Vehicle:
         return set()
 
     def retrieve_p_lon_node_ego(self, node: Union[ReachNode, pycrreach.ReachNode]):
-        if isinstance(node, ReachNode):
-            bounds = node.position_rectangle.bounds
-
-        else:
-            bounds = node.position_rectangle.bounds
+        bounds = node.position_rectangle.bounds
 
         [polygon_cart] = util_cosy.convert_to_cartesian_polygon(bounds, self.CLCS_ref, False)
         list_vertices_cvln = util_cosy.convert_to_curvilinear_vertices(polygon_cart.vertices, self.lane.CLCS)

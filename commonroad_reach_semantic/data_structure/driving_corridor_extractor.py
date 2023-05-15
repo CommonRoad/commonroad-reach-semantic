@@ -421,11 +421,6 @@ class DrivingCorridorExtractor:
         set_corridors_keep = set()
         set_nodes_auto_corridors_keep = set()
 
-        if self.graph_automaton.backend == "PYTHON":
-            parents = "list_nodes_parent"
-        else:
-            parents = "vec_nodes_parent"
-
         for corridor in set_corridors_pruned:
             set_nodes_reach_acc_prev = set()
             set_nodes_reach_acc = set()
@@ -441,7 +436,7 @@ class DrivingCorridorExtractor:
 
                     for node_reach in node_auto.node_kripke.set_nodes_reach:
                         # discard if the parent nodes don't intersect with the accepted nodes of the previous step
-                        if set(eval(f"node_reach.{parents}")).intersection(set_nodes_reach_acc_prev):
+                        if set(node_reach.list_nodes_parent).intersection(set_nodes_reach_acc_prev):
                             set_nodes_reach_acc.add(node_reach)
 
                         else:

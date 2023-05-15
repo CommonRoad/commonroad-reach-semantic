@@ -129,10 +129,7 @@ class ReachableSetLabeler:
 
         # examine if the vehicles are in conflict with the propagated set
         for propagated_set in list_propagated_sets:
-            if isinstance(propagated_set, ReachNode):
-                p_lon_min = propagated_set.p_lon_min
-            else:
-                p_lon_min = propagated_set.p_lon_min()
+            p_lon_min = propagated_set.p_lon_min
 
             for vehicle in self.semantic_model.vehicle_model.list_vehicles:
                 try:
@@ -285,17 +282,13 @@ class ReachableSetLabeler:
                 break
         return list_reachable_sets_split
 
-    def _obtain_lanelet_transition_propositions(self,
-                                                propagated_set: Union[ReachNode, pycrreach.ReachNode]):
+    def _obtain_lanelet_transition_propositions(self, propagated_set: ReachNode):
         """
         Returns the set of lanelet transition propositions.
         """
         set_propositions = set()
         # retrieve lanelet propositions from the source
-        if isinstance(propagated_set, ReachNode):
-            source_node = propagated_set.source_propagation
-        else:
-            source_node = propagated_set.vec_nodes_source[0]
+        source_node = propagated_set.source_propagation
 
         set_propositions_position_source = self.reachable_set_to_propositions[source_node].propositions_in_group(
             PropGroup.POSITION)
