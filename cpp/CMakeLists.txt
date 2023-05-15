@@ -56,7 +56,8 @@ target_link_libraries(crreachs PUBLIC
         ccd
         ${S11N_LIBRARY}
         yaml-cpp
-        spot)
+        spot
+        bddx)
 target_link_libraries(crreachs PRIVATE pybind11::embed)
 
 # ====
