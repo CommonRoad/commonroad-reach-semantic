@@ -34,6 +34,7 @@ void SemanticReachableSet::_initialize() {
 
     map_step_to_reachable_set[step_start] = _construct_initial_reachable_sets();
     map_step_to_drivable_area[step_start] = reach::project_base_sets_to_position_domain(map_step_to_reachable_set[step_start]);
+    labeler->label_initial_state(map_step_to_reachable_set[step_start], step_start);
     _initialize_zero_state_polygons();
 
     _vec_steps_computed.emplace_back(step_start);
