@@ -10,7 +10,7 @@ from commonroad_reach_semantic.data_structure.config.semantic_configuration_buil
 from commonroad_reach_semantic.data_structure.environment_model.semantic_model import SemanticModel
 from commonroad_reach_semantic.data_structure.reach.reachable_set_labeler import ReachableSetLabeler
 from commonroad_reach_semantic.data_structure.reach.semantic_labeling_reach_set_py import PySemanticLabelingReachableSet
-from commonroad_reach_semantic.data_structure.reach.semantic_otf_reach_set_py import PySemanticOTFReachableSet
+from commonroad_reach_semantic.data_structure.reach.semantic_splitting_otf_reach_set_py import PySemanticSplittingOTFReachableSet
 from commonroad_reach_semantic.data_structure.rule import priorities
 from commonroad_reach_semantic.data_structure.rule.traffic_rule_interface import TrafficRuleInterface
 
@@ -48,6 +48,6 @@ def semantic_otf_reachable_set_py(config: SemanticConfiguration, semantic_model:
 
 
 @pytest.fixture
-def semantic_otf_reachable_set_py(config: SemanticConfiguration, semantic_model: SemanticModel,
-                                  rule_interface: TrafficRuleInterface) -> PySemanticOTFReachableSet:
-    return PySemanticOTFReachableSet(config, semantic_model, rule_interface)
+def semantic_splitting_otf_reachable_set_py(config: SemanticConfiguration, semantic_model: SemanticModel,
+                                            rule_interface: TrafficRuleInterface) -> PySemanticSplittingOTFReachableSet:
+    return PySemanticSplittingOTFReachableSet(config, semantic_model, rule_interface)
