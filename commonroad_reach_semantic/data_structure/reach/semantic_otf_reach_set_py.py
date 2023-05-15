@@ -192,22 +192,3 @@ class PySemanticOTFReachableSet(PySemanticReachableSet):
 
     def _has_accepting_state(self, reachable_set: ReachNode) -> bool:
         return any(self.automaton.is_accepting_state(state) for state in self.reachable_set_to_label[reachable_set])
-
-    def _split_reachable_set(self, reachable_set: ReachNode, current_state: int) -> List[tuple[ReachNode, int]]:
-        split_sets = list()
-        for next_state, minterms in self.automaton.transitions_from(current_state):
-            for minterm in minterms:
-                constrained_reachable_set = reachable_set.clone()
-                for proposition, negated in minterm:
-                    # consider only position propositions for now
-                    # TODO: Constrain reachable set to (negated) proposition
-                    if negated:
-                        pass
-                    else:
-                        # see split_wrt_regions, so something like
-                        # constrained_reachable_set.intersect_in_position_domain(*proposition.area.intersection(reachable_set.position_rectangle).bounds)
-                        pass
-                    pass
-                # TODO: Check if constrained reachable set is empty --> only add if not empty
-                split_sets.append((constrained_reachable_set, next_state))
-        return split_sets
