@@ -7,6 +7,7 @@
 #include "reach_semantic/data_structure/semantic_configuration.hpp"
 #include "reach_semantic/data_structure/semantic_model.hpp"
 #include "reach_semantic/data_structure/proposition.hpp"
+#include "reach_semantic/data_structure/reach/semantic_reach_set.hpp"
 #include "collision/collision_checker.h"
 #include <omp.h>
 
@@ -20,95 +21,20 @@ namespace py = pybind11;
 
 namespace semantic_reach {
 /// Reachable set representation for the ego vehicle.
-class SemanticLabelingReachableSet {
+class SemanticLabelingReachableSet : public SemanticReachableSet {
 private:
-    bool _reachable_set_computed{false};
-    bool _pruned{false};
-    std::vector<int> _vec_steps_computed{};
-
-    void _initialize();
-
-    std::vector<reach::ReachNodePtr> _construct_initial_reachable_sets();
-
-    void _initialize_zero_state_polygons();
-
     void _compute_drivable_area_at_step(int const& step);
 
     void _compute_reachable_set_at_step(int const& step);
 
-    /// Propagates the nodes of the reachable set.
-    std::vector<reach::ReachNodePtr> _propagate_reachable_set(std::vector<reach::ReachNodePtr> const& vec_nodes);
-
-    /// Computes collision free drivable area.
-    std::vector<reach::ReachPolygonPtr>
-    _collision_check_and_repartition(std::vector<reach::ReachPolygonPtr> rectangles, int const &step);
-
 public:
-    explicit SemanticLabelingReachableSet(SemanticConfigurationPtr config);
-
-    SemanticLabelingReachableSet(SemanticConfigurationPtr config, CollisionCheckerPtr collision_checker, SemanticModelPtr semantic_model);
-
     SemanticLabelingReachableSet(SemanticConfigurationPtr config, CollisionCheckerPtr collision_checker,
                  SemanticModelPtr semantic_model, TrafficRuleInterfacePtr traffic_rule_interface);
-
-    SemanticConfigurationPtr config;
-    CollisionCheckerPtr collision_checker;
-    ReachableSetLabelerPtr labeler;
-    SemanticModelPtr semantic_model;
-    TrafficRuleInterfacePtr rule_interface;
-
-    int step_start{};
-    int step_end{};
-
-    std::map<int, std::vector<reach::ReachNodePtr>> map_step_to_reachable_set{};
-    std::map<int, std::vector<reach::ReachPolygonPtr>> map_step_to_drivable_area{};
-    std::map<int, std::vector<reach::ReachNodePtr>> map_step_to_propagated_set{};
 
     std::map<int, std::unordered_map<PropositionHolder, std::vector<reach::ReachNodePtr>, PropositionHolder::HashFunction>>
             map_step_to_propositions_to_propagated_set{};
     std::map<int, std::unordered_map<PropositionHolder, std::vector<reach::ReachPolygonPtr>, PropositionHolder::HashFunction>>
             map_step_to_propositions_to_drivable_area{};
-
-    reach::ReachPolygonPtr polygon_zero_state_lon;
-    reach::ReachPolygonPtr polygon_zero_state_lat;
-
-    /// Returns the propositions of the given rectangle.
-    PropositionHolder obtain_propositions_for_rectangle(reach::ReachPolygonPtr const& rectangle, int const& step) const;
-
-    inline reach::ReachNodePtr update_propositions_with_region(reach::ReachNodePtr const& node,
-                                                        RegionPtr const& region, int const& step);
-
-    void compute(int step_start = 0, int step_end = 0);
-
-    //void prune_nodes_not_reaching_final_step();
-
-    inline std::map<int, std::vector<reach::ReachPolygonPtr>> drivable_area() const { return map_step_to_drivable_area; }
-    inline std::map<int, std::vector<reach::ReachNodePtr>> reachable_set() const { return map_step_to_reachable_set; }
-    inline std::map<int, std::vector<reach::ReachNodePtr>> propagated_set() const { return map_step_to_propagated_set; }
-
-    inline std::vector<reach::ReachPolygonPtr>
-    drivable_area_at_step(int const& step) {
-        if (find(_vec_steps_computed.begin(), _vec_steps_computed.end(), step)
-            == _vec_steps_computed.end()) {
-            cout << "Given step " << step << "for drivable area retrieval is out of range." << endl;
-            return {};
-
-        } else {
-            return map_step_to_drivable_area[step];
-        }
-    }
-
-    inline std::vector<reach::ReachNodePtr>
-    reachable_set_at_step(int const& step) {
-        if (find(_vec_steps_computed.begin(), _vec_steps_computed.end(), step)
-            == _vec_steps_computed.end()) {
-            cout << "Given step " << step << "for reachable set retrieval is out of range." << endl;
-            return {};
-
-        } else {
-            return map_step_to_reachable_set[step];
-        }
-    }
 };
 
 using SemanticLabelingReachableSetPtr = shared_ptr<SemanticLabelingReachableSet>;

@@ -10,12 +10,6 @@ void export_reach(py::module &m) {
 
 void export_reachable_set_interface(py::module &m) {
     py::class_<SemanticLabelingReachableSet, shared_ptr<SemanticLabelingReachableSet>>(m, "SemanticLabelingReachableSet")
-            .def(py::init<SemanticConfigurationPtr &>(),
-                 py::arg("configuration"))
-            .def(py::init<SemanticConfigurationPtr const &, CollisionCheckerPtr const &, SemanticModelPtr const &>(),
-                 py::arg("configuration"),
-                 py::arg("collision_checker"),
-                 py::arg("semantic_model"))
             .def(py::init<SemanticConfigurationPtr const &, CollisionCheckerPtr const &,
                          SemanticModelPtr const &, TrafficRuleInterfacePtr const &>(),
                  py::arg("configuration"),
