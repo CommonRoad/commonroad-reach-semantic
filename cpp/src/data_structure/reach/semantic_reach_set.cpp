@@ -3,6 +3,7 @@
 #include <utility>
 #include "reachset/utility/shared_using.hpp"
 #include "reachset/utility/reach_operation.hpp"
+#include "reachset/utility/reach_operation.hpp"
 #include "reach_semantic/utility/reach_operation.hpp"
 
 using namespace semantic_reach;
@@ -32,7 +33,7 @@ void SemanticReachableSet::_initialize() {
     step_end = step_start + config->planning().steps_computation;
 
     map_step_to_reachable_set[step_start] = _construct_initial_reachable_sets();
-    map_step_to_drivable_area[step_start] = semantic_reach::project_propagated_sets_to_position_domain(map_step_to_reachable_set[step_start]);
+    map_step_to_drivable_area[step_start] = reach::project_base_sets_to_position_domain(map_step_to_reachable_set[step_start]);
     _initialize_zero_state_polygons();
 
     _vec_steps_computed.emplace_back(step_start);
@@ -49,7 +50,7 @@ void SemanticReachableSet::_initialize_zero_state_polygons() {
                                                        config->vehicle().ego.a_lat_max);
 }
 
-std::vector<SemanticReachNodePtr> SemanticReachableSet::_construct_initial_reachable_sets() {
+std::vector<reach::ReachNodePtr> SemanticReachableSet::_construct_initial_reachable_sets() {
     // initial drivable area
     auto tuple_vertices = generate_tuple_vertices_position_rectangle_initial(config);
 
@@ -59,7 +60,7 @@ std::vector<SemanticReachNodePtr> SemanticReachableSet::_construct_initial_reach
     auto polygon_lon = make_shared<reach::ReachPolygon>(tuple_vertices_polygon_lon);
     auto polygon_lat = make_shared<reach::ReachPolygon>(tuple_vertices_polygon_lat);
 
-    return {std::make_shared<SemanticReachNode>(step_start, polygon_lon, polygon_lat, PropositionHolder())};
+    return {std::make_shared<reach::ReachNode>(step_start, polygon_lon, polygon_lat)};
 }
 
 void SemanticReachableSet::compute(int step_start, int step_end) {
@@ -111,7 +112,7 @@ void SemanticReachableSet::_compute_drivable_area_at_step(int const& step) {
     vec_propagated_set = labeler->label_traffic_propositions(step, vec_propagated_set);
 
     // partition propagated sets by their propositions
-    unordered_map<PropositionHolder, vector<SemanticReachNodePtr>, PropositionHolder::HashFunction>
+    unordered_map<PropositionHolder, vector<reach::ReachNodePtr>, PropositionHolder::HashFunction>
             dict_propositions_to_propagated_set{};
     for (auto const& propagated_set: vec_propagated_set) {
         dict_propositions_to_propagated_set[labeler->reachable_set_to_propositions[propagated_set]].emplace_back(propagated_set);
@@ -123,7 +124,7 @@ void SemanticReachableSet::_compute_drivable_area_at_step(int const& step) {
             dict_propositions_to_drivable_area{};
     std::vector<reach::ReachPolygonPtr> vec_drivable_area{};
     for (const auto &[propositions, propagated_sets_per_proposition]: dict_propositions_to_propagated_set) {
-        auto vec_rectangles_projected = project_propagated_sets_to_position_domain(propagated_sets_per_proposition);
+        auto vec_rectangles_projected = reach::project_base_sets_to_position_domain(propagated_sets_per_proposition);
         auto drivable_area_at_proposition = _collision_check_and_repartition(vec_rectangles_projected, step);
         dict_propositions_to_drivable_area[propositions] = drivable_area_at_proposition;
         vec_drivable_area.insert(vec_drivable_area.end(), drivable_area_at_proposition.begin(),drivable_area_at_proposition.end());
@@ -136,14 +137,14 @@ void SemanticReachableSet::_compute_drivable_area_at_step(int const& step) {
 }
 
 
-vector<SemanticReachNodePtr> SemanticReachableSet::_propagate_reachable_set(vector<SemanticReachNodePtr> const& vec_nodes) {
-    vector<SemanticReachNodePtr> vec_base_sets_propagated;
+vector<reach::ReachNodePtr> SemanticReachableSet::_propagate_reachable_set(vector<reach::ReachNodePtr> const& vec_nodes) {
+    vector<reach::ReachNodePtr> vec_base_sets_propagated;
     vec_base_sets_propagated.reserve(vec_nodes.size());
 
 #pragma omp parallel num_threads(config->reachable_set().num_threads) \
 default(none) shared(vec_nodes, vec_base_sets_propagated)
     {
-        vector<SemanticReachNodePtr> vec_base_sets_propagated_thread;
+        vector<reach::ReachNodePtr> vec_base_sets_propagated_thread;
         vec_base_sets_propagated_thread.reserve(vec_nodes.size());
 
 #pragma omp for nowait
@@ -161,10 +162,9 @@ default(none) shared(vec_nodes, vec_base_sets_propagated)
                                                                 config->vehicle().ego.v_lat_min,
                                                                 config->vehicle().ego.v_lat_max);
 
-                auto propagated_set = make_shared<SemanticReachNode>(node->step,
+                auto propagated_set = make_shared<reach::ReachNode>(node->step,
                                                              polygon_lon_propagated,
-                                                             polygon_lat_propagated,
-                                                             PropositionHolder());
+                                                             polygon_lat_propagated);
                 propagated_set->vec_nodes_source.emplace_back(node);
                 vec_base_sets_propagated_thread.emplace_back(propagated_set);
             }
@@ -251,18 +251,18 @@ void SemanticReachableSet::_compute_reachable_set_at_step(int const& step) {
     // work with the reachable sets partitioned by propositions here, because otherwise it could happen
     // that we merge two reachable sets with different propositions when they intersect with the same drivable area
 
-    vector<SemanticReachNodePtr> new_reachable_sets{};
+    vector<reach::ReachNodePtr> new_reachable_sets{};
     for (auto const& [proposition_holder, drivable_area]: map_propositions_to_drivable_area) {
         auto propagated_set = map_propositions_to_propagated_set[proposition_holder];
 
-        auto vec_nodes = semantic_reach::construct_reach_nodes(drivable_area, propagated_set, num_threads);
+        auto vec_nodes = reach::construct_reach_nodes(drivable_area, propagated_set, num_threads);
 
         if (discard_small_node) {
             vec_nodes = semantic_reach::discard_nodes_with_short_edge(vec_nodes, config->reachable_set().length_edge_node_min);
         }
 
         if (!vec_nodes.empty()) {
-            auto reachable_sets = semantic_reach::connect_children_to_parents(step, vec_nodes, num_threads);
+            auto reachable_sets = reach::connect_children_to_parents(step, vec_nodes, num_threads);
             // copy propositions for newly constructed nodes. Because all propagated sets are labeled with the same
             // propositions, we simply use the first as reference.
             labeler->copy_labels(propagated_set[0], reachable_sets);
@@ -297,7 +297,7 @@ void SemanticReachableSet::_compute_reachable_set_at_step(int const& step) {
 //        }
 //        // discard nodes without a child
 //        vector<reach::ReachPolygonPtr> vec_drivable_area_updated{};
-//        vector<SemanticReachNodePtr> vec_reachable_set_updated{};
+//        vector<reach::ReachNodePtr> vec_reachable_set_updated{};
 //        for (int idx_node = 0; idx_node < vec_nodes.size(); idx_node++) {
 //            auto result = std::find(vec_idx_nodes_to_be_deleted.begin(),
 //                                    vec_idx_nodes_to_be_deleted.end(),
@@ -320,11 +320,11 @@ void SemanticReachableSet::_compute_reachable_set_at_step(int const& step) {
 //    // cout << "\t#Nodes after pruning: \t" << cnt_nodes_after_pruning << endl;
 //}
 
-vector<SemanticReachNodePtr> SemanticReachableSet::_call_python_dummy(int const& step, vector<SemanticReachNodePtr> const& vec_nodes) {
-    vector<SemanticReachNodePtr> vec_nodes_new{};
+vector<reach::ReachNodePtr> SemanticReachableSet::_call_python_dummy(int const& step, vector<reach::ReachNodePtr> const& vec_nodes) {
+    vector<reach::ReachNodePtr> vec_nodes_new{};
     for (auto const& node: vec_nodes) {
         vec_nodes_new.emplace_back(semantic_model->obj_semantic_model_py.attr("call_python_dummy")(step, node)
-                                           .cast<SemanticReachNodePtr>());
+                                           .cast<reach::ReachNodePtr>());
     }
     return vec_nodes_new;
 }

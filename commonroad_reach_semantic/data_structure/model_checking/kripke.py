@@ -209,7 +209,7 @@ class KripkeNode:
 
         return v_lon_min
 
-    def add_reach_node(self, node_reach: Union[ReachNode, pycrreachs.SemanticReachNode]):
+    def add_reach_node(self, node_reach: Union[ReachNode, pycrreach.ReachNode]):
         """
         Adds a reach node.
         """
@@ -221,8 +221,8 @@ class KripkeNode:
             children = "list_nodes_child"
 
         else:
-            parents = "vec_nodes_parent"
-            children = "vec_nodes_child"
+            parents = "list_nodes_parent"
+            children = "list_nodes_child"
 
         self.set_nodes_reach_parent.update(set(eval(f"node_reach.{parents}")))
         self.set_ids_nodes_reach_parent.update({node_parent.id for node_parent in eval(f"node_reach.{parents}")})

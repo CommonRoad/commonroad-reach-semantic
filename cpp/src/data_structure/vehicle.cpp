@@ -11,7 +11,7 @@ Vehicle::Vehicle(const pybind11::handle &obj_vehicle_py) : obj_vehicle_py(obj_ve
         lane_lanelet_ids.insert(lanelet_id.cast<int>());
     }
 
-    py::dict dict_step_to_state_lon_ref = obj_vehicle_py.attr("dict_step_to_state_lon_ref");
+    pybind11::dict dict_step_to_state_lon_ref = obj_vehicle_py.attr("dict_step_to_state_lon_ref");
     for (const auto &[step, state_lon_ref]: dict_step_to_state_lon_ref) {
         if (state_lon_ref.is_none()) {
             continue;
@@ -29,6 +29,6 @@ std::set<int> Vehicle::lanelet_ids_at_step(int step) {
     return lanelet_ids;
 }
 
-bool Vehicle::braking_caused_by_node_at_step(int step, const semantic_reach::SemanticReachNodePtr &reachable_set) {
+bool Vehicle::braking_caused_by_node_at_step(int step, const reach::ReachNodePtr &reachable_set) {
     return obj_vehicle_py.attr("braking_caused_by_node_at_step")(step, reachable_set).cast<bool>();
 }

@@ -449,13 +449,13 @@ def draw_reachable_sets(nodes, config: SemanticConfiguration, renderer, draw_par
 
     if coordinate_system == "CART":
         for node in nodes:
-            vertices = node.position_rectangle.vertices if backend == "PYTHON" else node.position_rectangle().vertices()
+            vertices = node.position_rectangle.vertices if backend == "PYTHON" else node.position_rectangle.vertices
             draw_params.shape.facecolor = mapper.map_to_color(reach_interface._reach.labeler.reachable_set_to_propositions[node].set_propositions)
             Polygon(vertices=np.array(vertices)).draw(renderer, draw_params)
 
     elif coordinate_system == "CVLN":
         for node in nodes:
-            position_rectangle = node.position_rectangle if backend == "PYTHON" else node.position_rectangle()
+            position_rectangle = node.position_rectangle if backend == "PYTHON" else node.position_rectangle
             list_polygons_cart = util_coordinate_system.convert_to_cartesian_polygons(position_rectangle,
                                                                                       config.planning.CLCS, True)
             draw_params.shape.facecolor = mapper.map_to_color(reach_interface._reach.labeler.reachable_set_to_propositions[node].set_propositions)
@@ -476,13 +476,13 @@ def draw_kripke_nodes(set_nodes_kripke: Set[KripkeNode], config: SemanticConfigu
         if coordinate_system == "CART":
             for node in node_kripke.set_nodes_reach:
                 vertices = node.position_rectangle.vertices if backend == "PYTHON" \
-                    else node.position_rectangle().vertices()
+                    else node.position_rectangle.vertices
                 draw_params.shape.facecolor = mapper.map_to_color(reach_interface._reach.labeler.reachable_set_to_propositions[node].set_propositions)
                 Polygon(vertices=np.array(vertices)).draw(renderer, draw_params_nodes)
 
         elif coordinate_system == "CVLN":
             for node in node_kripke.set_nodes_reach:
-                position_rectangle = node.position_rectangle if backend == "PYTHON" else node.position_rectangle()
+                position_rectangle = node.position_rectangle if backend == "PYTHON" else node.position_rectangle
                 list_polygons_cart = util_coordinate_system.convert_to_cartesian_polygons(position_rectangle,
                                                                                           config.planning.CLCS, True)
                 draw_params_nodes.shape.facecolor = mapper.map_to_color(reach_interface._reach.labeler.reachable_set_to_propositions[node].set_propositions)

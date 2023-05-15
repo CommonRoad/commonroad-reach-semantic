@@ -11,7 +11,7 @@ ReachableSetLabeler::ReachableSetLabeler(SemanticModelPtr semantic_model, Semant
           reachable_set_to_propositions(),
           reachable_set_to_lanelet_ids() {}
 
-void ReachableSetLabeler::label_initial_state(const std::vector<SemanticReachNodePtr> &reachable_sets, int step_start) {
+void ReachableSetLabeler::label_initial_state(const std::vector<reach::ReachNodePtr> &reachable_sets, int step_start) {
     for (const auto &reachable_set: reachable_sets) {
         auto drivable_area = reachable_set->position_rectangle();
         auto [propositions, set_ids_lanelets] = _obtain_propositions_for_rectangle(drivable_area, step_start);
@@ -57,8 +57,8 @@ ReachableSetLabeler::_obtain_propositions_for_rectangle(const reach::ReachPolygo
     return {proposition_holder, set_ids_lanelets};
 }
 
-std::vector<SemanticReachNodePtr>
-ReachableSetLabeler::label_traffic_propositions(int step, std::vector<SemanticReachNodePtr> reachable_sets) {
+std::vector<reach::ReachNodePtr>
+ReachableSetLabeler::label_traffic_propositions(int step, std::vector<reach::ReachNodePtr> reachable_sets) {
     if (reachable_sets.empty()) {
         return {};
     }
@@ -70,8 +70,8 @@ ReachableSetLabeler::label_traffic_propositions(int step, std::vector<SemanticRe
     return reachable_sets;
 }
 
-std::vector<SemanticReachNodePtr>
-ReachableSetLabeler::_label_traffic_status_propositions(int step, std::vector<SemanticReachNodePtr> reachable_sets) {
+std::vector<reach::ReachNodePtr>
+ReachableSetLabeler::_label_traffic_status_propositions(int step, std::vector<reach::ReachNodePtr> reachable_sets) {
     auto set_propositions = semantic_model->map_step_to_traffic_status_propositions[step];
     for (const auto &reachable_set: reachable_sets) {
         reachable_set_to_propositions[reachable_set].add_propositions(set_propositions,
@@ -80,8 +80,8 @@ ReachableSetLabeler::_label_traffic_status_propositions(int step, std::vector<Se
     return reachable_sets;
 }
 
-std::vector<SemanticReachNodePtr>
-ReachableSetLabeler::_label_in_conflict_area_propositions(int step, std::vector<SemanticReachNodePtr> reachable_sets) {
+std::vector<reach::ReachNodePtr>
+ReachableSetLabeler::_label_in_conflict_area_propositions(int step, std::vector<reach::ReachNodePtr> reachable_sets) {
     // examine if the propagated set is conflicting with the vehicles
     for (const auto &reachable_set: reachable_sets) {
         for (const auto &vehicle: semantic_model->vec_vehicles) {
@@ -131,8 +131,8 @@ ReachableSetLabeler::_label_in_conflict_area_propositions(int step, std::vector<
     return reachable_sets;
 }
 
-std::vector<SemanticReachNodePtr>
-ReachableSetLabeler::_label_causes_braking_propositions(int step, std::vector<SemanticReachNodePtr> reachable_sets) {
+std::vector<reach::ReachNodePtr>
+ReachableSetLabeler::_label_causes_braking_propositions(int step, std::vector<reach::ReachNodePtr> reachable_sets) {
     if (!config->semantic_model().is_intersection) {
         return reachable_sets;
     }
@@ -149,9 +149,9 @@ ReachableSetLabeler::_label_causes_braking_propositions(int step, std::vector<Se
     return reachable_sets;
 }
 
-std::vector<SemanticReachNodePtr>
-ReachableSetLabeler::split_wrt_regions(int step, const std::vector<SemanticReachNodePtr> &reachable_sets) {
-    vector<SemanticReachNodePtr> vec_nodes_split = {};
+std::vector<reach::ReachNodePtr>
+ReachableSetLabeler::split_wrt_regions(int step, const std::vector<reach::ReachNodePtr> &reachable_sets) {
+    vector<reach::ReachNodePtr> vec_nodes_split = {};
     // iterate through region and examine propagated sets that are intersecting with the region
     for (const auto &reachable_set: reachable_sets) {
         for (auto const &region: semantic_model->vec_regions) {
@@ -190,8 +190,8 @@ ReachableSetLabeler::split_wrt_regions(int step, const std::vector<SemanticReach
     return vec_nodes_split;
 }
 
-SemanticReachNodePtr
-ReachableSetLabeler::_update_propositions_with_region(semantic_reach::SemanticReachNodePtr propagated_set,
+reach::ReachNodePtr
+ReachableSetLabeler::_update_propositions_with_region(reach::ReachNodePtr propagated_set,
                                                       const semantic_reach::RegionPtr &region, int step) {
     auto relevant_props = region->map_group_to_propositions_at_step(step);
     for (const auto &[group, set_propositions]: relevant_props) {
@@ -209,12 +209,12 @@ ReachableSetLabeler::_update_propositions_with_region(semantic_reach::SemanticRe
     return propagated_set;
 }
 
-std::vector<SemanticReachNodePtr>
-ReachableSetLabeler::split_wrt_position_intervals(int step, const std::vector<SemanticReachNodePtr> &reachable_sets) {
+std::vector<reach::ReachNodePtr>
+ReachableSetLabeler::split_wrt_position_intervals(int step, const std::vector<reach::ReachNodePtr> &reachable_sets) {
     auto vec_intervals_lon = semantic_model->map_step_to_position_intervals[step]["lon"];
     auto vec_intervals_lat = semantic_model->map_step_to_position_intervals[step]["lat"];
 
-    vector<SemanticReachNodePtr> vec_nodes_split = {};
+    vector<reach::ReachNodePtr> vec_nodes_split = {};
 
     for (const auto &reachable_set: reachable_sets) {
         // longitudinal direction
@@ -233,12 +233,12 @@ ReachableSetLabeler::split_wrt_position_intervals(int step, const std::vector<Se
     return vec_nodes_split;
 }
 
-std::vector<SemanticReachNodePtr>
-ReachableSetLabeler::_split_reachable_set_wrt_intervals(const semantic_reach::SemanticReachNodePtr &reachable_set,
+std::vector<reach::ReachNodePtr>
+ReachableSetLabeler::_split_reachable_set_wrt_intervals(const reach::ReachNodePtr &reachable_set,
                                                         const std::vector<PositionIntervalPtr> &intervals,
                                                         double reach_min,
                                                         double reach_max, const std::string &direction) {
-    vector<SemanticReachNodePtr> vec_nodes_split = {};
+    vector<reach::ReachNodePtr> vec_nodes_split = {};
     for (auto const &interval: intervals) {
         if (interval->intersects(reach_min, reach_max)) {
             auto node_split = semantic_reach::split_reach_node_wrt_interval(reachable_set, interval, direction);
@@ -258,7 +258,7 @@ ReachableSetLabeler::_split_reachable_set_wrt_intervals(const semantic_reach::Se
 
 std::set<std::string>
 ReachableSetLabeler::_obtain_lanelet_transition_propositions(
-        const semantic_reach::SemanticReachNodePtr &propagated_set) {
+        const reach::ReachNodePtr &propagated_set) {
     auto source_node = propagated_set->vec_nodes_source[0];
 
     auto set_propositions_position_source = reachable_set_to_propositions[source_node].propositions_in_group(
@@ -284,9 +284,9 @@ ReachableSetLabeler::_obtain_lanelet_transition_propositions(
     return set_propositions;
 }
 
-std::vector<SemanticReachNodePtr>
-ReachableSetLabeler::discard_colliding_nodes(const std::vector<SemanticReachNodePtr> &reachable_sets) {
-    std::vector<SemanticReachNodePtr> vec_nodes_keep{};
+std::vector<reach::ReachNodePtr>
+ReachableSetLabeler::discard_colliding_nodes(const std::vector<reach::ReachNodePtr> &reachable_sets) {
+    std::vector<reach::ReachNodePtr> vec_nodes_keep{};
 
     for (const auto &reachable_set: reachable_sets) {
         bool colliding = false;
@@ -309,8 +309,8 @@ ReachableSetLabeler::discard_colliding_nodes(const std::vector<SemanticReachNode
     return vec_nodes_keep;
 }
 
-void ReachableSetLabeler::copy_labels(const semantic_reach::SemanticReachNodePtr &source_reachable_set,
-                                      const std::vector<SemanticReachNodePtr> &reachable_sets) {
+void ReachableSetLabeler::copy_labels(const reach::ReachNodePtr &source_reachable_set,
+                                      const std::vector<reach::ReachNodePtr> &reachable_sets) {
     for (const auto &reachable_set: reachable_sets) {
         reachable_set_to_propositions[reachable_set] = reachable_set_to_propositions[source_reachable_set].clone();
         reachable_set_to_lanelet_ids[reachable_set] = reachable_set_to_lanelet_ids[source_reachable_set];

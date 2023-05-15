@@ -2,8 +2,8 @@
 
 #include "reach_semantic/utility/shared_include.hpp"
 #include "reachset/data_structure/reach/reach_polygon.hpp"
+#include "reachset/data_structure/reach/reach_node.hpp"
 #include "reach_semantic/data_structure/reach/reachable_set_labeler.hpp"
-#include "reach_semantic/data_structure/reach/semantic_reach_node.hpp"
 #include "reach_semantic/data_structure/semantic_configuration.hpp"
 #include "reach_semantic/data_structure/semantic_model.hpp"
 #include "reach_semantic/data_structure/proposition.hpp"
@@ -28,7 +28,7 @@ private:
 
     void _initialize();
 
-    std::vector<SemanticReachNodePtr> _construct_initial_reachable_sets();
+    std::vector<reach::ReachNodePtr> _construct_initial_reachable_sets();
 
     void _initialize_zero_state_polygons();
 
@@ -37,22 +37,22 @@ private:
     void _compute_reachable_set_at_step(int const& step);
 
     /// Propagates the nodes of the reachable set.
-    std::vector<SemanticReachNodePtr> _propagate_reachable_set(std::vector<SemanticReachNodePtr> const& vec_nodes);
+    std::vector<reach::ReachNodePtr> _propagate_reachable_set(std::vector<reach::ReachNodePtr> const& vec_nodes);
 
     /// Splits propagated sets w.r.t lanelet regions.
-    std::vector<SemanticReachNodePtr> _split_wrt_regions(int const& step, std::vector<SemanticReachNodePtr> const& vec_nodes);
+    std::vector<reach::ReachNodePtr> _split_wrt_regions(int const& step, std::vector<reach::ReachNodePtr> const& vec_nodes);
 
     /// Splits the propagated sets w.r.t position intervals.
-    std::vector<SemanticReachNodePtr> _split_wrt_intervals(int const& step, std::vector<SemanticReachNodePtr> const& vec_nodes);
+    std::vector<reach::ReachNodePtr> _split_wrt_intervals(int const& step, std::vector<reach::ReachNodePtr> const& vec_nodes);
 
-    std::vector<SemanticReachNodePtr> _discard_colliding_nodes(std::vector<SemanticReachNodePtr> const& vec_nodes);
+    std::vector<reach::ReachNodePtr> _discard_colliding_nodes(std::vector<reach::ReachNodePtr> const& vec_nodes);
 
     /// Computes collision free drivable area.
     std::vector<reach::ReachPolygonPtr>
     _collision_check_and_repartition(std::vector<reach::ReachPolygonPtr> rectangles, int const &step);
 
     /// Dummy function for computing the overhead of calling python functions.
-    std::vector<SemanticReachNodePtr> _call_python_dummy(int const& step, vector<SemanticReachNodePtr> const& vec_nodes);
+    std::vector<reach::ReachNodePtr> _call_python_dummy(int const& step, vector<reach::ReachNodePtr> const& vec_nodes);
 
 public:
     explicit SemanticReachableSet(SemanticConfigurationPtr config);
@@ -71,11 +71,11 @@ public:
     int step_start{};
     int step_end{};
 
-    std::map<int, std::vector<SemanticReachNodePtr>> map_step_to_reachable_set{};
+    std::map<int, std::vector<reach::ReachNodePtr>> map_step_to_reachable_set{};
     std::map<int, std::vector<reach::ReachPolygonPtr>> map_step_to_drivable_area{};
-    std::map<int, std::vector<SemanticReachNodePtr>> map_step_to_propagated_set{};
+    std::map<int, std::vector<reach::ReachNodePtr>> map_step_to_propagated_set{};
 
-    std::map<int, std::unordered_map<PropositionHolder, std::vector<SemanticReachNodePtr>, PropositionHolder::HashFunction>>
+    std::map<int, std::unordered_map<PropositionHolder, std::vector<reach::ReachNodePtr>, PropositionHolder::HashFunction>>
             map_step_to_propositions_to_propagated_set{};
     std::map<int, std::unordered_map<PropositionHolder, std::vector<reach::ReachPolygonPtr>, PropositionHolder::HashFunction>>
             map_step_to_propositions_to_drivable_area{};
@@ -86,7 +86,7 @@ public:
     /// Returns the propositions of the given rectangle.
     PropositionHolder obtain_propositions_for_rectangle(reach::ReachPolygonPtr const& rectangle, int const& step) const;
 
-    inline SemanticReachNodePtr update_propositions_with_region(SemanticReachNodePtr const& node,
+    inline reach::ReachNodePtr update_propositions_with_region(reach::ReachNodePtr const& node,
                                                         RegionPtr const& region, int const& step);
 
     void compute(int step_start = 0, int step_end = 0);
@@ -94,8 +94,8 @@ public:
     //void prune_nodes_not_reaching_final_step();
 
     inline std::map<int, std::vector<reach::ReachPolygonPtr>> drivable_area() const { return map_step_to_drivable_area; }
-    inline std::map<int, std::vector<SemanticReachNodePtr>> reachable_set() const { return map_step_to_reachable_set; }
-    inline std::map<int, std::vector<SemanticReachNodePtr>> propagated_set() const { return map_step_to_propagated_set; }
+    inline std::map<int, std::vector<reach::ReachNodePtr>> reachable_set() const { return map_step_to_reachable_set; }
+    inline std::map<int, std::vector<reach::ReachNodePtr>> propagated_set() const { return map_step_to_propagated_set; }
 
     inline std::vector<reach::ReachPolygonPtr>
     drivable_area_at_step(int const& step) {
@@ -109,7 +109,7 @@ public:
         }
     }
 
-    inline std::vector<SemanticReachNodePtr>
+    inline std::vector<reach::ReachNodePtr>
     reachable_set_at_step(int const& step) {
         if (find(_vec_steps_computed.begin(), _vec_steps_computed.end(), step)
             == _vec_steps_computed.end()) {

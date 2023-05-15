@@ -20,10 +20,10 @@ TrafficRuleInterface::TrafficRuleInterface(py::handle const &obj_traffic_rule_py
     }
 }
 
-vector<SemanticReachNodePtr>
-TrafficRuleInterface::examine_tpl_specifications(int const &step, vector<SemanticReachNodePtr> const &vec_nodes_reach,
-                                                 const std::map<SemanticReachNodePtr, PropositionHolder> &reachable_set_to_propositions) {
-    vector<SemanticReachNodePtr> vec_nodes_keep{};
+vector<reach::ReachNodePtr>
+TrafficRuleInterface::examine_tpl_specifications(int const &step, vector<reach::ReachNodePtr> const &vec_nodes_reach,
+                                                 const std::map<reach::ReachNodePtr, PropositionHolder> &reachable_set_to_propositions) {
+    vector<reach::ReachNodePtr> vec_nodes_keep{};
 
     auto const &set_propositions_mandatory = map_step_to_propositions_mandatory[step];
     auto const &set_propositions_forbidden = map_step_to_propositions_forbidden[step];

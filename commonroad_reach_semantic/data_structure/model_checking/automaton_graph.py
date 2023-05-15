@@ -231,7 +231,7 @@ class AutomatonGraph:
         if self.backend == "PYTHON":
             parents = "list_nodes_parent"
         else:
-            parents = "vec_nodes_parent"
+            parents = "list_nodes_parent"
 
         set_nodes_reach_acc_prev = set()
         set_nodes_reach_acc = set()
