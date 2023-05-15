@@ -118,6 +118,8 @@ class SemanticConfiguration(Configuration):
                 pycrreach.LUTLongitudinalEnlargement(self.reachable_set.lut_longitudinal_enlargement)
 
         config.semantic_model.is_intersection = self.semantic_model.incoming_element_route is not None
+        config.semantic_model.ego_radius_inflation = self.vehicle.ego.radius_inflation
+        config.semantic_model.vec_route_lanelet_ids = self.planning.route.list_ids_lanelets
 
         return config
 

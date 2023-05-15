@@ -114,5 +114,7 @@ void export_configuration(py::module& m) {
 
     py::class_<SemanticModelConfiguration, shared_ptr<SemanticModelConfiguration>>(m, "SemanticModelConfiguration")
             .def(py::init<>())
-            .def_readwrite("is_intersection", &SemanticModelConfiguration::is_intersection);
+            .def_readwrite("is_intersection", &SemanticModelConfiguration::is_intersection)
+            .def_readwrite("ego_radius_inflation", &SemanticModelConfiguration::ego_radius_inflation)
+            .def_readwrite("vec_route_lanelet_ids", &SemanticModelConfiguration::vec_route_lanelet_ids);
 }

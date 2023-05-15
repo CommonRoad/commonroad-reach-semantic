@@ -20,6 +20,8 @@ struct SemanticReachableSetConfiguration : reach::ReachableSetConfiguration {
 
 struct SemanticModelConfiguration {
     bool is_intersection{};
+    double ego_radius_inflation{};
+    std::vector<int> vec_route_lanelet_ids{};
 
     SemanticModelConfiguration() = default;
 };
