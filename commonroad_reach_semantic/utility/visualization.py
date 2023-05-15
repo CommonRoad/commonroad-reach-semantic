@@ -395,14 +395,12 @@ def compute_plot_limits_from_reachable_sets(reach_interface: ReachableSetInterfa
     config: SemanticConfiguration = reach_interface.config
     x_min = y_min = np.infty
     x_max = y_max = -np.infty
-    backend = "CPP" if config.reachable_set.mode_computation == 2 else "PYTHON"
     coordinate_system = config.planning.coordinate_system
 
     if coordinate_system == "CART":
         for step in range(reach_interface.step_start, reach_interface.step_end):
             for rectangle in reach_interface.drivable_area_at_step(step):
-                bounds = rectangle.bounds if backend == "PYTHON" else (rectangle.p_lon_min(), rectangle.p_lat_min(),
-                                                                       rectangle.p_lon_max(), rectangle.p_lat_max())
+                bounds = rectangle.bounds
                 x_min = min(x_min, bounds[0])
                 y_min = min(y_min, bounds[1])
                 x_max = max(x_max, bounds[2])
@@ -444,18 +442,17 @@ def compute_plot_limits_from_lanelet_network(lanelet_network: LaneletNetwork, ma
 
 
 def draw_reachable_sets(nodes, config: SemanticConfiguration, renderer, draw_params, mapper: ColorMapper, reach_interface: ReachableSetInterface):
-    backend = "CPP" if config.reachable_set.mode_computation == 2 else "PYTHON"
     coordinate_system = config.planning.coordinate_system
 
     if coordinate_system == "CART":
         for node in nodes:
-            vertices = node.position_rectangle.vertices if backend == "PYTHON" else node.position_rectangle().vertices()
+            vertices = node.position_rectangle.vertices
             draw_params.shape.facecolor = mapper.map_to_color(reach_interface._reach.labeler.reachable_set_to_propositions[node].set_propositions)
             Polygon(vertices=np.array(vertices)).draw(renderer, draw_params)
 
     elif coordinate_system == "CVLN":
         for node in nodes:
-            position_rectangle = node.position_rectangle if backend == "PYTHON" else node.position_rectangle()
+            position_rectangle = node.position_rectangle
             list_polygons_cart = util_coordinate_system.convert_to_cartesian_polygons(position_rectangle,
                                                                                       config.planning.CLCS, True)
             draw_params.shape.facecolor = mapper.map_to_color(reach_interface._reach.labeler.reachable_set_to_propositions[node].set_propositions)
@@ -467,7 +464,6 @@ def draw_kripke_nodes(set_nodes_kripke: Set[KripkeNode], config: SemanticConfigu
                       draw_params: MPDrawParams,
                       mapper: ColorMapper,
                       reach_interface: ReachableSetInterface):
-    backend = "CPP" if config.reachable_set.mode_computation == 2 else "PYTHON"
     coordinate_system = config.planning.coordinate_system
 
     for node_kripke in set_nodes_kripke:
@@ -475,14 +471,13 @@ def draw_kripke_nodes(set_nodes_kripke: Set[KripkeNode], config: SemanticConfigu
 
         if coordinate_system == "CART":
             for node in node_kripke.set_nodes_reach:
-                vertices = node.position_rectangle.vertices if backend == "PYTHON" \
-                    else node.position_rectangle().vertices()
+                vertices = node.position_rectangle.vertices
                 draw_params.shape.facecolor = mapper.map_to_color(reach_interface._reach.labeler.reachable_set_to_propositions[node].set_propositions)
                 Polygon(vertices=np.array(vertices)).draw(renderer, draw_params_nodes)
 
         elif coordinate_system == "CVLN":
             for node in node_kripke.set_nodes_reach:
-                position_rectangle = node.position_rectangle if backend == "PYTHON" else node.position_rectangle()
+                position_rectangle = node.position_rectangle
                 list_polygons_cart = util_coordinate_system.convert_to_cartesian_polygons(position_rectangle,
                                                                                           config.planning.CLCS, True)
                 draw_params_nodes.shape.facecolor = mapper.map_to_color(reach_interface._reach.labeler.reachable_set_to_propositions[node].set_propositions)

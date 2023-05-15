@@ -26,7 +26,7 @@ int main() {
     py::scoped_interpreter python{};
 
     // ======== settings
-    string path_root = "/home/edmond/Softwares/commonroad/commonroad-reach-semantic/";
+    string path_root = "/home/lercher/tum/commonroad/commonroad-reach-semantic-addon/";
     string name_scenario = "DEU_Test-1_1_T-1";
     //string name_scenario = "ZAM_Intersection-1_1_T-1";
 
@@ -37,33 +37,33 @@ int main() {
 
     // ======== configuration object via python ConfigurationBuilder
     auto cls_ConfigurationBuilder_py =
-            py::module_::import("commonroad_reach_semantic.data_structure.configuration_builder").attr(
-                    "ConfigurationBuilder");
+            py::module_::import("commonroad_reach_semantic.data_structure.config.semantic_configuration_builder").attr(
+                    "SemanticConfigurationBuilder");
     auto obj_config_py = cls_ConfigurationBuilder_py.attr("build_configuration")(name_scenario, path_root);
     obj_config_py.attr("update")();
-    obj_config_py.attr("print_summary")();
+    obj_config_py.attr("print_configuration_summary")();
 
     auto config = obj_config_py.attr("convert_to_cpp_configuration")().cast<SemanticConfigurationPtr>();
 
-    // ======== traffic rule interface object via python TrafficRuleInterface
-    auto cls_TrafficRuleInterface_py = py::module_::import(
-            "commonroad_reach_semantic.data_structure.traffic_rule_interface").attr(
-            "TrafficRuleInterface");
-    auto obj_traffic_rule_interface_py = cls_TrafficRuleInterface_py(obj_config_py);
-    //auto traffic_rule = TrafficRule(obj_traffic_rule_py);
-
     // ======== semantic model object via python SemanticModel
     auto cls_SemanticModel_py =
-            py::module_::import("commonroad_reach_semantic.data_structure.semantic_model").attr("SemanticModel");
+            py::module_::import("commonroad_reach_semantic.data_structure.environment_model.semantic_model").attr("SemanticModel");
     auto obj_semantic_model_py = cls_SemanticModel_py(obj_config_py);
 
-    obj_semantic_model_py.attr("determine_traffic_priorities")
-            (obj_traffic_rule_interface_py.attr("dict_traffic_sign_to_priorities"));
+    auto obj_dict_traffic_sign_to_priorities_py = py::module_::import("commonroad_reach_semantic.data_structure.rule.priorities").attr("dict_traffic_sign_to_priorities");
 
-    obj_traffic_rule_interface_py.attr("concretize_traffic_rules")(obj_semantic_model_py);
+    obj_semantic_model_py.attr("determine_traffic_priorities")(obj_dict_traffic_sign_to_priorities_py);
+
+    // ======== traffic rule interface object via python TrafficRuleInterface
+    auto cls_TrafficRuleInterface_py = py::module_::import(
+            "commonroad_reach_semantic.data_structure.rule.traffic_rule_interface").attr(
+            "TrafficRuleInterface");
+    auto obj_traffic_rule_interface_py = cls_TrafficRuleInterface_py(obj_config_py, obj_semantic_model_py);
+
     obj_traffic_rule_interface_py.attr("print_summary")();
 
     auto semantic_model = make_shared<SemanticModel>(obj_semantic_model_py);
+    auto traffic_rule_interface = make_shared<TrafficRuleInterface>(obj_traffic_rule_interface_py);
 
     //// ======== CurvilinearCoordinateSystem
     //auto CLCS = make_shared<geometry::CurvilinearCoordinateSystem>(
@@ -72,12 +72,12 @@ int main() {
     //
     // ======== collision checker via python collision checker
     auto cls_CollisionChecker_py =
-            py::module_::import("commonroad_reach_semantic.data_structure.collision_checker").attr("CollisionChecker");
+            py::module_::import("commonroad_reach.data_structure.collision_checker").attr("CollisionChecker");
     auto obj_collision_checker_py = cls_CollisionChecker_py(obj_config_py);
     auto collision_checker = obj_collision_checker_py.attr("cpp_collision_checker").cast<CollisionCheckerPtr>();
 
     // ======== ReachableSetInterface
-    auto reach_interface = SemanticReachableSet(config, collision_checker, semantic_model);
+    auto reach_interface = SemanticReachableSet(config, collision_checker, semantic_model, traffic_rule_interface);
     auto start = high_resolution_clock::now();
     reach_interface.compute();
     auto end = high_resolution_clock::now();

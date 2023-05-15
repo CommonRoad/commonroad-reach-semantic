@@ -7,7 +7,7 @@
 
 #include "reach_semantic/utility/shared_include.hpp"
 #include "reach_semantic/data_structure/semantic_configuration.hpp"
-#include "reach_semantic/data_structure/reach/semantic_reach_node.hpp"
+#include "reach_semantic/data_structure/reach/reachable_set_labeler.hpp"
 #include "reach_semantic/data_structure/reach/semantic_reach_set.hpp"
 #include "reach_semantic/data_structure/semantic_model.hpp"
 #include "reach_semantic/data_structure/proposition_holder.hpp"
@@ -25,8 +25,6 @@ void export_reach(py::module& m);
 
 // ---- export_data_structures()
 
-void export_reach_node(py::module& m);
-
 void export_semantic_model(py::module& m);
 
 void export_traffic_rule_interface(py::module& m);
@@ -35,3 +33,5 @@ void export_configuration(py::module& m);
 
 // ---- export_reach()
 void export_reachable_set_interface(py::module& m);
+
+void export_reachable_set_labeler(py::module &m);

@@ -4,43 +4,9 @@ namespace py = pybind11;
 using namespace semantic_reach;
 
 void export_data_structures(py::module& m) {
-    export_reach_node(m);
     export_semantic_model(m);
     export_traffic_rule_interface(m);
     export_configuration(m);
-}
-
-void export_reach_node(py::module& m) {
-    py::class_<SemanticReachNode, shared_ptr<SemanticReachNode >>(m, "SemanticReachNode")
-            .def(py::init<>())
-            .def("p_lon_min", &SemanticReachNode::p_lon_min)
-            .def("p_lon_max", &SemanticReachNode::p_lon_max)
-            .def("p_lat_min", &SemanticReachNode::p_lat_min)
-            .def("p_lat_max", &SemanticReachNode::p_lat_max)
-            .def("v_lon_min", &SemanticReachNode::v_lon_min)
-            .def("v_lon_max", &SemanticReachNode::v_lon_max)
-            .def("v_lat_min", &SemanticReachNode::v_lat_min)
-            .def("v_lat_max", &SemanticReachNode::v_lat_max)
-            .def("position_rectangle", &SemanticReachNode::position_rectangle)
-            .def("set_propositions", &SemanticReachNode::set_propositions, py::arg("include_temporary") = true)
-            .def_readwrite("vec_nodes_parent", &SemanticReachNode::vec_nodes_parent)
-            .def_readwrite("vec_nodes_child", &SemanticReachNode::vec_nodes_child)
-            .def_readwrite("vec_nodes_source", &SemanticReachNode::vec_nodes_source)
-            .def("add_lanelet_ids", &SemanticReachNode::add_lanelet_ids)
-            .def_readonly("id", &SemanticReachNode::id)
-            .def_readonly("step", &SemanticReachNode::step)
-            .def_readonly("polygon_lon", &SemanticReachNode::polygon_lon)
-            .def_readonly("polygon_lat", &SemanticReachNode::polygon_lat)
-            .def_readwrite("proposition_holder", &SemanticReachNode::proposition_holder)
-            .def_readwrite("set_ids_lanelets", &SemanticReachNode::set_ids_lanelets)
-            .def("__repr__", [](SemanticReachNode const& node) {
-                return "(id:" + std::to_string(node.id) + ", "
-                       + std::to_string(node.p_lon_min()) + ", " + std::to_string(node.p_lat_min())
-                       + ", " + std::to_string(node.p_lon_max()) + ", " + std::to_string(node.p_lat_max()) + ")";
-            })
-            .def("__hash__", [](SemanticReachNode const& node) {
-                return py::hash(py::make_tuple(node.id, node.step));
-            });
 }
 
 void export_semantic_model(py::module& m) {
@@ -105,9 +71,16 @@ void export_configuration(py::module& m) {
 
     py::class_<SemanticConfiguration, shared_ptr<SemanticConfiguration>, reach::Configuration>(m, "SemanticConfiguration")
             .def(py::init<>())
-            .def_readwrite("reachable_set", &SemanticConfiguration::config_reachable_set);
+            .def_readwrite("reachable_set", &SemanticConfiguration::config_reachable_set)
+            .def_readwrite("semantic_model", &SemanticConfiguration::config_semantic_model);
 
     py::class_<SemanticReachableSetConfiguration, shared_ptr<SemanticReachableSetConfiguration>, reach::ReachableSetConfiguration>(m, "SemanticReachableSetConfiguration")
             .def(py::init<>())
             .def_readwrite("length_edge_node_min", &SemanticReachableSetConfiguration::length_edge_node_min);
+
+    py::class_<SemanticModelConfiguration, shared_ptr<SemanticModelConfiguration>>(m, "SemanticModelConfiguration")
+            .def(py::init<>())
+            .def_readwrite("is_intersection", &SemanticModelConfiguration::is_intersection)
+            .def_readwrite("ego_radius_inflation", &SemanticModelConfiguration::ego_radius_inflation)
+            .def_readwrite("vec_route_lanelet_ids", &SemanticModelConfiguration::vec_route_lanelet_ids);
 }
