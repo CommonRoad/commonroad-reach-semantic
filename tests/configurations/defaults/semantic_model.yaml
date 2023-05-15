@@ -1,0 +1,20 @@
+# whether to consider the shape of the ego vehicle (dilate lanelet polygons by inflation radius)
+consider_ego_shape: yes
+# whether to include predecessors of lanelets along the route
+consider_route_predecessor: no
+# whether to include predecessors of lanelets along the route
+consider_route_successor: no
+# maximum lateral position to be considered in the model
+p_lateral_max: 30
+# whether to discard regions with small area
+discard_region_small : yes
+# minimum area a region polygon should have (square meters)
+area_polygon_desired_min: 2.0
+# buffer value for shrinking the polygons (so that they don't overlap)
+buffer_polygon: -0.05
+# maximum length of the axis-aligned bounding boxes enclosing the lanelet regions
+length_aabb_max: 1.0
+# maximum distance between vertices of lanelet polygons (for interpolating)
+distance_vertices_polygon_max: 2.0
+# use SONIA prediction
+use_sonia: 0

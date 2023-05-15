@@ -7,12 +7,11 @@ from typing import List, Set, Optional, Dict, Union
 import buddy
 import numpy as np
 import spot
-from commonroad_reach_semantic import pycrreachs
 from commonroad_reach.data_structure.reach.reach_interface import ReachableSetInterface
+from commonroad_reach.data_structure.reach.reach_node import ReachNode
 from commonroad_reach.utility import logger as util_logger
 
-from commonroad_reach_semantic.data_structure.proposition_holder import PropositionHolder
-from commonroad_reach_semantic.data_structure.reach.semantic_reach_node import SemanticReachNode
+from commonroad_reach_semantic import pycrreachs
 from commonroad_reach_semantic.utility import reach_operation as util_reach
 from commonroad_reach_semantic.utility import spot as util_spot
 
@@ -27,16 +26,16 @@ class KripkeNode:
     backend = None
 
     # todo: change set_propositions to proposition holder?
-    def __init__(self, step: int, set_propositions=None, set_nodes_reach: Set[SemanticReachNode] = None):
+    def __init__(self, step: int, set_propositions=None, set_nodes_reach: Set[ReachNode] = None):
         self.id = KripkeNode.cnt_id
         KripkeNode.cnt_id += 1
 
         self.step = step
         self.set_propositions = set_propositions.copy() if set_propositions else None
         # reach-nodes-related
-        self.set_nodes_reach: Set[SemanticReachNode] = set()
-        self.set_nodes_reach_parent: Set[SemanticReachNode] = set()
-        self.set_nodes_reach_child: Set[SemanticReachNode] = set()
+        self.set_nodes_reach: Set[ReachNode] = set()
+        self.set_nodes_reach_parent: Set[ReachNode] = set()
+        self.set_nodes_reach_child: Set[ReachNode] = set()
         self.set_ids_nodes_reach: Set[int] = set()
         self.set_ids_nodes_reach_parent: Set[int] = set()
         self.set_ids_nodes_reach_child: Set[int] = set()
@@ -210,7 +209,7 @@ class KripkeNode:
 
         return v_lon_min
 
-    def add_reach_node(self, node_reach: Union[SemanticReachNode, pycrreachs.SemanticReachNode]):
+    def add_reach_node(self, node_reach: Union[ReachNode, pycrreachs.SemanticReachNode]):
         """
         Adds a reach node.
         """
@@ -237,7 +236,7 @@ class KripkeNode:
         for node_reach in nodes_reach:
             self.add_reach_node(node_reach)
 
-    def remove_reach_node(self, node_reach: SemanticReachNode):
+    def remove_reach_node(self, node_reach: ReachNode):
         """
         Removes a reach node.
         """
@@ -337,7 +336,7 @@ class KripkeStructure:
         self.list_nodes_kripke: List[KripkeNode] = list()
         self.dict_step_to_propositions_to_kripke_nodes = defaultdict(lambda: defaultdict(list))
         self.dict_id_node_kripke_to_kripke_node: Dict[int, KripkeNode] = dict()
-        self.dict_reach_node_to_kripke_node: Dict[SemanticReachNode, KripkeNode] = dict()
+        self.dict_reach_node_to_kripke_node: Dict[ReachNode, KripkeNode] = dict()
         # only used for constructing twa
         self.dict_idx_state_twa_to_kripke_node = dict()
         # only used for constructing automaton graph
@@ -369,8 +368,8 @@ class KripkeStructure:
 
             for reach_node in self.reach_interface.reachable_set_at_step(step):
                 # determine relevant propositions of the reach nodes
-                set_propositions_relevant = reach_node.proposition_holder.propositions(
-                    include_temporary=False).intersection(self.cls_set_propositions_relevant)
+                set_propositions_relevant = self.reach_interface._reach.labeler.reachable_set_to_propositions[
+                    reach_node].propositions(include_temporary=False).intersection(self.cls_set_propositions_relevant)
                 set_propositions_relevant.add("true")
                 set_propositions_relevant = frozenset(set_propositions_relevant)
 
@@ -567,7 +566,7 @@ class KripkeStructure:
 
             return dict_step_to_set_nodes_kripke
 
-    def query_kripke_node_by_reach_node(self, node_reach: SemanticReachNode) -> Optional[KripkeNode]:
+    def query_kripke_node_by_reach_node(self, node_reach: ReachNode) -> Optional[KripkeNode]:
         return self.dict_reach_node_to_kripke_node[node_reach]
 
     def query_kripke_node_by_step_and_proposition_formula(self, step: int,
