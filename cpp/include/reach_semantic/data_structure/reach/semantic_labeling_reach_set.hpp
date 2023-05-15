@@ -39,20 +39,9 @@ private:
     /// Propagates the nodes of the reachable set.
     std::vector<reach::ReachNodePtr> _propagate_reachable_set(std::vector<reach::ReachNodePtr> const& vec_nodes);
 
-    /// Splits propagated sets w.r.t lanelet regions.
-    std::vector<reach::ReachNodePtr> _split_wrt_regions(int const& step, std::vector<reach::ReachNodePtr> const& vec_nodes);
-
-    /// Splits the propagated sets w.r.t position intervals.
-    std::vector<reach::ReachNodePtr> _split_wrt_intervals(int const& step, std::vector<reach::ReachNodePtr> const& vec_nodes);
-
-    std::vector<reach::ReachNodePtr> _discard_colliding_nodes(std::vector<reach::ReachNodePtr> const& vec_nodes);
-
     /// Computes collision free drivable area.
     std::vector<reach::ReachPolygonPtr>
     _collision_check_and_repartition(std::vector<reach::ReachPolygonPtr> rectangles, int const &step);
-
-    /// Dummy function for computing the overhead of calling python functions.
-    std::vector<reach::ReachNodePtr> _call_python_dummy(int const& step, vector<reach::ReachNodePtr> const& vec_nodes);
 
 public:
     explicit SemanticLabelingReachableSet(SemanticConfigurationPtr config);

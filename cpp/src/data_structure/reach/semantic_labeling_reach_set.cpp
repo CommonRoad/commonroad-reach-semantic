@@ -320,12 +320,3 @@ void SemanticLabelingReachableSet::_compute_reachable_set_at_step(int const& ste
 //    // cout << "\t#Nodes before pruning: \t" << cnt_nodes_before_pruning << endl;
 //    // cout << "\t#Nodes after pruning: \t" << cnt_nodes_after_pruning << endl;
 //}
-
-vector<reach::ReachNodePtr> SemanticLabelingReachableSet::_call_python_dummy(int const& step, vector<reach::ReachNodePtr> const& vec_nodes) {
-    vector<reach::ReachNodePtr> vec_nodes_new{};
-    for (auto const& node: vec_nodes) {
-        vec_nodes_new.emplace_back(semantic_model->obj_semantic_model_py.attr("call_python_dummy")(step, node)
-                                           .cast<reach::ReachNodePtr>());
-    }
-    return vec_nodes_new;
-}
