@@ -11,11 +11,11 @@ from commonroad.scenario.obstacle import ObstacleType, SignalState, StaticObstac
 from commonroad.scenario.traffic_sign import TrafficSign, TrafficLight
 from commonroad.scenario.trajectory import State
 from commonroad_dc.pycrccosy import CurvilinearCoordinateSystem
+from commonroad_reach import pycrreach
 from commonroad_reach.data_structure.reach.reach_node import ReachNode
 from commonroad_route_planner.route import Route
 
 import commonroad_reach_semantic.utility.vehicle as util_vehicle
-from commonroad_reach_semantic import pycrreachs
 from commonroad_reach_semantic.data_structure.config.outgoing_direction import OutgoingDirection
 from commonroad_reach_semantic.data_structure.config.semantic_configuration import SemanticConfiguration
 from commonroad_reach_semantic.data_structure.environment_model.road_network import Lane, RoadNetwork
@@ -285,12 +285,8 @@ class Vehicle:
 
         return set()
 
-    def retrieve_p_lon_node_ego(self, node: Union[ReachNode, pycrreachs.SemanticReachNode]):
-        if isinstance(node, ReachNode):
-            bounds = node.position_rectangle.bounds
-
-        else:
-            bounds = node.position_rectangle().bounding_box()
+    def retrieve_p_lon_node_ego(self, node: Union[ReachNode, pycrreach.ReachNode]):
+        bounds = node.position_rectangle.bounds
 
         [polygon_cart] = util_cosy.convert_to_cartesian_polygon(bounds, self.CLCS_ref, False)
         list_vertices_cvln = util_cosy.convert_to_curvilinear_vertices(polygon_cart.vertices, self.lane.CLCS)
@@ -302,7 +298,7 @@ class Vehicle:
         """Returns True if vehicle is behind the base set."""
         return True if self.front_distance_to_node_at_step(step, node) > 0 else False
 
-    def braking_caused_by_node_at_step(self, step: int, node: Union[ReachNode, pycrreachs.SemanticReachNode]) -> bool:
+    def braking_caused_by_node_at_step(self, step: int, node: Union[ReachNode, pycrreach.ReachNode]) -> bool:
         """
         Returns whether the vehicle should brake hard due to the reach node.
         """
@@ -312,7 +308,7 @@ class Vehicle:
 
         return small_distance and brake_hard
 
-    def front_distance_to_node_at_step(self, step: int, node: Union[ReachNode, pycrreachs.SemanticReachNode]) -> float:
+    def front_distance_to_node_at_step(self, step: int, node: Union[ReachNode, pycrreach.ReachNode]) -> float:
         """
         Returns the front distance of the vehicle to the base set.
 
@@ -332,7 +328,7 @@ class Vehicle:
             p_lon_min_node_ego = min(list_p_lon_node_ego) - self.radius_inflation
             return p_lon_min_node_ego - p_lon_max_ego
 
-    def should_brake_hard_due_to_node_at_step(self, step: int, node: Union[ReachNode, pycrreachs.SemanticReachNode]) -> bool:
+    def should_brake_hard_due_to_node_at_step(self, step: int, node: Union[ReachNode, pycrreach.ReachNode]) -> bool:
         """
         Returns whether the vehicle should brake harder than the predefined threshold due to the reach node.
         """
@@ -516,11 +512,14 @@ class Vehicle:
 
                 try:
                     self.dict_id_lanelet_to_priorities[id_lanelet][OutgoingDirection.LEFT] = \
-                        dict_traffic_sign_to_priorities[element_index_min.traffic_sign_element_id][OutgoingDirection.LEFT]
+                        dict_traffic_sign_to_priorities[element_index_min.traffic_sign_element_id][
+                            OutgoingDirection.LEFT]
                     self.dict_id_lanelet_to_priorities[id_lanelet][OutgoingDirection.STRAIGHT] = \
-                        dict_traffic_sign_to_priorities[element_index_min.traffic_sign_element_id][OutgoingDirection.STRAIGHT]
+                        dict_traffic_sign_to_priorities[element_index_min.traffic_sign_element_id][
+                            OutgoingDirection.STRAIGHT]
                     self.dict_id_lanelet_to_priorities[id_lanelet][OutgoingDirection.RIGHT] = \
-                        dict_traffic_sign_to_priorities[element_index_min.traffic_sign_element_id][OutgoingDirection.RIGHT]
+                        dict_traffic_sign_to_priorities[element_index_min.traffic_sign_element_id][
+                            OutgoingDirection.RIGHT]
 
                 except (KeyError, AttributeError):
                     self.dict_id_lanelet_to_priorities[id_lanelet][OutgoingDirection.LEFT] = priority_default
@@ -546,8 +545,10 @@ class Vehicle:
             try:
                 self.dict_step_to_priorities[step] = \
                     (dict_traffic_sign_to_priorities[element_index_min.traffic_sign_element_id][OutgoingDirection.LEFT],
-                     dict_traffic_sign_to_priorities[element_index_min.traffic_sign_element_id][OutgoingDirection.STRAIGHT],
-                     dict_traffic_sign_to_priorities[element_index_min.traffic_sign_element_id][OutgoingDirection.RIGHT])
+                     dict_traffic_sign_to_priorities[element_index_min.traffic_sign_element_id][
+                         OutgoingDirection.STRAIGHT],
+                     dict_traffic_sign_to_priorities[element_index_min.traffic_sign_element_id][
+                         OutgoingDirection.RIGHT])
 
             except (KeyError, AttributeError):
                 pass

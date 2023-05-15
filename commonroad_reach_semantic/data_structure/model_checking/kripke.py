@@ -23,7 +23,6 @@ class KripkeNode:
     Class representing a node in a Kripke structure.
     """
     cnt_id = 0
-    backend = None
 
     # todo: change set_propositions to proposition holder?
     def __init__(self, step: int, set_propositions=None, set_nodes_reach: Set[ReachNode] = None):
@@ -95,15 +94,9 @@ class KripkeNode:
         """
         sum_area_nodes_reach = 0
 
-        if self.backend == "PYTHON":
-            for node_reach in self.set_nodes_reach:
-                sum_area_nodes_reach += (node_reach.p_lon_max - node_reach.p_lon_min) * \
-                                        (node_reach.p_lat_max - node_reach.p_lat_min)
-
-        else:
-            for node_reach in self.set_nodes_reach:
-                sum_area_nodes_reach += (node_reach.p_lon_max() - node_reach.p_lon_min()) * \
-                                        (node_reach.p_lat_max() - node_reach.p_lat_min())
+        for node_reach in self.set_nodes_reach:
+            sum_area_nodes_reach += (node_reach.p_lon_max - node_reach.p_lon_min) * \
+                                    (node_reach.p_lat_max - node_reach.p_lat_min)
 
         return sum_area_nodes_reach
 
@@ -114,13 +107,8 @@ class KripkeNode:
         """
         p_lon_min = np.infty
 
-        if self.backend == "PYTHON":
-            for node_reach in self.set_nodes_reach:
-                p_lon_min = min(p_lon_min, node_reach.p_lon_min)
-
-        else:
-            for node_reach in self.set_nodes_reach:
-                p_lon_min = min(p_lon_min, node_reach.p_lon_min())
+        for node_reach in self.set_nodes_reach:
+            p_lon_min = min(p_lon_min, node_reach.p_lon_min)
 
         return p_lon_min
 
@@ -131,13 +119,8 @@ class KripkeNode:
         """
         p_lon_max = -np.infty
 
-        if self.backend == "PYTHON":
-            for node_reach in self.set_nodes_reach:
-                p_lon_max = max(p_lon_max, node_reach.p_lon_max)
-
-        else:
-            for node_reach in self.set_nodes_reach:
-                p_lon_max = max(p_lon_max, node_reach.p_lon_max())
+        for node_reach in self.set_nodes_reach:
+            p_lon_max = max(p_lon_max, node_reach.p_lon_max)
 
         return p_lon_max
 
@@ -148,13 +131,8 @@ class KripkeNode:
         """
         p_lat_min = np.infty
 
-        if self.backend == "PYTHON":
-            for node_reach in self.set_nodes_reach:
-                p_lat_min = min(p_lat_min, node_reach.p_lat_min)
-
-        else:
-            for node_reach in self.set_nodes_reach:
-                p_lat_min = min(p_lat_min, node_reach.p_lat_min())
+        for node_reach in self.set_nodes_reach:
+            p_lat_min = min(p_lat_min, node_reach.p_lat_min)
 
         return p_lat_min
 
@@ -165,13 +143,8 @@ class KripkeNode:
         """
         p_lat_max = -np.infty
 
-        if self.backend == "PYTHON":
-            for node_reach in self.set_nodes_reach:
-                p_lat_max = max(p_lat_max, node_reach.p_lat_max)
-
-        else:
-            for node_reach in self.set_nodes_reach:
-                p_lat_max = max(p_lat_max, node_reach.p_lat_max())
+        for node_reach in self.set_nodes_reach:
+            p_lat_max = max(p_lat_max, node_reach.p_lat_max)
 
         return p_lat_max
 
@@ -182,13 +155,8 @@ class KripkeNode:
         """
         v_lon_max = -np.infty
 
-        if self.backend == "PYTHON":
-            for node_reach in self.set_nodes_reach:
-                v_lon_max = max(v_lon_max, node_reach.v_lon_max)
-
-        else:
-            for node_reach in self.set_nodes_reach:
-                v_lon_max = max(v_lon_max, node_reach.v_lon_max())
+        for node_reach in self.set_nodes_reach:
+            v_lon_max = max(v_lon_max, node_reach.v_lon_max)
 
         return v_lon_max
 
@@ -199,35 +167,22 @@ class KripkeNode:
         """
         v_lon_min = np.infty
 
-        if self.backend == "PYTHON":
-            for node_reach in self.set_nodes_reach:
-                v_lon_min = min(v_lon_min, node_reach.v_lon_min)
-
-        else:
-            for node_reach in self.set_nodes_reach:
-                v_lon_min = min(v_lon_min, node_reach.v_lon_min())
+        for node_reach in self.set_nodes_reach:
+            v_lon_min = min(v_lon_min, node_reach.v_lon_min)
 
         return v_lon_min
 
-    def add_reach_node(self, node_reach: Union[ReachNode, pycrreachs.SemanticReachNode]):
+    def add_reach_node(self, node_reach: Union[ReachNode, pycrreach.ReachNode]):
         """
         Adds a reach node.
         """
         self.set_nodes_reach.add(node_reach)
         self.set_ids_nodes_reach.add(node_reach.id)
 
-        if self.backend == "PYTHON":
-            parents = "list_nodes_parent"
-            children = "list_nodes_child"
-
-        else:
-            parents = "vec_nodes_parent"
-            children = "vec_nodes_child"
-
-        self.set_nodes_reach_parent.update(set(eval(f"node_reach.{parents}")))
-        self.set_ids_nodes_reach_parent.update({node_parent.id for node_parent in eval(f"node_reach.{parents}")})
-        self.set_nodes_reach_child.update(set(eval(f"node_reach.{children}")))
-        self.set_ids_nodes_reach_child.update({node_child.id for node_child in eval(f"node_reach.{children}")})
+        self.set_nodes_reach_parent.update(set(node_reach.list_nodes_parent))
+        self.set_ids_nodes_reach_parent.update({node_parent.id for node_parent in node_reach.list_nodes_parent})
+        self.set_nodes_reach_child.update(set(node_reach.list_nodes_child))
+        self.set_ids_nodes_reach_child.update({node_child.id for node_child in node_reach.list_nodes_child})
 
     def add_reach_nodes(self, nodes_reach):
         """
@@ -243,20 +198,12 @@ class KripkeNode:
         self.set_nodes_reach.discard(node_reach)
         self.set_ids_nodes_reach.discard(node_reach.id)
 
-        if self.backend == "PYTHON":
-            parents = "list_nodes_parent"
-            children = "list_nodes_child"
-
-        else:
-            parents = "vec_nodes_parent"
-            children = "vec_nodes_child"
-
-        set_nodes_parent_intersection = self.set_nodes_reach_parent.intersection(set(eval(f"node_reach.{parents}")))
-        set_nodes_parent_difference = self.set_nodes_reach_parent.difference(set(eval(f"node_reach.{parents}")))
+        set_nodes_parent_intersection = self.set_nodes_reach_parent.intersection(set(node_reach.list_nodes_parent))
+        set_nodes_parent_difference = self.set_nodes_reach_parent.difference(set(node_reach.list_nodes_parent))
         self.set_nodes_reach_parent = set_nodes_parent_difference.union(set_nodes_parent_intersection)
 
-        set_nodes_child_intersection = self.set_nodes_reach_child.intersection(set(eval(f"node_reach.{children}")))
-        set_nodes_child_difference = self.set_nodes_reach_child.difference(set(eval(f"node_reach.{children}")))
+        set_nodes_child_intersection = self.set_nodes_reach_child.intersection(set(node_reach.list_nodes_child))
+        set_nodes_child_difference = self.set_nodes_reach_child.difference(set(node_reach.list_nodes_child))
         self.set_nodes_reach_child = set_nodes_child_difference.union(set_nodes_child_intersection)
 
     def remove_reach_nodes(self, nodes_reach):
@@ -361,8 +308,6 @@ class KripkeStructure:
         A kripke node may contain one or multiple reachable nodes with the same set of propositions.
         The constructed Kripke structure is later used for model checking and extracting driving corridors.
         """
-        KripkeNode.backend = "CPP" if self.reach_interface.config.reachable_set.mode_computation == 2 else "PYTHON"
-
         for step in range(self.step_end + 1):
             dict_proposition_holder_to_list_nodes_kripke = self.dict_step_to_propositions_to_kripke_nodes[step]
 

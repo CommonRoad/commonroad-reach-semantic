@@ -108,8 +108,6 @@ class AutomatonGraph:
     """
 
     def __init__(self, automaton_product: spot.twa_graph, kripke_structure: KripkeStructure):
-        self.backend = "PYTHON" if kripke_structure.reach_interface.config.reachable_set.mode_computation == 1 \
-            else "CPP"
         # product automaton considering all LTL formulas
         self.automaton_product = automaton_product
         self.kripke_structure = kripke_structure
@@ -228,11 +226,6 @@ class AutomatonGraph:
         if not self.has_accepting_run:
             return
 
-        if self.backend == "PYTHON":
-            parents = "list_nodes_parent"
-        else:
-            parents = "vec_nodes_parent"
-
         set_nodes_reach_acc_prev = set()
         set_nodes_reach_acc = set()
 
@@ -250,7 +243,7 @@ class AutomatonGraph:
 
                     for node_reach in node_auto.node_kripke.set_nodes_reach:
                         # discard if the parent nodes don't intersect with the accepted nodes of the previous step
-                        if set(eval(f"node_reach.{parents}")).intersection(set_nodes_reach_acc_prev):
+                        if set(node_reach.list_nodes_parent).intersection(set_nodes_reach_acc_prev):
                             set_nodes_reach_acc.add(node_reach)
 
                         else:

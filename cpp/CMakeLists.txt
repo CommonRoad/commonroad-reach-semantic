@@ -22,7 +22,7 @@ set(REACH_INCLUDE_DIR
 
 # set a variable to hold all relevant cpp source files of reachable sets
 set(REACH_SOURCE
-        ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/semantic_reach_node.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/reachable_set_labeler.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/semantic_reach_set.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/semantic_configuration.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/utility/reach_operation.cpp
@@ -32,6 +32,7 @@ set(REACH_SOURCE
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/traffic_rule.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/position_interval.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/region.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/vehicle.cpp
 
         CACHE STRING "" FORCE)
 

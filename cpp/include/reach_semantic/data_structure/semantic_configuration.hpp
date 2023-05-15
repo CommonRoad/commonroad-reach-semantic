@@ -18,15 +18,25 @@ struct SemanticReachableSetConfiguration : reach::ReachableSetConfiguration {
     explicit SemanticReachableSetConfiguration(YAML::Node const& node);
 };
 
+struct SemanticModelConfiguration {
+    bool is_intersection{};
+    double ego_radius_inflation{};
+    std::vector<int> vec_route_lanelet_ids{};
+
+    SemanticModelConfiguration() = default;
+};
+
 /// Struct storing all configurations.
 struct SemanticConfiguration : reach::Configuration {
     SemanticReachableSetConfiguration config_reachable_set{};
+    SemanticModelConfiguration config_semantic_model{};
 
     SemanticConfiguration() = default;
 
     explicit SemanticConfiguration(YAML::Node const& node);
 
     inline SemanticReachableSetConfiguration& reachable_set() { return config_reachable_set; };
+    inline SemanticModelConfiguration& semantic_model() { return config_semantic_model; };
 
     /// Loads configuration from the given yaml file.
     static std::shared_ptr<SemanticConfiguration> load_configuration(std::string const& file_yaml);

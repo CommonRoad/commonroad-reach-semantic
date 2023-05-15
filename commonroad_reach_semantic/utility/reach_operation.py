@@ -4,10 +4,10 @@ from typing import List, Union
 
 import networkx as nx
 from commonroad.scenario.lanelet import Lanelet
+from commonroad_reach import pycrreach
 from commonroad_reach.data_structure.reach.reach_node import ReachNode
 from commonroad_reach.utility import logger as util_logger
 
-from commonroad_reach_semantic import pycrreachs
 from commonroad_reach_semantic.data_structure.environment_model.position_interval import PositionInterval
 
 logger = logging.getLogger(__name__)
@@ -89,7 +89,7 @@ def determine_connected_components(list_nodes_reach):
     return list_lists_nodes_connected
 
 
-def determine_connected_reach_nodes(list_nodes_reach: Union[List[ReachNode], List[pycrreachs.SemanticReachNode]]):
+def determine_connected_reach_nodes(list_nodes_reach: Union[List[ReachNode], List[pycrreach.ReachNode]]):
     """
     Determines connected sets in the position domain.
 
@@ -101,12 +101,7 @@ def determine_connected_reach_nodes(list_nodes_reach: Union[List[ReachNode], Lis
     if not list_nodes_reach:
         return dict_adjacency
 
-    else:
-        if isinstance(list_nodes_reach[0], ReachNode):
-            list_position_rectangles = [node_reach.position_rectangle for node_reach in list_nodes_reach]
-
-        else:
-            list_position_rectangles = [node_reach.position_rectangle() for node_reach in list_nodes_reach]
+    list_position_rectangles = [node_reach.position_rectangle for node_reach in list_nodes_reach]
 
     # iterate over all rectangles
     for idx1, position_rect_1 in enumerate(list_position_rectangles):
