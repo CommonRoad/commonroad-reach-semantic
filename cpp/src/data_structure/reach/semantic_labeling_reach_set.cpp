@@ -1,4 +1,4 @@
-#include "reach_semantic/data_structure/reach/semantic_reach_set.hpp"
+#include "reach_semantic/data_structure/reach/semantic_labeling_reach_set.hpp"
 
 #include <utility>
 #include "reachset/utility/shared_using.hpp"
@@ -8,25 +8,25 @@
 
 using namespace semantic_reach;
 
-SemanticReachableSet::SemanticReachableSet(SemanticConfigurationPtr config) : config(std::move(config)) {
+SemanticLabelingReachableSet::SemanticLabelingReachableSet(SemanticConfigurationPtr config) : config(std::move(config)) {
     _initialize();
 }
 
-SemanticReachableSet::SemanticReachableSet(SemanticConfigurationPtr config, CollisionCheckerPtr collision_checker,
+SemanticLabelingReachableSet::SemanticLabelingReachableSet(SemanticConfigurationPtr config, CollisionCheckerPtr collision_checker,
                                            SemanticModelPtr semantic_model) :
         config(std::move(config)), collision_checker(std::move(collision_checker)),
         semantic_model(std::move(semantic_model)) {
     _initialize();
 }
 
-SemanticReachableSet::SemanticReachableSet(SemanticConfigurationPtr config, CollisionCheckerPtr collision_checker,
+SemanticLabelingReachableSet::SemanticLabelingReachableSet(SemanticConfigurationPtr config, CollisionCheckerPtr collision_checker,
                                            SemanticModelPtr semantic_model, TrafficRuleInterfacePtr traffic_rule_interface) :
         config(std::move(config)), collision_checker(std::move(collision_checker)),
         semantic_model(std::move(semantic_model)), rule_interface(std::move(traffic_rule_interface)) {
     _initialize();
 }
 
-void SemanticReachableSet::_initialize() {
+void SemanticLabelingReachableSet::_initialize() {
     labeler = std::make_shared<ReachableSetLabeler>(semantic_model, config);
 
     step_start = config->planning().step_start;
@@ -41,7 +41,7 @@ void SemanticReachableSet::_initialize() {
 }
 
 /// @note Computation of the reachable set of an LTI system requires the zero-state response of the system.
-void SemanticReachableSet::_initialize_zero_state_polygons() {
+void SemanticLabelingReachableSet::_initialize_zero_state_polygons() {
     polygon_zero_state_lon = create_zero_state_polygon(config->planning().dt,
                                                        config->vehicle().ego.a_lon_min,
                                                        config->vehicle().ego.a_lon_max);
@@ -51,7 +51,7 @@ void SemanticReachableSet::_initialize_zero_state_polygons() {
                                                        config->vehicle().ego.a_lat_max);
 }
 
-std::vector<reach::ReachNodePtr> SemanticReachableSet::_construct_initial_reachable_sets() {
+std::vector<reach::ReachNodePtr> SemanticLabelingReachableSet::_construct_initial_reachable_sets() {
     // initial drivable area
     auto tuple_vertices = generate_tuple_vertices_position_rectangle_initial(config);
 
@@ -64,7 +64,7 @@ std::vector<reach::ReachNodePtr> SemanticReachableSet::_construct_initial_reacha
     return {std::make_shared<reach::ReachNode>(step_start, polygon_lon, polygon_lat)};
 }
 
-void SemanticReachableSet::compute(int step_start, int step_end) {
+void SemanticLabelingReachableSet::compute(int step_start, int step_end) {
     if (step_start == 0) step_start = this->step_start + 1;
     if (step_end == 0) step_end = this->step_end;
 
@@ -88,7 +88,7 @@ void SemanticReachableSet::compute(int step_start, int step_end) {
 /// 3. Merge and repartition these rectangles to reduce computation load.
 /// 4. Check for collision and split the repartitioned rectangles into collision-free rectangles.
 /// 5. Merge and repartition the collision-free rectangles again to reduce number of nodes.
-void SemanticReachableSet::_compute_drivable_area_at_step(int const& step) {
+void SemanticLabelingReachableSet::_compute_drivable_area_at_step(int const& step) {
     auto reachable_set_previous = map_step_to_reachable_set[step - 1];
     if (reachable_set_previous.empty()) {
         map_step_to_propositions_to_propagated_set[step] = {};
@@ -138,7 +138,7 @@ void SemanticReachableSet::_compute_drivable_area_at_step(int const& step) {
 }
 
 
-vector<reach::ReachNodePtr> SemanticReachableSet::_propagate_reachable_set(vector<reach::ReachNodePtr> const& vec_nodes) {
+vector<reach::ReachNodePtr> SemanticLabelingReachableSet::_propagate_reachable_set(vector<reach::ReachNodePtr> const& vec_nodes) {
     vector<reach::ReachNodePtr> vec_base_sets_propagated;
     vec_base_sets_propagated.reserve(vec_nodes.size());
 
@@ -182,7 +182,7 @@ default(none) shared(vec_nodes, vec_base_sets_propagated)
 }
 
 std::vector<reach::ReachPolygonPtr>
-SemanticReachableSet::_collision_check_and_repartition(std::vector<reach::ReachPolygonPtr> rectangles, int const &step) {
+SemanticLabelingReachableSet::_collision_check_and_repartition(std::vector<reach::ReachPolygonPtr> rectangles, int const &step) {
     auto mode_repartition = config->reachable_set().mode_repartition;
     auto size_grid = config->reachable_set().size_grid;
     auto size_grid_2nd = config->reachable_set().size_grid_2nd;
@@ -231,7 +231,7 @@ SemanticReachableSet::_collision_check_and_repartition(std::vector<reach::ReachP
 /// *Steps*:
 /// 1. construct reach nodes from drivable area and the propagated base sets.
 /// 2. update parent-child relationship of the nodes.
-void SemanticReachableSet::_compute_reachable_set_at_step(int const& step) {
+void SemanticLabelingReachableSet::_compute_reachable_set_at_step(int const& step) {
     auto map_propositions_to_propagated_set = map_step_to_propositions_to_propagated_set[step];
     auto map_propositions_to_drivable_area = map_step_to_propositions_to_drivable_area[step];
 
@@ -276,7 +276,7 @@ void SemanticReachableSet::_compute_reachable_set_at_step(int const& step) {
 }
 //
 ///// Iterates through reachability graph backward in time, discards nodes that don't have a child node.
-//void SemanticReachableSet::prune_nodes_not_reaching_final_step() {
+//void SemanticLabelingReachableSet::prune_nodes_not_reaching_final_step() {
 //    auto cnt_nodes_before_pruning = reachable_set_at_step(step_end).size();
 //    auto cnt_nodes_after_pruning = cnt_nodes_before_pruning;
 //
@@ -321,7 +321,7 @@ void SemanticReachableSet::_compute_reachable_set_at_step(int const& step) {
 //    // cout << "\t#Nodes after pruning: \t" << cnt_nodes_after_pruning << endl;
 //}
 
-vector<reach::ReachNodePtr> SemanticReachableSet::_call_python_dummy(int const& step, vector<reach::ReachNodePtr> const& vec_nodes) {
+vector<reach::ReachNodePtr> SemanticLabelingReachableSet::_call_python_dummy(int const& step, vector<reach::ReachNodePtr> const& vec_nodes) {
     vector<reach::ReachNodePtr> vec_nodes_new{};
     for (auto const& node: vec_nodes) {
         vec_nodes_new.emplace_back(semantic_model->obj_semantic_model_py.attr("call_python_dummy")(step, node)

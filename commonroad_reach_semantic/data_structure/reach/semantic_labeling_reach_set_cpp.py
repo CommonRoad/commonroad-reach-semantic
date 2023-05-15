@@ -27,10 +27,10 @@ class CppSemanticLabelingReachableSet(SemanticReachableSet):
                  rule_interface: TrafficRuleInterface):
         super().__init__(config, semantic_model, rule_interface)
 
-        self._reach = pycrreachs.SemanticReachableSet(self.config.convert_to_cpp_configuration(),
-                                                      self.collision_checker.cpp_collision_checker,
-                                                      pycrreachs.SemanticModel(semantic_model),
-                                                      pycrreachs.TrafficRuleInterface(rule_interface))
+        self._reach = pycrreachs.SemanticLabelingReachableSet(self.config.convert_to_cpp_configuration(),
+                                                              self.collision_checker.cpp_collision_checker,
+                                                              pycrreachs.SemanticModel(semantic_model),
+                                                              pycrreachs.TrafficRuleInterface(rule_interface))
 
         logger.info("CppSemanticLabelingReachableSet initialized.")
 
