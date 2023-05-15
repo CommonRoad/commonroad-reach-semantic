@@ -19,6 +19,15 @@ If you are using Anaconda or Miniconda, you can install spot from conda forge wi
 ```bash
 conda install -c conda-forge spot
 ```
+For the C++ code, you also need to install the spot headers.
+See the [spot documentation](https://spot.lre.epita.fr/install.html) for instructions.
+If you are using Ubuntu, you can install the spot headers with:
+```bash
+wget -q -O - https://www.lrde.epita.fr/repo/debian.gpg | sudo tee /etc/apt/keyrings/lrde-spot.gpg
+echo 'deb [signed-by=/etc/apt/keyrings/lrde-spot.gpg] http://www.lrde.epita.fr/repo/debian/ stable/' | sudo tee -a /etc/apt/sources.list
+sudo apt-get update
+sudo apt-get install libspot-dev
+```
 * Install [CommonRoad-Reach](https://commonroad.in.tum.de/tools/commonroad-reach).
 Please refer to its [documentation](https://commonroad.in.tum.de/docs/commonroad-reach/getting_started.html) for instructions.
 Note that this includes installing the [CommonRoad Drivability Checker](https://commonroad.in.tum.de/drivability-checker).
