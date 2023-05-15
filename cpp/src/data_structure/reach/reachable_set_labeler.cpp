@@ -82,7 +82,52 @@ ReachableSetLabeler::_label_traffic_status_propositions(int step, std::vector<Se
 
 std::vector<SemanticReachNodePtr>
 ReachableSetLabeler::_label_in_conflict_area_propositions(int step, std::vector<SemanticReachNodePtr> reachable_sets) {
-    // TODO: implement
+    // examine if the propagated set is conflicting with the vehicles
+    for (const auto &reachable_set: reachable_sets) {
+        for (const auto &vehicle: semantic_model->vec_vehicles) {
+            for (const auto &id_lanelet_propagated_set: reachable_set_to_lanelet_ids[reachable_set]) {
+                auto intersecting_lanelets = semantic_model->map_id_lanelet_to_set_ids_lanelets_intersecting[id_lanelet_propagated_set];
+                for (const auto &id_lanelet_lane_vehicle: vehicle->lane_lanelet_ids) {
+                    if (intersecting_lanelets.find(id_lanelet_lane_vehicle) != intersecting_lanelets.end()) {
+                        reachable_set_to_propositions[reachable_set].add_proposition(
+                                Proposition::in_conflict_with(vehicle->vehicle_id),
+                                PropositionGroup::TRAFFIC_STATUS);
+                    }
+                }
+            }
+        }
+    }
+
+    // examine if the vehicles are in conflict with the propagated set
+    for (const auto &reachable_set: reachable_sets) {
+        for (const auto &vehicle: semantic_model->vec_vehicles) {
+            double p_lon_min_reachable_set = reachable_set->p_lon_min() - config->semantic_model().ego_radius_inflation;
+            // if step is not in map continue
+            auto it = vehicle->map_step_to_state_lon_ref_s.find(step);
+            if (it == vehicle->map_step_to_state_lon_ref_s.end()) {
+                continue;
+            }
+            double p_lon_ref_max_vehicle = it->second + vehicle->length / 2;
+
+            // propagated set is in front of the vehicle along the reference path
+            if (p_lon_min_reachable_set > p_lon_ref_max_vehicle) {
+                continue;
+            }
+
+            // iterate through lanelet ids of the route and lanelet ids of the vehicle
+            for (const auto &id_lanelet_route: config->semantic_model().vec_route_lanelet_ids) {
+                auto intersecting_lanelets = semantic_model->map_id_lanelet_to_set_ids_lanelets_intersecting[id_lanelet_route];
+                for (const auto &id_lanelet_vehicle: vehicle->lanelet_ids_at_step(step)) {
+                    if (intersecting_lanelets.find(id_lanelet_vehicle) != intersecting_lanelets.end()) {
+                        reachable_set_to_propositions[reachable_set].add_proposition(
+                                Proposition::in_conflict_by(vehicle->vehicle_id),
+                                PropositionGroup::TRAFFIC_STATUS);
+                    }
+                }
+            }
+        }
+    }
+
     return reachable_sets;
 }
 
