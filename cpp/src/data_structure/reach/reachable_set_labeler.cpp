@@ -93,10 +93,12 @@ ReachableSetLabeler::_label_causes_braking_propositions(int step, std::vector<Se
     }
 
     for (const auto &reachable_set: reachable_sets) {
-        auto braking_caused_for_vehicles_with_id = semantic_model->get_braking_vehicle_ids(step, reachable_set);
-        for (const auto &vehicle_id: braking_caused_for_vehicles_with_id) {
-            reachable_set_to_propositions[reachable_set].add_proposition(Proposition::causes_braking_for(vehicle_id),
-                                                                         PropositionGroup::TRAFFIC_STATUS);
+        for (const auto &vehicle: semantic_model->vec_vehicles) {
+            if (vehicle->braking_caused_by_node_at_step(step, reachable_set)) {
+                reachable_set_to_propositions[reachable_set].add_proposition(
+                        Proposition::causes_braking_for(vehicle->vehicle_id),
+                        PropositionGroup::TRAFFIC_STATUS);
+            }
         }
     }
     return reachable_sets;

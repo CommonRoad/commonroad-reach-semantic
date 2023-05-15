@@ -33,6 +33,7 @@ set(REACH_SOURCE
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/traffic_rule.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/position_interval.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/region.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/vehicle.cpp
 
         CACHE STRING "" FORCE)
 
