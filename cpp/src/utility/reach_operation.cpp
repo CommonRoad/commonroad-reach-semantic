@@ -37,8 +37,8 @@ reach::ReachNodePtr semantic_reach::split_reach_node_wrt_interval(reach::ReachNo
 }
 
 
-vector<reach::ReachNodePtr> semantic_reach::discard_nodes_with_short_edge(vector<reach::ReachNodePtr> const& vec_nodes,
-                                                          float const& length_edge_node_min) {
+vector<reach::ReachNodePtr> semantic_reach::discard_nodes_with_short_edge(const vector<reach::ReachNodePtr> &vec_nodes,
+                                                                          const double &length_edge_node_min) {
     vector<reach::ReachNodePtr> vec_nodes_to_keep{};
     for (auto const& node: vec_nodes) {
         auto length_lon = node->p_lon_max() - node->p_lon_min();

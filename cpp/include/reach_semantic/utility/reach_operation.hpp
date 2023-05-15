@@ -20,7 +20,7 @@ namespace semantic_reach {
                                   string const &direction);
 
     /// Discards nodes with an edge shorter than the specified length.
-    std::vector<reach::ReachNodePtr> discard_nodes_with_short_edge(std::vector<reach::ReachNodePtr> const &vec_nodes,
-                                                                    float const &length_edge_node_min);
+    std::vector<reach::ReachNodePtr> discard_nodes_with_short_edge(const vector<reach::ReachNodePtr> &vec_nodes,
+                                                                   const double &length_edge_node_min);
 
 }

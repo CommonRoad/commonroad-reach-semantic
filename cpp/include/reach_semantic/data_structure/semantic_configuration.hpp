@@ -11,7 +11,7 @@ namespace semantic_reach {
 /// Struct storing reachable set configurations.
 struct SemanticReachableSetConfiguration : reach::ReachableSetConfiguration {
     // shortest length the edges of a reachable node should possess for it to be kept
-    float length_edge_node_min{};
+    double length_edge_node_min{};
 
     SemanticReachableSetConfiguration() = default;
 
