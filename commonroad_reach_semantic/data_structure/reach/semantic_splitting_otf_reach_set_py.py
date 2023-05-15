@@ -47,8 +47,10 @@ class PySemanticSplittingOTFReachableSet(PySemanticReachableSet):
         initial_reachable_sets = self._construct_initial_reachable_sets()
 
         # Label initial state with propositions and automaton states
-        self.labeler.label_initial_state(initial_reachable_sets, self.step_start)
-        self._label_reachable_sets_with_automaton_states(initial_reachable_sets, initial_step=True)
+        initial_reachable_sets = itertools.chain.from_iterable(
+            self._split_reachable_set(self.step_start, initial_reachable_set)
+            for initial_reachable_set in initial_reachable_sets
+        )
         initial_reachable_sets = self._filter_reachable_sets(initial_reachable_sets, self.step_start)
 
         # Compute initial drivable area
@@ -141,26 +143,6 @@ class PySemanticSplittingOTFReachableSet(PySemanticReachableSet):
         self.dict_step_to_reachable_set[step] = list(
             itertools.chain.from_iterable(dict_propositions_to_reachable_set.values()))
 
-    def _label_reachable_sets_with_automaton_states(self, reachable_sets: List[ReachNode],
-                                                    initial_step: bool = False) -> None:
-        for reachable_set in reachable_sets:
-            automaton_states = self.reachable_set_to_label[
-                reachable_set.source_propagation] if not initial_step else {self.automaton.initial_state}
-            self._label_automaton_states(reachable_set, automaton_states)
-
-    def _label_automaton_states(self, reachable_set: ReachNode, current_states: Set[int]) -> None:
-        """Label the reachable set with the automaton states that are reachable given its propositions."""
-        reach_props = self.labeler.reachable_set_to_propositions[reachable_set].set_propositions
-        automaton_states = set()
-        for next_state, minterms in self.automaton.combined_transitions_from(current_states):
-            for minterm in minterms:
-                positive_props = [proposition for proposition, negated in minterm if not negated]
-                negative_props = [proposition for proposition, negated in minterm if negated]
-                if reach_props.issuperset(positive_props) and reach_props.isdisjoint(negative_props):
-                    automaton_states.add(next_state)
-                    break  # inner loop
-        self.reachable_set_to_label[reachable_set] = frozenset(automaton_states)
-
     def _filter_reachable_sets(self, reachable_sets: List[ReachNode], step: int) -> List[ReachNode]:
         """Filter reachable sets that cannot be part of an accepting run of the automaton."""
         is_final_step = (step == self.step_end)
@@ -175,7 +157,8 @@ class PySemanticSplittingOTFReachableSet(PySemanticReachableSet):
 
     def _split_reachable_set(self, step: int, reachable_set: ReachNode) -> List[ReachNode]:
         split_sets = list()
-        current_states = self.reachable_set_to_label[reachable_set.source_propagation]
+        current_states = frozenset({self.automaton.initial_state}) if step == self.step_start else \
+            self.reachable_set_to_label[reachable_set.source_propagation]
         minterm_to_constrained_sets: Dict[Tuple[Tuple[str, bool]], List[ReachNode]] = dict()
         split_set_to_state: Dict[ReachNode, Set[int]] = defaultdict(set)
 
