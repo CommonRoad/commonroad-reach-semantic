@@ -200,6 +200,10 @@ class PySemanticSplittingOTFReachableSet(PySemanticReachableSet):
                 pred.restrict_reach_node(step, node, self.labeler.semantic_model)
                 for node in restricted_reachable_sets))
 
+        # if there are no predicates that need lanelets, we are done, so we don't need to split to regions
+        if not predicates_need_lanelets:
+            return restricted_reachable_sets
+
         # split to regions
         restricted_reachable_sets = list(itertools.chain.from_iterable(
             self.labeler.split_wrt_regions(step, restricted_reachable_set)
