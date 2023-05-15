@@ -3,7 +3,7 @@
 
 using namespace semantic_reach;
 
-TrafficRuleInterface::TrafficRuleInterface(py::handle const& obj_traffic_rule_py) {
+TrafficRuleInterface::TrafficRuleInterface(py::handle const &obj_traffic_rule_py) {
     this->obj_rule_interface_py = obj_traffic_rule_py;
 
     auto dict_step_to_propositions_mandatory =
@@ -11,7 +11,7 @@ TrafficRuleInterface::TrafficRuleInterface(py::handle const& obj_traffic_rule_py
     auto dict_step_to_propositions_forbidden =
             obj_traffic_rule_py.attr("tpl_checker").attr("dict_step_to_propositions_forbidden");
 
-    for (auto const& step: dict_step_to_propositions_mandatory) {
+    for (auto const &step: dict_step_to_propositions_mandatory) {
         auto set_propositions_mandatory = dict_step_to_propositions_mandatory[step];
         auto set_propositions_forbidden = dict_step_to_propositions_forbidden[step];
 
@@ -20,15 +20,16 @@ TrafficRuleInterface::TrafficRuleInterface(py::handle const& obj_traffic_rule_py
     }
 }
 
-vector<SemanticReachNodePtr> TrafficRuleInterface::examine_tpl_specifications(int const& step,
-                                                                      vector<SemanticReachNodePtr> const& vec_nodes_reach) {
+vector<SemanticReachNodePtr>
+TrafficRuleInterface::examine_tpl_specifications(int const &step, vector<SemanticReachNodePtr> const &vec_nodes_reach,
+                                                 const std::map<SemanticReachNodePtr, PropositionHolder> &reachable_set_to_propositions) {
     vector<SemanticReachNodePtr> vec_nodes_keep{};
 
-    auto const& set_propositions_mandatory = map_step_to_propositions_mandatory[step];
-    auto const& set_propositions_forbidden = map_step_to_propositions_forbidden[step];
+    auto const &set_propositions_mandatory = map_step_to_propositions_mandatory[step];
+    auto const &set_propositions_forbidden = map_step_to_propositions_forbidden[step];
 
-    for (auto const& node: vec_nodes_reach) {
-        auto const& set_propositions_node = node->set_propositions();
+    for (auto const &node: vec_nodes_reach) {
+        auto const &set_propositions_node = reachable_set_to_propositions.at(node).set_propositions;
         bool includes_mandatory = std::includes(set_propositions_node.begin(), set_propositions_node.end(),
                                                 set_propositions_mandatory.begin(),
                                                 set_propositions_mandatory.end());

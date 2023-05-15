@@ -18,8 +18,9 @@ public:
     explicit TrafficRuleInterface(py::handle const& obj_traffic_rule_py);
 
     // Examines whether the given propagated sets satisfy the TPL specifications.
-    std::vector<SemanticReachNodePtr>
-    examine_tpl_specifications(int const& step, std::vector<SemanticReachNodePtr> const& vec_nodes_reach);
+    vector<SemanticReachNodePtr>
+    examine_tpl_specifications(int const &step, vector<SemanticReachNodePtr> const &vec_nodes_reach,
+                               const std::map<SemanticReachNodePtr, PropositionHolder>& reachable_set_to_propositions);
 };
 
 using TrafficRuleInterfacePtr = std::shared_ptr<TrafficRuleInterface>;

@@ -97,17 +97,18 @@ void SemanticReachableSet::_compute_drivable_area_at_step(int const& step) {
     auto vec_propagated_set = _propagate_reachable_set(reachable_set_previous);
 
     // split w.r.t regions and position intervals
-    auto vec_propagated_set_split = labeler->split_wrt_regions(step, vec_propagated_set);
-    vec_propagated_set_split = labeler->split_wrt_position_intervals(step, vec_propagated_set_split);
+    vec_propagated_set = labeler->split_wrt_regions(step, vec_propagated_set);
+    vec_propagated_set = labeler->split_wrt_position_intervals(step, vec_propagated_set);
 
     // discard the ones colliding with vehicles
-    vec_propagated_set_split = labeler->discard_colliding_nodes(vec_propagated_set_split);
+    vec_propagated_set = labeler->discard_colliding_nodes(vec_propagated_set);
 
     // examine whether the propagated sets satisfy TPL specifications
-    vec_propagated_set = rule_interface->examine_tpl_specifications(step, vec_propagated_set);
+    vec_propagated_set = rule_interface->examine_tpl_specifications(step, vec_propagated_set,
+                                                                    labeler->reachable_set_to_propositions);
 
     // update traffic propositions of the propagated sets
-    vec_propagated_set = labeler->label_traffic_propositions(step, vec_propagated_set_split);
+    vec_propagated_set = labeler->label_traffic_propositions(step, vec_propagated_set);
 
     // partition propagated sets by their propositions
     unordered_map<PropositionHolder, vector<SemanticReachNodePtr>, PropositionHolder::HashFunction>
