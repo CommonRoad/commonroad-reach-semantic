@@ -48,3 +48,7 @@ TrafficRuleInterface::examine_tpl_specifications(int const &step, vector<reach::
 
     return vec_nodes_keep;
 }
+
+std::string TrafficRuleInterface::get_combined_ltl_specs() {
+    return obj_rule_interface_py.attr("get_combined_ltl_specs")().cast<std::string>();
+}

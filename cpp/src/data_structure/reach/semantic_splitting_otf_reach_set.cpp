@@ -15,8 +15,7 @@ SemanticSplittingOTFReachableSet::SemanticSplittingOTFReachableSet(semantic_reac
     _initialize_zero_state_polygons();
 
     // Construct finite automaton from traffic rules
-    // TODO
-    automaton = std::make_unique<FiniteAutomaton>("G (InLanelet_1 | InLanelet_2)");
+    automaton = std::make_unique<FiniteAutomaton>(rule_interface->get_combined_ltl_specs());
 
     auto initial_reachable_sets = _construct_initial_reachable_sets();
 

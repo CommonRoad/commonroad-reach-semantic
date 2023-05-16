@@ -22,6 +22,8 @@ public:
     vector<reach::ReachNodePtr>
     examine_tpl_specifications(int const &step, vector<reach::ReachNodePtr> const &vec_nodes_reach,
                                const std::map<reach::ReachNodePtr, PropositionHolder>& reachable_set_to_propositions);
+
+    std::string get_combined_ltl_specs();
 };
 
 using TrafficRuleInterfacePtr = std::shared_ptr<TrafficRuleInterface>;
