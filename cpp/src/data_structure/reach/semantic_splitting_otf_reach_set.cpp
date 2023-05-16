@@ -2,6 +2,7 @@
 
 #include "reachset/utility/reach_operation.hpp"
 #include "reach_semantic/data_structure/reach/semantic_splitting_otf_reach_set.hpp"
+#include "reach_semantic/data_structure/reach/predicates/predicate.hpp"
 #include "reach_semantic/utility/reach_operation.hpp"
 
 using namespace semantic_reach;
@@ -171,6 +172,50 @@ SemanticSplittingOTFReachableSet::_split_reachable_set(int step, const reach::Re
 std::vector<reach::ReachNodePtr>
 SemanticSplittingOTFReachableSet::_split_reachable_set_to_minterm(int step, reach::ReachNodePtr reachable_set,
                                                                   semantic_reach::Minterm minterm) {
-    // TODO
-    return {reachable_set};
+    std::vector<Predicate> predicates_need_lanelets{};
+    std::vector<Predicate> predicates_dont_need_lanelets{};
+    for (const auto &[proposition, negated]: minterm) {
+        Predicate pred = Predicate::from_proposition(proposition, negated);
+        if (pred.needs_lanelets) {
+            predicates_need_lanelets.emplace_back(pred);
+        } else {
+            predicates_dont_need_lanelets.emplace_back(pred);
+        }
+    }
+
+    // restrict with predicates that don't need lanelets
+    std::vector<reach::ReachNodePtr> restricted_reachable_sets{reachable_set->clone()};
+    for (const auto &pred: predicates_dont_need_lanelets) {
+        std::vector<reach::ReachNodePtr> new_restricted_reachable_sets{};
+        for (const auto &node: restricted_reachable_sets) {
+            auto restricted_nodes = pred.restrict_reach_node(step, node, semantic_model);
+            new_restricted_reachable_sets.insert(new_restricted_reachable_sets.end(),
+                                                 std::make_move_iterator(restricted_nodes.begin()),
+                                                 std::make_move_iterator(restricted_nodes.end()));
+        }
+        restricted_reachable_sets = std::move(new_restricted_reachable_sets);
+    }
+
+    // if there are no predicates that need lanelets, we are done, so we don't need to split to regions
+    if (predicates_need_lanelets.empty()) {
+        return restricted_reachable_sets;
+    }
+
+    // split to regions
+    restricted_reachable_sets = labeler->split_wrt_regions(step, restricted_reachable_sets);
+
+    // restrict with predicates that need lanelets
+    for (const auto &pred: predicates_need_lanelets) {
+        std::vector<reach::ReachNodePtr> new_restricted_reachable_sets{};
+        for (const auto &node: restricted_reachable_sets) {
+            auto restricted_nodes = pred.restrict_reach_node(step, node, semantic_model,
+                                                             labeler->reachable_set_to_lanelet_ids[node]);
+            new_restricted_reachable_sets.insert(new_restricted_reachable_sets.end(),
+                                                 std::make_move_iterator(restricted_nodes.begin()),
+                                                 std::make_move_iterator(restricted_nodes.end()));
+        }
+        restricted_reachable_sets = std::move(new_restricted_reachable_sets);
+    }
+
+    return restricted_reachable_sets;
 }
