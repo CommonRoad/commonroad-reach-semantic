@@ -259,6 +259,10 @@ ReachableSetLabeler::_split_reachable_set_wrt_intervals(const reach::ReachNodePt
 std::set<std::string>
 ReachableSetLabeler::_obtain_lanelet_transition_propositions(
         const reach::ReachNodePtr &propagated_set) {
+    if (propagated_set->vec_nodes_source.empty()) {
+        // There is no source node, so there is no lanelet transition
+        return {};
+    }
     auto source_node = propagated_set->vec_nodes_source[0];
 
     auto set_propositions_position_source = reachable_set_to_propositions[source_node].propositions_in_group(
