@@ -23,9 +23,9 @@ namespace semantic_reach {
 /// Reachable set representation for the ego vehicle.
 class SemanticLabelingReachableSet : public SemanticReachableSet {
 private:
-    void _compute_drivable_area_at_step(int const& step);
+    void _compute_drivable_area_at_step(int const& step) override;
 
-    void _compute_reachable_set_at_step(int const& step);
+    void _compute_reachable_set_at_step(int const& step) override;
 
 public:
     SemanticLabelingReachableSet(SemanticConfigurationPtr config, CollisionCheckerPtr collision_checker,

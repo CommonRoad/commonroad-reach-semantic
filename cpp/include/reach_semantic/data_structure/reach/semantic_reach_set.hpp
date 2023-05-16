@@ -39,6 +39,8 @@ namespace semantic_reach {
         SemanticModelPtr semantic_model;
         TrafficRuleInterfacePtr rule_interface;
 
+        virtual ~SemanticReachableSet() = default;
+
         int step_start{};
         int step_end{};
 
