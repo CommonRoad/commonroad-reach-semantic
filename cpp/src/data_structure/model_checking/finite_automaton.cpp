@@ -23,7 +23,7 @@ FiniteAutomaton::FiniteAutomaton(const std::string &ltlf_formula) {
     _bdict = _spot_automaton->get_dict();
 }
 
-int FiniteAutomaton::initial_state() {
+unsigned int FiniteAutomaton::initial_state() {
     return _spot_automaton->get_init_state_number();
 }
 

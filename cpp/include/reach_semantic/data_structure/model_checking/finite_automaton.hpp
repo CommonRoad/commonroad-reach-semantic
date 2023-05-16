@@ -27,7 +27,7 @@ namespace semantic_reach {
         FiniteAutomaton(const std::string &ltlf_formula);
 
         /// The number of the initial state.
-        int initial_state();
+        unsigned int initial_state();
 
         /// Find all transitions outgoing from the given state.
         std::vector<std::pair<unsigned int, std::vector<Minterm>>> transitions_from(unsigned int state);

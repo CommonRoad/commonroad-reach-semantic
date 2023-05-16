@@ -27,6 +27,7 @@ class PySemanticSplittingOTFReachableSet(PySemanticReachableSet):
     dict_step_to_states_to_drivable_area: Dict[int, Dict[FrozenSet[int], List[ReachPolygon]]]
     dict_step_to_states_to_propagated_set: Dict[int, Dict[FrozenSet[int], List[ReachNode]]]
     reachable_set_to_label: Dict[ReachNode, FrozenSet[int]]
+    automaton: FiniteAutomaton
 
     def __init__(self, config: SemanticConfiguration, semantic_model: SemanticModel,
                  rule_interface: TrafficRuleInterface):
