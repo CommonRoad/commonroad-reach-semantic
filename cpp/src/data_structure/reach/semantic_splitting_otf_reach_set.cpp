@@ -46,7 +46,7 @@ void SemanticSplittingOTFReachableSet::_compute_drivable_area_at_step(const int 
 
     std::vector<reach::ReachNodePtr> propagated_sets_split{};
     for (const auto &propagated_set: propagated_sets) {
-        auto split_reachable_sets = _split_reachable_set(step_start, propagated_set);
+        auto split_reachable_sets = _split_reachable_set(step, propagated_set);
         propagated_sets_split.insert(propagated_sets_split.end(), split_reachable_sets.begin(),
                                      split_reachable_sets.end());
     }
@@ -54,7 +54,7 @@ void SemanticSplittingOTFReachableSet::_compute_drivable_area_at_step(const int 
 
     // partition propagated sets by their automaton states
     std::map<std::set<unsigned int>, std::vector<reach::ReachNodePtr>> map_states_to_propagated_set{};
-    for (auto const &propagated_set: propagated_sets) {
+    for (auto const &propagated_set: propagated_sets_split) {
         map_states_to_propagated_set[reachable_set_to_label[propagated_set]].emplace_back(propagated_set);
     }
 
@@ -73,7 +73,7 @@ void SemanticSplittingOTFReachableSet::_compute_drivable_area_at_step(const int 
     map_step_to_drivable_area[step] = vec_drivable_area;
     map_step_to_states_to_drivable_area[step] = map_states_to_drivable_area;
     map_step_to_states_to_propagated_set[step] = map_states_to_propagated_set;
-    map_step_to_propagated_set[step] = propagated_sets;
+    map_step_to_propagated_set[step] = propagated_sets_split;
 }
 
 void SemanticSplittingOTFReachableSet::_compute_reachable_set_at_step(const int &step) {
