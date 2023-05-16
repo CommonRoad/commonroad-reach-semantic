@@ -142,7 +142,8 @@ std::vector<reach::ReachNodePtr>
 SemanticSplittingOTFReachableSet::_split_reachable_set(int step, const reach::ReachNodePtr &reachable_set) {
     std::vector<reach::ReachNodePtr> split_sets{};
     auto current_states =
-            step == step_start ? std::set<unsigned int>{automaton->initial_state()} : reachable_set_to_label[reachable_set];
+            step == step_start ? std::set<unsigned int>{automaton->initial_state()}
+                               : reachable_set_to_label[reachable_set->vec_nodes_source[0]];
     std::map<Minterm, std::vector<reach::ReachNodePtr>> minterm_to_constrained_sets{};
 
     for (const auto &[next_state, minterms]: automaton->combined_transitions_from(current_states)) {
