@@ -31,14 +31,14 @@ class ColorMapper:
     def __init__(self, reach_interface: ReachableSetInterface, steps: List[int]):
         # determine number of colors
 
-        different_propositions = {
-            frozenset(reach_interface._reach.labeler.reachable_set_to_propositions[reach_node].set_propositions)
-            for step in steps
-            for reach_node in reach_interface.reachable_set_at_step(step)
-        }
-
-        self.num_colors = len(different_propositions)
-        self.palette = sns.color_palette("rainbow", self.num_colors)
+        # different_propositions = {
+        #     frozenset(reach_interface._reach.labeler.reachable_set_to_propositions[reach_node].set_propositions)
+        #     for step in steps
+        #     for reach_node in reach_interface.reachable_set_at_step(step)
+        # }
+        #
+        # self.num_colors = len(different_propositions)
+        # self.palette = sns.color_palette("rainbow", self.num_colors)
 
         self.id_color_max = 0
         self.dict_hash_to_id_color: Dict[int, int] = dict()
@@ -447,7 +447,7 @@ def draw_reachable_sets(nodes, config: SemanticConfiguration, renderer, draw_par
     if coordinate_system == "CART":
         for node in nodes:
             vertices = node.position_rectangle.vertices
-            draw_params.shape.facecolor = mapper.map_to_color(reach_interface._reach.labeler.reachable_set_to_propositions[node].set_propositions)
+            # draw_params.shape.facecolor = mapper.map_to_color(reach_interface._reach.labeler.reachable_set_to_propositions[node].set_propositions)
             Polygon(vertices=np.array(vertices)).draw(renderer, draw_params)
 
     elif coordinate_system == "CVLN":
@@ -455,7 +455,7 @@ def draw_reachable_sets(nodes, config: SemanticConfiguration, renderer, draw_par
             position_rectangle = node.position_rectangle
             list_polygons_cart = util_coordinate_system.convert_to_cartesian_polygons(position_rectangle,
                                                                                       config.planning.CLCS, True)
-            draw_params.shape.facecolor = mapper.map_to_color(reach_interface._reach.labeler.reachable_set_to_propositions[node].set_propositions)
+            # draw_params.shape.facecolor = mapper.map_to_color(reach_interface._reach.labeler.reachable_set_to_propositions[node].set_propositions)
             for polygon in list_polygons_cart:
                 Polygon(vertices=np.array(polygon.vertices)).draw(renderer, draw_params)
 
@@ -472,7 +472,7 @@ def draw_kripke_nodes(set_nodes_kripke: Set[KripkeNode], config: SemanticConfigu
         if coordinate_system == "CART":
             for node in node_kripke.set_nodes_reach:
                 vertices = node.position_rectangle.vertices
-                draw_params.shape.facecolor = mapper.map_to_color(reach_interface._reach.labeler.reachable_set_to_propositions[node].set_propositions)
+                # draw_params.shape.facecolor = mapper.map_to_color(reach_interface._reach.labeler.reachable_set_to_propositions[node].set_propositions)
                 Polygon(vertices=np.array(vertices)).draw(renderer, draw_params_nodes)
 
         elif coordinate_system == "CVLN":
@@ -480,7 +480,7 @@ def draw_kripke_nodes(set_nodes_kripke: Set[KripkeNode], config: SemanticConfigu
                 position_rectangle = node.position_rectangle
                 list_polygons_cart = util_coordinate_system.convert_to_cartesian_polygons(position_rectangle,
                                                                                           config.planning.CLCS, True)
-                draw_params_nodes.shape.facecolor = mapper.map_to_color(reach_interface._reach.labeler.reachable_set_to_propositions[node].set_propositions)
+                # draw_params_nodes.shape.facecolor = mapper.map_to_color(reach_interface._reach.labeler.reachable_set_to_propositions[node].set_propositions)
                 for polygon in list_polygons_cart:
                     Polygon(vertices=np.array(polygon.vertices)).draw(renderer, draw_params_nodes)
 
