@@ -9,6 +9,8 @@
 #include "geometry/curvilinear_coordinate_system.h"
 #include "collision/collision_checker.h"
 #include "reach_semantic/data_structure/reach/semantic_labeling_reach_set.hpp"
+#include "reach_semantic/data_structure/reach/semantic_otf_reach_set.hpp"
+#include "reach_semantic/data_structure/reach/semantic_splitting_otf_reach_set.hpp"
 #include "reach_semantic/data_structure/semantic_model.hpp"
 #include "reachset/utility/collision_checker.hpp"
 //#include "reach_semantic/semantic/data_structure/traffic_rule.hpp"
@@ -27,8 +29,10 @@ int main() {
 
     // ======== settings
     string path_root = "/home/lercher/tum/commonroad/commonroad-reach-semantic-addon/";
-    string name_scenario = "DEU_Test-1_1_T-1";
-    //string name_scenario = "ZAM_Intersection-1_1_T-1";
+//    string name_scenario = "DEU_Test-1_1_T-1";
+//    string name_scenario = "ZAM_Intersection-1_1_T-1";
+//    string name_scenario = "ZAM_Merge-1_1_T-1";
+    string name_scenario = "ESP_Monzon-2_2_T-1";
 
     // append path to interpreter
     py::module_ sys = py::module_::import("sys");
@@ -77,7 +81,9 @@ int main() {
     auto collision_checker = obj_collision_checker_py.attr("cpp_collision_checker").cast<CollisionCheckerPtr>();
 
     // ======== ReachableSetInterface
-    auto reach_interface = SemanticLabelingReachableSet(config, collision_checker, semantic_model, traffic_rule_interface);
+//    auto reach_interface = SemanticLabelingReachableSet(config, collision_checker, semantic_model, traffic_rule_interface);
+//    auto reach_interface = SemanticOTFReachableSet(config, collision_checker, semantic_model, traffic_rule_interface);
+    auto reach_interface = SemanticSplittingOTFReachableSet(config, collision_checker, semantic_model, traffic_rule_interface);
     auto start = high_resolution_clock::now();
     reach_interface.compute();
     auto end = high_resolution_clock::now();
