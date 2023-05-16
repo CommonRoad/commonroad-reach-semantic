@@ -19,7 +19,8 @@ void export_reachable_set_interface(py::module &m) {
             .def("reachable_set_at_step", &SemanticReachableSet::reachable_set_at_step, py::arg("step"))
             .def("drivable_area", &SemanticReachableSet::drivable_area)
             .def("reachable_set", &SemanticReachableSet::reachable_set)
-            .def("propagated_set", &SemanticReachableSet::propagated_set);
+            .def("propagated_set", &SemanticReachableSet::propagated_set)
+            .def("prune_nodes_not_reaching_final_step", &SemanticReachableSet::prune_nodes_not_reaching_final_step);
 
     py::class_<SemanticLabelingReachableSet, shared_ptr<SemanticLabelingReachableSet>, SemanticReachableSet>(m, "SemanticLabelingReachableSet")
             .def(py::init<SemanticConfigurationPtr const &, CollisionCheckerPtr const &,

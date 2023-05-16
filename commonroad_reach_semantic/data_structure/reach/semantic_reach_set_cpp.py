@@ -48,8 +48,7 @@ class CppSemanticReachableSet(SemanticReachableSet, ABC):
         return self._reach.reachable_set_at_step(step)
 
     def prune_nodes_not_reaching_final_step(self):
-        # self._reach.prune_nodes_not_reaching_final_step()
-        pass
+        self._reach.prune_nodes_not_reaching_final_step()
 
     @property
     def labeler(self):

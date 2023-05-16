@@ -146,48 +146,50 @@ SemanticReachableSet::_collision_check_and_repartition(std::vector<reach::ReachP
     return drivable_area;
 }
 
-///// Iterates through reachability graph backward in time, discards nodes that don't have a child node.
-//void SemanticReachableSet::prune_nodes_not_reaching_final_step() {
-//    auto cnt_nodes_before_pruning = reachable_set_at_step(step_end).size();
-//    auto cnt_nodes_after_pruning = cnt_nodes_before_pruning;
-//
-//    for (auto step = step_end - 1; step > step_start - 1; step--) {
-//        auto vec_nodes = reachable_set_at_step(step);
-//        cnt_nodes_before_pruning += vec_nodes.size();
-//
-//        vector<int> vec_idx_nodes_to_be_deleted{};
-//        for (int idx_node = 0; idx_node < vec_nodes.size(); idx_node++) {
-//            // discard the node if it has no child node
-//            auto node = vec_nodes[idx_node];
-//            if (node->vec_nodes_child().empty()) {
-//                vec_idx_nodes_to_be_deleted.push_back(idx_node);
-//                // iterate through its parent nodes and disconnect them
-//                for (auto const& node_parent: node->vec_nodes_parent()) {
-//                    node_parent->remove_child_node(node);
-//                }
-//            }
-//        }
-//        // discard nodes without a child
-//        vector<reach::ReachPolygonPtr> vec_drivable_area_updated{};
-//        vector<reach::ReachNodePtr> vec_reachable_set_updated{};
-//        for (int idx_node = 0; idx_node < vec_nodes.size(); idx_node++) {
-//            auto result = std::find(vec_idx_nodes_to_be_deleted.begin(),
-//                                    vec_idx_nodes_to_be_deleted.end(),
-//                                    idx_node) != vec_idx_nodes_to_be_deleted.end();
-//
-//            if (not result) {
-//                auto node = vec_nodes[idx_node];
-//                vec_drivable_area_updated.emplace_back(node->position_rectangle());
-//                vec_reachable_set_updated.emplace_back(node);
-//            }
-//        }
-//        // update drivable area and reachable set dictionaries
-//        map_step_to_drivable_area[step] = vec_drivable_area_updated;
-//        map_step_to_reachable_set[step] = vec_reachable_set_updated;
-//        cnt_nodes_after_pruning += map_step_to_reachable_set[step].size();
-//    }
-//
-//    _pruned = true;
-//    // cout << "\t#Nodes before pruning: \t" << cnt_nodes_before_pruning << endl;
-//    // cout << "\t#Nodes after pruning: \t" << cnt_nodes_after_pruning << endl;
-//}
+/// Iterates through reachability graph backward in time, discards nodes that don't have a child node.
+void SemanticReachableSet::prune_nodes_not_reaching_final_step() {
+    auto cnt_nodes_before_pruning = reachable_set_at_step(step_end).size();
+    auto cnt_nodes_after_pruning = cnt_nodes_before_pruning;
+
+    for (auto step = step_end - 1; step > step_start - 1; step--) {
+        auto vec_nodes = reachable_set_at_step(step);
+        cnt_nodes_before_pruning += vec_nodes.size();
+
+        vector<int> vec_idx_nodes_to_be_deleted{};
+        for (int idx_node = 0; idx_node < vec_nodes.size(); idx_node++) {
+            auto node = vec_nodes[idx_node];
+            // discard the node if it has no child node
+            if (node->vec_nodes_child().empty()) {
+                vec_idx_nodes_to_be_deleted.push_back(idx_node);
+                // iterate through its parent nodes and disconnect them
+                for (auto const& node_parent: node->vec_nodes_parent()) {
+                    node_parent->remove_child_node(node);
+                }
+            }
+        }
+        // discard nodes without a child
+        vector<reach::ReachPolygonPtr> vec_drivable_area_updated{};
+        vector<reach::ReachNodePtr> vec_reachable_set_updated{};
+        for (int idx_node = 0; idx_node < vec_nodes.size(); idx_node++) {
+            auto result = std::find(vec_idx_nodes_to_be_deleted.begin(),
+                                    vec_idx_nodes_to_be_deleted.end(),
+                                    idx_node) != vec_idx_nodes_to_be_deleted.end();
+
+            if (not result) {
+                auto node = vec_nodes[idx_node];
+                vec_drivable_area_updated.emplace_back(node->position_rectangle());
+                vec_reachable_set_updated.emplace_back(node);
+            }
+        }
+        // update drivable area and reachable set dictionaries
+        map_step_to_drivable_area[step] = vec_drivable_area_updated;
+        map_step_to_reachable_set[step] = vec_reachable_set_updated;
+
+        cnt_nodes_after_pruning += map_step_to_reachable_set[step].size();
+    }
+
+    _pruned = true;
+
+     std::cout << "\t#Nodes before pruning: \t" << cnt_nodes_before_pruning << endl;
+     std::cout << "\t#Nodes after pruning: \t" << cnt_nodes_after_pruning << endl;
+}

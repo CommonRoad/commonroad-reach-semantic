@@ -51,16 +51,9 @@ namespace semantic_reach {
         reach::ReachPolygonPtr polygon_zero_state_lon;
         reach::ReachPolygonPtr polygon_zero_state_lat;
 
-        /// Returns the propositions of the given rectangle.
-        PropositionHolder
-        obtain_propositions_for_rectangle(reach::ReachPolygonPtr const &rectangle, int const &step) const;
-
-        inline reach::ReachNodePtr update_propositions_with_region(reach::ReachNodePtr const &node,
-                                                                   RegionPtr const &region, int const &step);
-
         void compute(int step_start = 0, int step_end = 0);
 
-        //void prune_nodes_not_reaching_final_step();
+        void prune_nodes_not_reaching_final_step();
 
         inline std::map<int, std::vector<reach::ReachPolygonPtr>>
         drivable_area() const { return map_step_to_drivable_area; }
