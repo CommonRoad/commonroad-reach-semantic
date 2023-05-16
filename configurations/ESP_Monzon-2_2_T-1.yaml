@@ -32,8 +32,8 @@ debug:
 
 traffic_rules:
   activated_rules:
-    - NoBackwardDrivingRule
+#    - NoBackwardDrivingRule
 #    - NoOppositeDrivingRule
-    - LineMarkingRule
-    - TrafficLightRule
+#    - LineMarkingRule
+#    - TrafficLightRule
     - LTL ! F (InLanelet_14942 | InLanelet_17360)
