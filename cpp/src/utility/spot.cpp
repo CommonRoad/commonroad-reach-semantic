@@ -35,18 +35,27 @@ std::pair<std::string, bool> util_spot::extract_atomic_proposition(const spot::f
 }
 
 std::vector<std::vector<std::pair<std::string, bool>>>
-util_spot::extract_minterms_from_dnf(const spot::formula &formula) {
-    try {
-        std::vector<std::vector<std::pair<std::string, bool>>> minterms{};
-        for (const auto &disjunct: disjuncts(formula)) {
-            std::vector<std::pair<std::string, bool>> minterm{};
-            for (const auto &conjunct: conjuncts(disjunct)) {
-                minterm.emplace_back(extract_atomic_proposition(conjunct));
+util_spot::extract_minterms_from_dnf(const spot::formula &formula_dnf) {
+    // We need to handle true and false separately, because they contain no literals we could extract
+    if (formula_dnf.is(spot::op::tt)) {
+        // true is trivially satisfied, so we return an empty minterm
+        return {{}};
+    } else if (formula_dnf.is(spot::op::ff)) {
+        // false cannot be satisfied, so there are no minterms
+        return {};
+    } else {
+        try {
+            std::vector<std::vector<std::pair<std::string, bool>>> minterms{};
+            for (const auto &disjunct: disjuncts(formula_dnf)) {
+                std::vector<std::pair<std::string, bool>> minterm{};
+                for (const auto &conjunct: conjuncts(disjunct)) {
+                    minterm.emplace_back(extract_atomic_proposition(conjunct));
+                }
+                minterms.emplace_back(minterm);
             }
-            minterms.emplace_back(minterm);
+            return minterms;
+        } catch (const std::invalid_argument &e) {
+            throw std::invalid_argument("Formula is not in DNF.");
         }
-        return minterms;
-    } catch (const std::invalid_argument &e) {
-        throw std::invalid_argument("Formula is not in DNF.");
     }
 }
