@@ -140,10 +140,18 @@ def extract_minterms_from_dnf(formula_dnf: spot.formula) -> List[List[tuple[str,
     :return: The minterms of the formula
     :raise ValueError: If the formula is not in DNF
     """
-    try:
-        return [
-            [extract_atomic_proposition(c) for c in conjuncts(d)]
-            for d in disjuncts(formula_dnf)
-        ]
-    except ValueError as err:
-        raise ValueError(f"Formula {formula_dnf} is not in DNF: {err}")
+    # We need to handle true and false separately, because they contain no literals we could extract
+    if formula_dnf._is(spot.op_tt):
+        # true is trivially satisfied, so we return an empty minterm
+        return [[]]
+    elif formula_dnf._is(spot.op_ff):
+        # false cannot be satisfied, so there are no minterms
+        return []
+    else:
+        try:
+            return [
+                [extract_atomic_proposition(c) for c in conjuncts(d)]
+                for d in disjuncts(formula_dnf)
+            ]
+        except ValueError as err:
+            raise ValueError(f"Formula {formula_dnf} is not in DNF: {err}")

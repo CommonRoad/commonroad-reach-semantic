@@ -30,6 +30,8 @@ class TestSpotUtility:
         assert util_spot.extract_atomic_proposition(literal) == expected
 
     @pytest.mark.parametrize("non_literal", [
+        spot.formula("true"),
+        spot.formula("false"),
         spot.formula("a & b"),
         spot.formula("a | b"),
     ])
@@ -38,6 +40,8 @@ class TestSpotUtility:
             util_spot.extract_atomic_proposition(non_literal)
 
     @pytest.mark.parametrize("dnf_formula, expected", [
+        (spot.formula("true"), [[]]),
+        (spot.formula("false"), []),
         (spot.formula("a"), [[("a", False)]]),
         (spot.formula("!a"), [[("a", True)]]),
         (spot.formula("a & !b & c"), [[("a", False), ("b", True), ("c", False)]]),
