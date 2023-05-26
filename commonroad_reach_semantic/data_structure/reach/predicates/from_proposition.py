@@ -1,5 +1,7 @@
 import re
 
+from commonroad_reach_semantic.data_structure.reach.predicates.aligned_with_obstacle_predicate import \
+    AlignedWithObstaclePredicate
 from commonroad_reach_semantic.data_structure.reach.predicates.behind_obstacle_predicate import BehindObstaclePredicate
 from commonroad_reach_semantic.data_structure.reach.predicates.beside_obstacle_predicate import BesideObstaclePredicate
 from commonroad_reach_semantic.data_structure.reach.predicates.causes_braking_predicate import CausesBrakingPredicate
@@ -11,6 +13,9 @@ from commonroad_reach_semantic.data_structure.reach.predicates.in_intersection_p
 from commonroad_reach_semantic.data_structure.reach.predicates.in_lanelet_predicate import InLaneletPredicate
 from commonroad_reach_semantic.data_structure.reach.predicates.in_straight_successor_predicate import \
     InStraightSuccessorPredicate
+from commonroad_reach_semantic.data_structure.reach.predicates.left_of_obstacle_predicate import LeftOfObstaclePredicate
+from commonroad_reach_semantic.data_structure.reach.predicates.right_of_obstacle_predicate import \
+    RightOfObstaclePredicate
 from commonroad_reach_semantic.data_structure.reach.predicates.vehicle_in_conflict_area_predicate import \
     VehicleInConflictAreaPredicate
 
@@ -24,6 +29,12 @@ def from_proposition(proposition: str, negated: bool):
         return BesideObstaclePredicate(int(matched.group(1)), negated)
     elif matched := re.fullmatch(r"InFrontOf_V(\d+)", proposition):
         return InFrontOfObstaclePredicate(int(matched.group(1)), negated)
+    elif matched := re.fullmatch(r"RightOf_V(\d+)", proposition):
+        return RightOfObstaclePredicate(int(matched.group(1)), negated)
+    elif matched := re.fullmatch(r"AlignedWith_V(\d+)", proposition):
+        return AlignedWithObstaclePredicate(int(matched.group(1)), negated)
+    elif matched := re.fullmatch(r"LeftOf_V(\d+)", proposition):
+        return LeftOfObstaclePredicate(int(matched.group(1)), negated)
     elif re.fullmatch(r"InStraightSuc", proposition):
         return InStraightSuccessorPredicate(negated)
     elif re.fullmatch(r"InIntersection", proposition):
