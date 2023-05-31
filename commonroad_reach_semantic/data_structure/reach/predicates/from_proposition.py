@@ -6,6 +6,7 @@ from commonroad_reach_semantic.data_structure.reach.predicates.aligned_with_obst
 from commonroad_reach_semantic.data_structure.reach.predicates.behind_obstacle_predicate import BehindObstaclePredicate
 from commonroad_reach_semantic.data_structure.reach.predicates.beside_obstacle_predicate import BesideObstaclePredicate
 from commonroad_reach_semantic.data_structure.reach.predicates.causes_braking_predicate import CausesBrakingPredicate
+from commonroad_reach_semantic.data_structure.reach.predicates.has_priority_predicate import HasPriorityPredicate
 from commonroad_reach_semantic.data_structure.reach.predicates.in_conflict_area_of_vehicle_predicate import \
     InConflictAreaOfVehiclePredicate
 from commonroad_reach_semantic.data_structure.reach.predicates.in_front_of_obstacle_predicate import \
@@ -15,8 +16,10 @@ from commonroad_reach_semantic.data_structure.reach.predicates.in_lanelet_predic
 from commonroad_reach_semantic.data_structure.reach.predicates.in_straight_successor_predicate import \
     InStraightSuccessorPredicate
 from commonroad_reach_semantic.data_structure.reach.predicates.left_of_obstacle_predicate import LeftOfObstaclePredicate
+from commonroad_reach_semantic.data_structure.reach.predicates.no_priority_predicate import NoPriorityPredicate
 from commonroad_reach_semantic.data_structure.reach.predicates.right_of_obstacle_predicate import \
     RightOfObstaclePredicate
+from commonroad_reach_semantic.data_structure.reach.predicates.same_priority_predicate import SamePriorityPredicate
 from commonroad_reach_semantic.data_structure.reach.predicates.vehicle_in_conflict_area_predicate import \
     VehicleInConflictAreaPredicate
 from commonroad_reach_semantic.data_structure.reach.predicates.vehicle_in_successor_predicate import \
@@ -50,5 +53,14 @@ def from_proposition(proposition: str, negated: bool):
         return InConflictAreaOfVehiclePredicate(int(matched.group(1)), negated)
     elif matched := re.fullmatch(r"InConflictBy_V(\d+)", proposition):
         return VehicleInConflictAreaPredicate(int(matched.group(1)), negated)
+    elif matched := re.fullmatch(r"Has_(left|straight|right)_(left|straight|right)_PriorityOver_V(\d+)", proposition):
+        return HasPriorityPredicate(int(matched.group(3)), OutgoingDirection[matched.group(1).upper()],
+                                    OutgoingDirection[matched.group(2).upper()], negated)
+    elif matched := re.fullmatch(r"No_(left|straight|right)_(left|straight|right)_PriorityOver_V(\d+)", proposition):
+        return NoPriorityPredicate(int(matched.group(3)), OutgoingDirection[matched.group(1).upper()],
+                                   OutgoingDirection[matched.group(2).upper()], negated)
+    elif matched := re.fullmatch(r"Same_(left|straight|right)_(left|straight|right)_PriorityAs_V(\d+)", proposition):
+        return SamePriorityPredicate(int(matched.group(3)), OutgoingDirection[matched.group(1).upper()],
+                                     OutgoingDirection[matched.group(2).upper()], negated)
     else:
         raise ValueError(f"Unknown proposition: {proposition}")

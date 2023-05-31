@@ -1,6 +1,6 @@
 import itertools
 import logging
-from typing import List, Dict
+from typing import List, Dict, Set, Optional, FrozenSet
 
 from commonroad.scenario.traffic_sign import TrafficLightState, TrafficLightDirection
 
@@ -25,6 +25,7 @@ class RegionModel:
     step_start: int
     step_end: int
     list_regions: List[Region]
+    _lanelet_ids_to_region: Dict[FrozenSet[int], Region]
 
     def __init__(self, config: SemanticConfiguration, lanelet_model: LaneletModel, vehicle_model: VehicleModel) -> None:
         self.config = config
@@ -34,9 +35,22 @@ class RegionModel:
         self.step_end = self.step_start + self.config.planning.steps_computation
 
         self.list_regions = list()
+        self._lanelet_ids_to_region = dict()
 
         self._create_lanelet_regions()
+
+        for region in self.list_regions:
+            self._lanelet_ids_to_region[frozenset(region.set_ids_lanelets)] = region
+
         self._determine_propositions()
+
+    def find_region_by_lanelet_ids(self, lanelet_ids: Set[int]) -> Optional[Region]:
+        """Finds a region by its lanelet IDs.
+
+        :param lanelet_ids: lanelet IDs to look for
+        :return: region if found, None otherwise
+        """
+        return self._lanelet_ids_to_region.get(frozenset(lanelet_ids))
 
     def determine_traffic_priorities(self, dict_traffic_sign_to_priorities: Dict):
         """
