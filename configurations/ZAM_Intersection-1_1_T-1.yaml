@@ -60,6 +60,6 @@ traffic_rules:
     - TrafficLightRule
 #    - PriorityRule
 #    - LTL G((F(InStraightSuc) & F(V38_InStraightSuc) & (NoStraightStraightPriorityOver_V38 | SameStraightStraightPriorityAs_V38)) -> (!InIntersection | ((CausesBrakingFor_V38 | F[0..5]InConflictBy_V38) -> !InConflictWith_V38)))
-    - LTL G((F(InStraightSuc) & true & (true | true)) -> (!InIntersection | ((CausesBrakingFor_V38 | F[0..5]InConflictBy_V38) -> !InConflictWith_V38)))
-    # simulate line marking in LTL
+    - LTL G((F(InStraightSuc) & F(V38_InStraightSuc) & (true | true)) -> (!InIntersection | ((CausesBrakingFor_V38 | F[0..5]InConflictBy_V38) -> !InConflictWith_V38)))
+    # simulate no opposite driving in LTL
     - LTL ! F (InLanelet_8 | InLanelet_13 | InLanelet_15)

@@ -1,5 +1,6 @@
 import re
 
+from commonroad_reach_semantic.data_structure.config.outgoing_direction import OutgoingDirection
 from commonroad_reach_semantic.data_structure.reach.predicates.aligned_with_obstacle_predicate import \
     AlignedWithObstaclePredicate
 from commonroad_reach_semantic.data_structure.reach.predicates.behind_obstacle_predicate import BehindObstaclePredicate
@@ -18,6 +19,8 @@ from commonroad_reach_semantic.data_structure.reach.predicates.right_of_obstacle
     RightOfObstaclePredicate
 from commonroad_reach_semantic.data_structure.reach.predicates.vehicle_in_conflict_area_predicate import \
     VehicleInConflictAreaPredicate
+from commonroad_reach_semantic.data_structure.reach.predicates.vehicle_in_successor_predicate import \
+    VehicleInSuccessorPredicate
 
 
 def from_proposition(proposition: str, negated: bool):
@@ -37,6 +40,8 @@ def from_proposition(proposition: str, negated: bool):
         return LeftOfObstaclePredicate(int(matched.group(1)), negated)
     elif re.fullmatch(r"InStraightSuc", proposition):
         return InStraightSuccessorPredicate(negated)
+    elif matched := re.fullmatch(r"V(\d+)_In(Left|Straight|Right)Suc", proposition):
+        return VehicleInSuccessorPredicate(int(matched.group(1)), OutgoingDirection[matched.group(2).upper()], negated)
     elif re.fullmatch(r"InIntersection", proposition):
         return InIntersectionPredicate(negated)
     elif matched := re.fullmatch(r"CausesBrakingFor_V(\d+)", proposition):
