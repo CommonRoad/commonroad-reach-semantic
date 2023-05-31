@@ -234,112 +234,16 @@ class Proposition:
         return f"InConflictBy_V{id_obstacle}"
 
     @staticmethod
-    def has_left_left_priority(id_obstacle: int) -> str:
-        return f"HasLeftLeftPriorityOver_V{id_obstacle}"
+    def has_priority(id_obstacle: int, direction_ego: OutgoingDirection, direction_other: OutgoingDirection) -> str:
+        return f"Has_{direction_ego}_{direction_other}_PriorityOver_V{id_obstacle}"
 
     @staticmethod
-    def has_left_straight_priority(id_obstacle: int) -> str:
-        return f"HasLeftStraightPriorityOver_V{id_obstacle}"
+    def no_priority(id_obstacle: int, direction_ego: OutgoingDirection, direction_other: OutgoingDirection) -> str:
+        return f"No_{direction_ego}_{direction_other}_PriorityOver_V{id_obstacle}"
 
     @staticmethod
-    def has_left_right_priority(id_obstacle: int) -> str:
-        return f"HasLeftRightPriorityOver_V{id_obstacle}"
-
-    @staticmethod
-    def has_straight_left_priority(id_obstacle: int) -> str:
-        return f"HasStraightLeftPriorityOver_V{id_obstacle}"
-
-    @staticmethod
-    def has_straight_straight_priority(id_obstacle: int) -> str:
-        return f"HasStraightStraightPriorityOver_V{id_obstacle}"
-
-    @staticmethod
-    def has_straight_right_priority(id_obstacle: int) -> str:
-        return f"HasStraightRightPriorityOver_V{id_obstacle}"
-
-    @staticmethod
-    def has_right_left_priority(id_obstacle: int) -> str:
-        return f"HasRightLeftPriorityOver_V{id_obstacle}"
-
-    @staticmethod
-    def has_right_straight_priority(id_obstacle: int) -> str:
-        return f"HasRightStraightPriorityOver_V{id_obstacle}"
-
-    @staticmethod
-    def has_right_right_priority(id_obstacle: int) -> str:
-        return f"HasRightRightPriorityOver_V{id_obstacle}"
-
-    @staticmethod
-    def no_left_left_priority(id_obstacle: int) -> str:
-        return f"NoLeftLeftPriorityOver_V{id_obstacle}"
-
-    @staticmethod
-    def no_left_straight_priority(id_obstacle: int) -> str:
-        return f"NoLeftStraightPriorityOver_V{id_obstacle}"
-
-    @staticmethod
-    def no_left_right_priority(id_obstacle: int) -> str:
-        return f"NoLeftRightPriorityOver_V{id_obstacle}"
-
-    @staticmethod
-    def no_straight_left_priority(id_obstacle: int) -> str:
-        return f"NoStraightLeftPriorityOver_V{id_obstacle}"
-
-    @staticmethod
-    def no_straight_straight_priority(id_obstacle: int) -> str:
-        return f"NoStraightStraightPriorityOver_V{id_obstacle}"
-
-    @staticmethod
-    def no_straight_right_priority(id_obstacle: int) -> str:
-        return f"NoStraightRightPriorityOver_V{id_obstacle}"
-
-    @staticmethod
-    def no_right_left_priority(id_obstacle: int) -> str:
-        return f"NoRightLeftPriorityOver_V{id_obstacle}"
-
-    @staticmethod
-    def no_right_straight_priority(id_obstacle: int) -> str:
-        return f"NoRightStraightPriorityOver_V{id_obstacle}"
-
-    @staticmethod
-    def no_right_right_priority(id_obstacle: int) -> str:
-        return f"NoRightRightPriorityOver_V{id_obstacle}"
-
-    @staticmethod
-    def same_left_left_priority(id_obstacle: int) -> str:
-        return f"SameLeftLeftPriorityAs_V{id_obstacle}"
-
-    @staticmethod
-    def same_left_straight_priority(id_obstacle: int) -> str:
-        return f"SameLeftStraightPriorityAs_V{id_obstacle}"
-
-    @staticmethod
-    def same_left_right_priority(id_obstacle: int) -> str:
-        return f"SameLeftRightPriorityAs_V{id_obstacle}"
-
-    @staticmethod
-    def same_straight_left_priority(id_obstacle: int) -> str:
-        return f"SameStraightLeftPriorityAs_V{id_obstacle}"
-
-    @staticmethod
-    def same_straight_straight_priority(id_obstacle: int) -> str:
-        return f"SameStraightStraightPriorityAs_V{id_obstacle}"
-
-    @staticmethod
-    def same_straight_right_priority(id_obstacle: int) -> str:
-        return f"SameStraightRightPriorityAs_V{id_obstacle}"
-
-    @staticmethod
-    def same_right_left_priority(id_obstacle: int) -> str:
-        return f"SameRightLeftPriorityAs_V{id_obstacle}"
-
-    @staticmethod
-    def same_right_straight_priority(id_obstacle: int) -> str:
-        return f"SameRightStraightPriorityAs_V{id_obstacle}"
-
-    @staticmethod
-    def same_right_right_priority(id_obstacle: int) -> str:
-        return f"SameRightRightPriorityAs_V{id_obstacle}"
+    def same_priority(id_obstacle: int, direction_ego: OutgoingDirection, direction_other: OutgoingDirection) -> str:
+        return f"Same_{direction_ego}_{direction_other}_PriorityAs_V{id_obstacle}"
 
     # traffic lights-related
     @staticmethod

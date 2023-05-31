@@ -536,48 +536,12 @@ class Region:
         """
         # this is to store vehicles that don't have the same priority as the region
         dict_priority_evaluation = defaultdict(dict)
-        dispatcher_region, dispatcher_vehicle, dispatcher_same = self._retrieve_proposition_dispatchers()
-        self._examine_region_priority_over_vehicles(list_vehicles, dict_priority_evaluation, dispatcher_region)
-        self._examine_vehicles_priority_over_region(list_vehicles, dict_priority_evaluation, dispatcher_vehicle)
-        self._add_same_priority_propositions(dict_priority_evaluation, dispatcher_same)
-
-    @classmethod
-    def _retrieve_proposition_dispatchers(cls):
-        dispatcher_region = {"left_left": P.has_left_left_priority,
-                             "left_straight": P.has_left_straight_priority,
-                             "left_right": P.has_left_right_priority,
-                             "straight_left": P.has_straight_left_priority,
-                             "straight_straight": P.has_straight_straight_priority,
-                             "straight_right": P.has_straight_right_priority,
-                             "right_left": P.has_right_left_priority,
-                             "right_straight": P.has_right_straight_priority,
-                             "right_right": P.has_right_right_priority}
-
-        dispatcher_vehicle = {"left_left": P.no_left_left_priority,
-                              "left_straight": P.no_left_straight_priority,
-                              "left_right": P.no_left_right_priority,
-                              "straight_left": P.no_straight_left_priority,
-                              "straight_straight": P.no_straight_straight_priority,
-                              "straight_right": P.no_straight_right_priority,
-                              "right_left": P.no_right_left_priority,
-                              "right_straight": P.no_right_straight_priority,
-                              "right_right": P.no_right_right_priority}
-
-        dispatcher_same = {"left_left": P.same_left_left_priority,
-                           "left_straight": P.same_left_straight_priority,
-                           "left_right": P.same_left_right_priority,
-                           "straight_left": P.same_straight_left_priority,
-                           "straight_straight": P.same_straight_straight_priority,
-                           "straight_right": P.same_straight_right_priority,
-                           "right_left": P.same_right_left_priority,
-                           "right_straight": P.same_right_straight_priority,
-                           "right_right": P.same_right_right_priority}
-
-        return dispatcher_region, dispatcher_vehicle, dispatcher_same
+        self._examine_region_priority_over_vehicles(list_vehicles, dict_priority_evaluation)
+        self._examine_vehicles_priority_over_region(list_vehicles, dict_priority_evaluation)
+        self._add_same_priority_propositions(dict_priority_evaluation)
 
     def _examine_region_priority_over_vehicles(self, list_vehicles: List[Vehicle],
-                                               dict_priority_evaluation: Dict[int, Dict[Tuple[OutgoingDirection, OutgoingDirection], List]],
-                                               dispatcher: Dict):
+                                               dict_priority_evaluation: Dict[int, Dict[Tuple[OutgoingDirection, OutgoingDirection], List]]):
         """Examines the priorities of the region against the given list of vehicles.
 
         dict_priority_evaluation maps time step to tuple of directions to list of vehicle ids.
@@ -594,16 +558,14 @@ class Region:
                             dict_priority_evaluation[step][tuple_directions] = []
 
                         region_has_higher_priority = \
-                            self._examine_region_priority_over_vehicle(vehicle, step, tuple_directions, dispatcher)
+                            self._examine_region_priority_over_vehicle(vehicle, step, tuple_directions)
                         if not region_has_higher_priority:
                             dict_priority_evaluation[step][tuple_directions].append(vehicle.id_vehicle)
 
-    def _examine_region_priority_over_vehicle(self, vehicle: Vehicle, step: int, tuple_directions: Tuple[OutgoingDirection, OutgoingDirection],
-                                              dict_direction_to_predicate: Dict[str, Callable]) -> bool:
+    def _examine_region_priority_over_vehicle(self, vehicle: Vehicle, step: int, tuple_directions: Tuple[OutgoingDirection, OutgoingDirection]) -> bool:
         """Returns true if the region has a higher priority in the specified direction over the vehicle."""
         direction_region = tuple_directions[0]
         direction_vehicle = tuple_directions[1]
-        proposition = dict_direction_to_predicate[f"{direction_region}_{direction_vehicle}"]
 
         for id_lanelet_region, dict_priorities_lanelet in self.dict_id_lanelet_to_priorities.items():
             priority_lanelet_r = dict_priorities_lanelet[direction_region]
@@ -614,14 +576,17 @@ class Region:
                 region_has_higher_priority = region_has_higher_priority and (priority_lanelet_r > priority_lanelet_v)
             # if one of the region's lanelets has a higher priority over all lanelets of the vehicle
             if region_has_higher_priority:
-                self.proposition_holder.add_proposition(proposition(vehicle.id_vehicle), PG.PRIORITY, step)
+                self.proposition_holder.add_proposition(
+                    P.has_priority(vehicle.id_vehicle, direction_region, direction_vehicle),
+                    PG.PRIORITY,
+                    step
+                )
                 return True
 
         return False
 
     def _examine_vehicles_priority_over_region(self, list_vehicles: List[Vehicle],
-                                               dict_priority_evaluation: Dict[int, Dict[Tuple[OutgoingDirection, OutgoingDirection], List]],
-                                               dispatcher: Dict):
+                                               dict_priority_evaluation: Dict[int, Dict[Tuple[OutgoingDirection, OutgoingDirection], List]]):
         """Examines the priorities of the given list of vehicles against the region.
 
         dict_priority_evaluation maps time step to tuple of directions to list of vehicle ids.
@@ -636,16 +601,14 @@ class Region:
                         tuple_directions = (direction_region, direction_vehicle)
 
                         vehicle_has_higher_priority = \
-                            self.examine_vehicle_priority_over_region(vehicle, step, tuple_directions, dispatcher)
+                            self.examine_vehicle_priority_over_region(vehicle, step, tuple_directions)
                         if vehicle_has_higher_priority:
                             dict_priority_evaluation[step][tuple_directions].remove(vehicle.id_vehicle)
 
-    def examine_vehicle_priority_over_region(self, vehicle: Vehicle, step: int, tuple_directions: Tuple[OutgoingDirection, OutgoingDirection],
-                                             dict_direction_to_predicate: Dict[str, Callable]):
+    def examine_vehicle_priority_over_region(self, vehicle: Vehicle, step: int, tuple_directions: Tuple[OutgoingDirection, OutgoingDirection]):
         """Returns true if the vehicle has a higher priority in the specified direction over the region."""
         direction_region = tuple_directions[0]
         direction_vehicle = tuple_directions[1]
-        proposition = dict_direction_to_predicate[f"{direction_region}_{direction_vehicle}"]
 
         for id_lanelet_vehicle in vehicle.lanelet_ids_at_step(step):
             priority_lanelet_v = vehicle.dict_id_lanelet_to_priorities[id_lanelet_vehicle][direction_vehicle]
@@ -656,13 +619,16 @@ class Region:
                 vehicle_has_higher_priority = vehicle_has_higher_priority and (priority_lanelet_v > priority_lanelet_r)
             # if one of the vehicle's lanelets has a higher priority over all lanelets of the region
             if vehicle_has_higher_priority:
-                self.proposition_holder.add_proposition(proposition(vehicle.id_vehicle), PG.PRIORITY, step)
+                self.proposition_holder.add_proposition(
+                    P.no_priority(vehicle.id_vehicle, direction_region, direction_vehicle),
+                    PG.PRIORITY,
+                    step
+                )
                 return True
 
         return False
 
-    def _add_same_priority_propositions(self, dict_priority_evaluation: Dict[int, Dict[Tuple[OutgoingDirection, OutgoingDirection], List]],
-                                        dispatcher: Dict):
+    def _add_same_priority_propositions(self, dict_priority_evaluation: Dict[int, Dict[Tuple[OutgoingDirection, OutgoingDirection], List]]):
         """Adds propositions indicating that the region has the same priority as the vehicles.
 
          dict_priority_evaluation maps time step to tuple of directions to list of vehicle ids.
@@ -671,10 +637,13 @@ class Region:
             for tuple_directions, list_ids_vehicles in dict_tuple_directions_to_list_ids_vehicles.items():
                 direction_region = tuple_directions[0]
                 direction_vehicle = tuple_directions[1]
-                proposition = dispatcher[f"{direction_region}_{direction_vehicle}"]
 
                 for id_vehicle in list_ids_vehicles:
-                    self.proposition_holder.add_proposition(proposition(id_vehicle), PG.PRIORITY, step)
+                    self.proposition_holder.add_proposition(
+                        P.same_priority(id_vehicle, direction_region, direction_vehicle),
+                        PG.PRIORITY,
+                        step
+                    )
 
     def construct_aabbs(self):
         """Creates a list of axis-aligned bounding boxes for the curvilinear polygon
