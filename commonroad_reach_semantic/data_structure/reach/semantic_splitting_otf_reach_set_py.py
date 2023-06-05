@@ -1,8 +1,8 @@
-import more_itertools
 import logging
-from collections import defaultdict
-from typing import List, Dict, FrozenSet, Set, Tuple, Iterable
+from collections import defaultdict, Counter
+from typing import List, Dict, FrozenSet, Set, Tuple, Iterable, Optional
 
+import more_itertools
 from commonroad_reach.data_structure.reach.reach_node import ReachNode
 from commonroad_reach.data_structure.reach.reach_polygon import ReachPolygon
 from commonroad_reach.utility import reach_operation
@@ -165,24 +165,90 @@ class PySemanticSplittingOTFReachableSet(PySemanticReachableSet):
         split_set_to_state: Dict[ReachNode, Set[int]] = defaultdict(set)
 
         for next_state, minterms in self.automaton.combined_transitions_from(current_states):
-            for minterm in minterms:
-                minterm_tuple = tuple(minterm)
-                # if we saw that minterm already, reuse the constrained sets
-                if minterm_tuple in minterm_to_constrained_sets:
-                    constrained_reachable_sets = minterm_to_constrained_sets[minterm_tuple]
-                else:
-                    constrained_reachable_sets = self._split_reachable_set_to_minterm(step, reachable_set, minterm)
-                    minterm_to_constrained_sets[minterm_tuple] = constrained_reachable_sets
+            # for minterm in minterms:
+            #     minterm_tuple = tuple(minterm)
+            #     # if we saw that minterm already, reuse the constrained sets
+            #     if minterm_tuple in minterm_to_constrained_sets:
+            #         constrained_reachable_sets = minterm_to_constrained_sets[minterm_tuple]
+            #     else:
+            #         constrained_reachable_sets = self._split_reachable_set_to_minterm(step, reachable_set, minterm)
+            #         minterm_to_constrained_sets[minterm_tuple] = constrained_reachable_sets
+            #
+            #     for constrained_reachable_set in constrained_reachable_sets:
+            #         split_set_to_state[constrained_reachable_set].add(next_state)
+            #     split_sets += constrained_reachable_sets
+            constrained_reachable_sets = self._split_to_minterms(step, [reachable_set], minterms, [])
 
-                for constrained_reachable_set in constrained_reachable_sets:
-                    split_set_to_state[constrained_reachable_set].add(next_state)
-                split_sets += constrained_reachable_sets
+            for constrained_reachable_set in constrained_reachable_sets:
+                split_set_to_state[constrained_reachable_set].add(next_state)
+            split_sets += constrained_reachable_sets
 
         # freeze automaton states
         for split_set, states in split_set_to_state.items():
             self.reachable_set_to_label[split_set] = frozenset(states)
 
         return split_sets
+
+    def _split_to_minterms(self, step: int, reachable_sets: List[ReachNode], minterms: List[List[Tuple[str, bool]]],
+                           finished_literals: List[Tuple[str, bool]], regionized: bool = False) -> List[ReachNode]:
+        if not reachable_sets or not minterms:
+            return reachable_sets
+
+        # select the next literal to split on
+        literal_to_split = self._choose_next_literal(minterms, finished_literals)
+        if not literal_to_split:
+            # if there is no literal to split, we are done
+            return reachable_sets
+        finished_literals.append(literal_to_split)
+
+        # partition the minterms into those that need the literal and those that don't
+        not_needs_literal, needs_literal = more_itertools.partition(lambda minterm: literal_to_split in minterm,
+                                                                    minterms)
+        not_needs_literal, needs_literal = list(not_needs_literal), list(needs_literal)
+
+        # split reachable sets along selected literal
+        pred = predicates.from_proposition(*literal_to_split)
+        # if there are minterms that don't need the current literal we have to clone the reach nodes before restricting
+        # so that we can keep the original nodes for those minterms
+        to_restrict = [node.clone() for node in reachable_sets] if not_needs_literal else reachable_sets
+        if not_needs_literal and regionized:
+            for src, dst in zip(reachable_sets, to_restrict):
+                self.labeler.copy_labels(src, dst)
+        if pred.needs_lanelets and not regionized:
+            to_restrict = list(more_itertools.flatten(
+                self.labeler.split_wrt_regions(step, restricted_reachable_set)
+                for restricted_reachable_set in to_restrict
+            ))
+        restricted_reachable_sets = list(more_itertools.flatten(
+            pred.restrict_reach_node(step, node, self.labeler.semantic_model,
+                                     node_lanelet_ids=self.labeler.reachable_set_to_lanelet_ids[
+                                         node] if pred.needs_lanelets else None)
+            for node in to_restrict
+        ))
+
+        # recurse to split along the remaining literals
+        if not_needs_literal:
+            return self._split_to_minterms(step, reachable_sets, not_needs_literal, finished_literals.copy(),
+                                           regionized) \
+                + self._split_to_minterms(step, restricted_reachable_sets, needs_literal, finished_literals,
+                                          regionized or pred.needs_lanelets)
+        else:
+            return self._split_to_minterms(step, restricted_reachable_sets, needs_literal, finished_literals,
+                                           regionized or pred.needs_lanelets)
+
+    @staticmethod
+    def _choose_next_literal(minterms: List[List[Tuple[str, bool]]], ignored_literals: List[Tuple[str, bool]]) -> \
+            Optional[Tuple[str, bool]]:
+        """Selects the next literal along which to split the reachable set.
+
+        We use a greedy approach, so we choose the literal that occurs most often in the minterms.
+        :param minterms: The list of minterms to consider.
+        :param ignored_literals: These literals will be ignored when choosing the next literal.
+        :return: The literal that occurs most often in minterms.
+        """
+        # we can simply flatten the list here, since no minterm contains the same literal twice
+        c = Counter(more_itertools.flatten(minterms))
+        return next((cnt[0] for cnt in c.most_common() if cnt[0] not in ignored_literals), None)
 
     def _split_reachable_set_to_minterm(self, step: int, reachable_set: ReachNode, minterm: List[Tuple[str, bool]]) -> \
             List[ReachNode]:
