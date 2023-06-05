@@ -1,6 +1,6 @@
 import functools
 from collections import defaultdict
-from typing import Iterator, List, Dict, Iterable
+from typing import Iterator, List, Dict, Iterable, Tuple, Set
 
 import buddy
 import spot
@@ -46,6 +46,23 @@ class FiniteAutomaton:
                 dst_state_to_conditions[edge.dst].append(edge.cond)
         for dst_state, conditions in dst_state_to_conditions.items():
             yield dst_state, self._edge_condition_to_minterms(functools.reduce(buddy.bdd_or, conditions))
+
+    def non_deterministic_transitions_from(self, states: Iterable[int]) -> Dict[Tuple[Tuple[str, bool]], Set[int]]:
+        """Return the non-deterministic transitions outgoing from the given states.
+
+        Every transition condition is guaranteed to be a minterm.
+        :param states: The source states of the transitions to consider.
+        :return: Dictionary mapping minterms to the set of states they lead to.
+        """
+        transitions = dict()
+        for next_state, minterms in self.combined_transitions_from(states):
+            for minterm in minterms:
+                tuple_minterm = tuple(minterm)
+                if tuple_minterm in transitions:
+                    transitions[tuple_minterm].add(next_state)
+                else:
+                    transitions[tuple_minterm] = {next_state}
+        return transitions
 
     def is_accepting_state(self, state: int) -> bool:
         """Check whether the given state is an accepting state.
