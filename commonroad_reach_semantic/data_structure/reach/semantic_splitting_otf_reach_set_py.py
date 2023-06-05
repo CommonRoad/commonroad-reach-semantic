@@ -1,5 +1,6 @@
 import logging
 from collections import defaultdict, Counter
+from functools import reduce
 from typing import List, Dict, FrozenSet, Set, Tuple, Iterable, Optional
 
 import more_itertools
@@ -158,58 +159,50 @@ class PySemanticSplittingOTFReachableSet(PySemanticReachableSet):
         return any(self.automaton.is_accepting_state(state) for state in self.reachable_set_to_label[reachable_set])
 
     def _split_reachable_set(self, step: int, reachable_set: ReachNode) -> List[ReachNode]:
-        split_sets = list()
         current_states = frozenset({self.automaton.initial_state}) if step == self.step_start else \
             self.reachable_set_to_label[reachable_set.source_propagation]
-        minterm_to_constrained_sets: Dict[Tuple[Tuple[str, bool]], List[ReachNode]] = dict()
-        split_set_to_state: Dict[ReachNode, Set[int]] = defaultdict(set)
+        transitions = self._get_transitions(current_states)
+        constrained_reachable_sets = self._split_to_minterms(step, [reachable_set], transitions, [])
 
+        return constrained_reachable_sets
+
+    def _get_transitions(self, current_states: FrozenSet[int]) -> Dict[Tuple[Tuple[str, bool]], Set[int]]:
+        transitions = dict()
         for next_state, minterms in self.automaton.combined_transitions_from(current_states):
-            # for minterm in minterms:
-            #     minterm_tuple = tuple(minterm)
-            #     # if we saw that minterm already, reuse the constrained sets
-            #     if minterm_tuple in minterm_to_constrained_sets:
-            #         constrained_reachable_sets = minterm_to_constrained_sets[minterm_tuple]
-            #     else:
-            #         constrained_reachable_sets = self._split_reachable_set_to_minterm(step, reachable_set, minterm)
-            #         minterm_to_constrained_sets[minterm_tuple] = constrained_reachable_sets
-            #
-            #     for constrained_reachable_set in constrained_reachable_sets:
-            #         split_set_to_state[constrained_reachable_set].add(next_state)
-            #     split_sets += constrained_reachable_sets
-            constrained_reachable_sets = self._split_to_minterms(step, [reachable_set], minterms, [])
+            for minterm in minterms:
+                tuple_minterm = tuple(minterm)
+                if tuple_minterm in transitions:
+                    transitions[tuple_minterm].add(next_state)
+                else:
+                    transitions[tuple_minterm] = {next_state}
+        return transitions
 
-            for constrained_reachable_set in constrained_reachable_sets:
-                split_set_to_state[constrained_reachable_set].add(next_state)
-            split_sets += constrained_reachable_sets
-
-        # freeze automaton states
-        for split_set, states in split_set_to_state.items():
-            self.reachable_set_to_label[split_set] = frozenset(states)
-
-        return split_sets
-
-    def _split_to_minterms(self, step: int, reachable_sets: List[ReachNode], minterms: List[List[Tuple[str, bool]]],
+    def _split_to_minterms(self, step: int, reachable_sets: List[ReachNode],
+                           transitions: Dict[Tuple[Tuple[str, bool]], Set[int]],
                            finished_literals: List[Tuple[str, bool]], regionized: bool = False) -> List[ReachNode]:
-        if not reachable_sets or not minterms:
+        if not reachable_sets or not transitions:
             return reachable_sets
 
         # select the next literal to split on
-        literal_to_split = self._choose_next_literal(minterms, finished_literals)
+        literal_to_split = self._choose_next_literal(transitions.keys(), finished_literals)
         if not literal_to_split:
             # if there is no literal to split, we are done
+            # there should always be exactly one transition left at this point
+            assert len(transitions) == 1
+            # all nodes in reachable_sets satisfy the transition condition, so label them with the destination states
+            for reachable_set in reachable_sets:
+                self.reachable_set_to_label[reachable_set] = frozenset(reduce(set.union, transitions.values()))
             return reachable_sets
-        finished_literals.append(literal_to_split)
 
-        # partition the minterms into those that need the literal and those that don't
-        not_needs_literal, needs_literal = more_itertools.partition(lambda minterm: literal_to_split in minterm,
-                                                                    minterms)
-        not_needs_literal, needs_literal = list(not_needs_literal), list(needs_literal)
+        # partition the transitions into those whose label needs the literal and those that don't
+        not_needs_literal, needs_literal = more_itertools.partition(lambda trans: literal_to_split in trans[0],
+                                                                    transitions.items())
+        not_needs_literal, needs_literal = dict(not_needs_literal), dict(needs_literal)
 
         # split reachable sets along selected literal
         pred = predicates.from_proposition(*literal_to_split)
-        # if there are minterms that don't need the current literal we have to clone the reach nodes before restricting
-        # so that we can keep the original nodes for those minterms
+        # if there are transitions that don't need the current literal we have to clone the reach nodes before restricting
+        # so that we can keep the original nodes for those transitions
         to_restrict = [node.clone() for node in reachable_sets] if not_needs_literal else reachable_sets
         if not_needs_literal and regionized:
             for src, dst in zip(reachable_sets, to_restrict):
@@ -225,6 +218,7 @@ class PySemanticSplittingOTFReachableSet(PySemanticReachableSet):
                                          node] if pred.needs_lanelets else None)
             for node in to_restrict
         ))
+        finished_literals.append(literal_to_split)
 
         # recurse to split along the remaining literals
         if not_needs_literal:
@@ -237,7 +231,7 @@ class PySemanticSplittingOTFReachableSet(PySemanticReachableSet):
                                            regionized or pred.needs_lanelets)
 
     @staticmethod
-    def _choose_next_literal(minterms: List[List[Tuple[str, bool]]], ignored_literals: List[Tuple[str, bool]]) -> \
+    def _choose_next_literal(minterms: Iterable[Tuple[Tuple[str, bool]]], ignored_literals: List[Tuple[str, bool]]) -> \
             Optional[Tuple[str, bool]]:
         """Selects the next literal along which to split the reachable set.
 
@@ -249,42 +243,3 @@ class PySemanticSplittingOTFReachableSet(PySemanticReachableSet):
         # we can simply flatten the list here, since no minterm contains the same literal twice
         c = Counter(more_itertools.flatten(minterms))
         return next((cnt[0] for cnt in c.most_common() if cnt[0] not in ignored_literals), None)
-
-    def _split_reachable_set_to_minterm(self, step: int, reachable_set: ReachNode, minterm: List[Tuple[str, bool]]) -> \
-            List[ReachNode]:
-        predicates_need_lanelets = []
-        predicates_dont_need_lanelets = []
-        for proposition, negated in minterm:
-            pred = predicates.from_proposition(proposition, negated)
-            if pred.needs_lanelets:
-                predicates_need_lanelets.append(pred)
-            else:
-                predicates_dont_need_lanelets.append(pred)
-
-        # restrict with predicates that don't need lanelets
-        restricted_reachable_sets = [reachable_set.clone()]
-        for pred in predicates_dont_need_lanelets:
-            restricted_reachable_sets = list(more_itertools.flatten(
-                pred.restrict_reach_node(step, node, self.labeler.semantic_model)
-                for node in restricted_reachable_sets
-            ))
-
-        # if there are no predicates that need lanelets, we are done, so we don't need to split to regions
-        if not predicates_need_lanelets:
-            return restricted_reachable_sets
-
-        # split to regions
-        restricted_reachable_sets = list(more_itertools.flatten(
-            self.labeler.split_wrt_regions(step, restricted_reachable_set)
-            for restricted_reachable_set in restricted_reachable_sets
-        ))
-
-        # restrict with predicates that need lanelets
-        for pred in predicates_need_lanelets:
-            restricted_reachable_sets = list(more_itertools.flatten(
-                pred.restrict_reach_node(step, node, self.labeler.semantic_model,
-                                         node_lanelet_ids=self.labeler.reachable_set_to_lanelet_ids[node])
-                for node in restricted_reachable_sets
-            ))
-
-        return restricted_reachable_sets
