@@ -49,6 +49,8 @@ class PySemanticLabelingReachableSet(PySemanticReachableSet):
 
         if len(reachable_set_previous) < 1:
             self.dict_step_to_drivable_area[step] = list()
+            self.dict_step_to_propositions_to_drivable_area[step] = dict()
+            self.dict_step_to_propositions_to_propagated_set[step] = dict()
             self.dict_step_to_propagated_set[step] = list()
             return None
 
