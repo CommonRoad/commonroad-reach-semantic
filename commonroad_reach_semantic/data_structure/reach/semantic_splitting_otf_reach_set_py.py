@@ -243,5 +243,17 @@ class PySemanticSplittingOTFReachableSet(PySemanticReachableSet):
         :return: The literal that occurs most often in minterms.
         """
         # we can simply flatten the list here, since no minterm contains the same literal twice
-        c = Counter(more_itertools.flatten(minterms))
-        return next((cnt[0] for cnt in c.most_common() if cnt[0] not in ignored_literals), None)
+        literals = [literal for literal in more_itertools.flatten(minterms) if literal not in ignored_literals]
+        if not literals:
+            return None
+        c = Counter(literals)
+
+        # the literals that occur most often are candidates for the next literal
+        max_cnt = max(c.values())
+        candidates = [literal for literal, cnt in c.items() if cnt == max_cnt]
+
+        # prefer predicates that don't need lanelets, as this avoids splitting to regions
+        # TODO: we could choose a different ordering here or make this configurable
+        candidates = sorted(candidates, key=lambda literal: predicates.from_proposition(*literal).needs_lanelets)
+
+        return next(candidates.__iter__(), None)
