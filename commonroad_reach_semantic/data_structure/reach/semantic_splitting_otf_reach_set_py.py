@@ -230,8 +230,6 @@ class PySemanticSplittingOTFReachableSet(PySemanticReachableSet):
                                                                                       literal_to_split, regionized,
                                                                                       clone=bool(not_needs_literal))
 
-        # we did all splits pertaining to the current literal, so add it to the finished literals
-
         # recurse to split along the remaining literals
         if not_needs_literal:
             # note that only the restricted reachable sets might have been regionized
