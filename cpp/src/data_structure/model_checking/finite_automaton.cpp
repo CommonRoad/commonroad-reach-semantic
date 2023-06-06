@@ -29,16 +29,17 @@ unsigned int FiniteAutomaton::initial_state() {
 
 std::vector<std::pair<unsigned int, std::vector<Minterm>>> FiniteAutomaton::transitions_from(unsigned int state) {
     std::vector<std::pair<unsigned int, std::vector<Minterm>>> result{};
-    for (auto &edge : _spot_automaton->out(state)) {
+    for (auto &edge: _spot_automaton->out(state)) {
         result.emplace_back(edge.dst, _edge_condition_to_minterms(edge.cond));
     }
     return result;
 }
 
-std::vector<std::pair<unsigned int, std::vector<Minterm>>> FiniteAutomaton::combined_transitions_from(const std::set<unsigned int>& states) {
+std::vector<std::pair<unsigned int, std::vector<Minterm>>>
+FiniteAutomaton::combined_transitions_from(const std::set<unsigned int> &states) {
     std::map<unsigned int, std::vector<bdd>> map_state_to_conditions{};
-    for (const auto &state : states) {
-        for (auto &edge : _spot_automaton->out(state)) {
+    for (const auto &state: states) {
+        for (auto &edge: _spot_automaton->out(state)) {
             map_state_to_conditions[edge.dst].emplace_back(edge.cond);
         }
     }
@@ -46,12 +47,23 @@ std::vector<std::pair<unsigned int, std::vector<Minterm>>> FiniteAutomaton::comb
     std::vector<std::pair<unsigned int, std::vector<Minterm>>> result{};
     for (const auto &[dst_state, conditions]: map_state_to_conditions) {
         bdd combined = bdd_false();
-        for (const auto &condition : conditions) {
+        for (const auto &condition: conditions) {
             combined = bdd_or(combined, condition);
         }
         result.emplace_back(dst_state, _edge_condition_to_minterms(std::move(combined)));
     }
     return result;
+}
+
+std::map<Minterm, std::set<unsigned int>>
+FiniteAutomaton::non_deterministic_transitions_from(const std::set<unsigned int> &states) {
+    std::map<Minterm, std::set<unsigned int>> transitions{};
+    for (const auto &[next_state, minterms]: combined_transitions_from(states)) {
+        for (const auto &minterm: minterms) {
+            transitions[minterm].insert(next_state);
+        }
+    }
+    return transitions;
 }
 
 bool FiniteAutomaton::is_accepting_state(unsigned int state) {

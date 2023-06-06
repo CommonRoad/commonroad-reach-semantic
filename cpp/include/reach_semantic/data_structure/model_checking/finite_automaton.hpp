@@ -8,7 +8,8 @@
 
 namespace semantic_reach {
     /// Represents a finite automaton on words over the powerset of propositions.
-    using Minterm = std::vector<std::pair<std::string, bool>>;
+    using Literal = std::pair<std::string, bool>;
+    using Minterm = std::vector<Literal>;
 
     class FiniteAutomaton {
     private:
@@ -36,6 +37,13 @@ namespace semantic_reach {
         /// Tries to minimize the minterms by combining the conditions of the outgoing edges leading to the same destination.
         std::vector<std::pair<unsigned int, std::vector<Minterm>>>
         combined_transitions_from(const std::set<unsigned int> &states);
+
+        /// Return the non-deterministic transitions outgoing from the given states.
+        /// Every transition condition is guaranteed to be a minterm.
+        /// @param states The source states of the transitions to consider.
+        /// @return Map of minterms to the set of states they lead to.
+        std::map<Minterm, std::set<unsigned int>>
+        non_deterministic_transitions_from(const std::set<unsigned int> &states);
 
         /// Check whether the given state is an accepting state.
         /// @returns True if and only if the state is accepting.
