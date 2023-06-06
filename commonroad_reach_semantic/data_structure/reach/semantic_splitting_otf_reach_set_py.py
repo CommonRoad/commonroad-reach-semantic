@@ -188,7 +188,8 @@ class PySemanticSplittingOTFReachableSet(PySemanticReachableSet):
         First, we select a (not yet finished) literal that we will use for splitting in this step.
         Then, we partition the transitions into those that depend on the literal and those that do not.
         To further handle the former, we need to restrict the reachable sets to the chosen literal.
-        The chosen literal is marked as finished, as we don't need to split along it again.
+        The chosen literal is marked as finished for the restricted reachable sets.
+        Thus, when _split_to_minterms is called, all nodes in reachable_sets satisfy all literals in finished_literals.
         We then recursively split the original reachable sets along the transitions that do not depend on the literal,
         and the restricted reachable sets along the transitions that do depend on the literal.
         The recursion ends, when there are no more reachable sets, because restricting them along the literal resulted in an empty set.
@@ -230,19 +231,16 @@ class PySemanticSplittingOTFReachableSet(PySemanticReachableSet):
                                                                                       clone=bool(not_needs_literal))
 
         # we did all splits pertaining to the current literal, so add it to the finished literals
-        finished_literals.append(literal_to_split)
 
         # recurse to split along the remaining literals
         if not_needs_literal:
-            # copy the finished literals, because if we split along a literal in the first recursive call, it has no influence on the second
             # note that only the restricted reachable sets might have been regionized
-            return self._split_to_minterms(step, reachable_sets, not_needs_literal, finished_literals.copy(),
-                                           regionized) \
-                + self._split_to_minterms(step, restricted_reachable_sets, needs_literal, finished_literals,
-                                          regionized or restriction_regionized)
+            return self._split_to_minterms(step, reachable_sets, not_needs_literal, finished_literals, regionized) \
+                + self._split_to_minterms(step, restricted_reachable_sets, needs_literal,
+                                          finished_literals + [literal_to_split], regionized or restriction_regionized)
         else:
-            return self._split_to_minterms(step, restricted_reachable_sets, needs_literal, finished_literals,
-                                           regionized or restriction_regionized)
+            return self._split_to_minterms(step, restricted_reachable_sets, needs_literal,
+                                           finished_literals + [literal_to_split], regionized or restriction_regionized)
 
     def _restrict_to_literal(self, step: int, reachable_sets: List[ReachNode], literal: Tuple[str, bool],
                              regionized: bool, clone: bool = True) -> Tuple[List[ReachNode], bool]:
