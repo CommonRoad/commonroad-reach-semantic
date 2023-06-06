@@ -45,6 +45,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0") # for profiling
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/../) # output directory of built libraries
 
 set(CMAKE_CXX_VISIBILITY_PRESET hidden) # required by pybind11
+add_compile_definitions(BOOST_ALLOW_DEPRECATED_HEADERS) # silence warnings caused by boost using deprecated headers internally
 
 # ========= add sub directories
 add_subdirectory(external/pybind11) # pybind header
