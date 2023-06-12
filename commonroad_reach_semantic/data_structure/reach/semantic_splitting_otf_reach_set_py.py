@@ -1,6 +1,5 @@
 import logging
 from collections import defaultdict, Counter
-from functools import reduce
 from typing import List, Dict, FrozenSet, Set, Tuple, Iterable, Optional
 
 import more_itertools
@@ -172,13 +171,13 @@ class PySemanticSplittingOTFReachableSet(PySemanticReachableSet):
         """
         current_states = frozenset({self.automaton.initial_state}) if step == self.step_start else \
             self.reachable_set_to_label[reachable_set.source_propagation]
-        transitions = self.automaton.non_deterministic_transitions_from(current_states)
+        transitions = list(self.automaton.combined_transitions_from(current_states))
         constrained_reachable_sets = self._split_to_minterms(step, [reachable_set], transitions)
 
         return constrained_reachable_sets
 
     def _split_to_minterms(self, step: int, reachable_sets: List[ReachNode],
-                           transitions: Dict[Tuple[Tuple[str, bool]], Set[int]],
+                           transitions: List[Tuple[FrozenSet[Tuple[str, bool]], int]],
                            finished_literals: List[Tuple[str, bool]] = None, regionized: bool = False) -> List[
         ReachNode]:
         """Split the given reachable sets along the given transitions.
@@ -210,15 +209,13 @@ class PySemanticSplittingOTFReachableSet(PySemanticReachableSet):
 
         # select the next literal to split on
         finished_literals = finished_literals or []
-        literal_to_split = self._choose_next_literal(transitions.keys(), finished_literals)
+        literal_to_split = self._choose_next_literal((minterm for minterm, _ in transitions), finished_literals)
 
         # BASE CASE: if there is no literal to split, we are done
         if not literal_to_split:
-            # there should always be exactly one transition left at this point
-            assert len(transitions) == 1
             # all nodes in reachable_sets satisfy the transition condition, so label them with the destination states
             for reachable_set in reachable_sets:
-                self.reachable_set_to_label[reachable_set] = frozenset(reduce(set.union, transitions.values()))
+                self.reachable_set_to_label[reachable_set] = frozenset(dst_state for _, dst_state in transitions)
             return reachable_sets
 
         # partition the transitions into those whose label needs the literal and those that don't
@@ -276,21 +273,20 @@ class PySemanticSplittingOTFReachableSet(PySemanticReachableSet):
         return restricted_reachable_sets, pred.needs_lanelets
 
     @staticmethod
-    def _partition_transitions(literal: Tuple[str, bool], transitions: Dict[Tuple[Tuple[str, bool]], Set[int]]) \
-            -> Tuple[Dict[Tuple[Tuple[str, bool]], Set[int]], Dict[Tuple[Tuple[str, bool]], Set[int]]]:
+    def _partition_transitions(literal: Tuple[str, bool], transitions: List[Tuple[FrozenSet[Tuple[str, bool]], int]]) \
+            -> Tuple[List[Tuple[FrozenSet[Tuple[str, bool]], int]], List[Tuple[FrozenSet[Tuple[str, bool]], int]]]:
         """Partition the transitions into those that depend on the literal and those that don't.
 
         :param literal: The literal to partition the transitions along.
         :param transitions: The transitions to partition.
         :return: A tuple of two dictionaries, the first containing the transitions that don't depend on the literal, the second containing the transitions that do.
         """
-        not_needs_literal, needs_literal = more_itertools.partition(lambda trans: literal in trans[0],
-                                                                    transitions.items())
-        return dict(not_needs_literal), dict(needs_literal)
+        not_needs_literal, needs_literal = more_itertools.partition(lambda t: literal in t[0], transitions)
+        return list(not_needs_literal), list(needs_literal)
 
     @staticmethod
-    def _choose_next_literal(minterms: Iterable[Tuple[Tuple[str, bool]]], ignored_literals: List[Tuple[str, bool]]) -> \
-            Optional[Tuple[str, bool]]:
+    def _choose_next_literal(minterms: Iterable[FrozenSet[Tuple[str, bool]]],
+                             ignored_literals: List[Tuple[str, bool]]) -> Optional[Tuple[str, bool]]:
         """Selects the next literal along which to split the reachable set.
 
         We use a greedy approach, so we choose the literal that occurs most often in the minterms.

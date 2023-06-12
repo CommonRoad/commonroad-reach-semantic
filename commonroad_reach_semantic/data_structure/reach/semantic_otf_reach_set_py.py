@@ -174,7 +174,7 @@ class PySemanticOTFReachableSet(PySemanticReachableSet):
         """Label the reachable set with the automaton states that are reachable given its propositions."""
         reach_props = self.labeler.reachable_set_to_propositions[reachable_set].set_propositions
         automaton_states = set()
-        for next_state, minterms in self.automaton.transitions_from(current_state):
+        for minterms, next_state in self.automaton.transitions_from(current_state):
             for minterm in minterms:
                 positive_props = [proposition for proposition, negated in minterm if not negated]
                 negative_props = [proposition for proposition, negated in minterm if negated]
