@@ -294,6 +294,9 @@ class PySemanticSplittingOTFReachableSet(PySemanticReachableSet):
         :param ignored_literals: These literals will be ignored when choosing the next literal.
         :return: The literal that occurs most often in minterms.
         """
+        # remove duplicates so that we do not make a minterm more important if it leads to multiple states
+        # TODO: does this make sense?
+        minterms = set(minterms)
         # we can simply flatten the list here, since no minterm contains the same literal twice
         literals = [literal for literal in more_itertools.flatten(minterms) if literal not in ignored_literals]
         if not literals:
