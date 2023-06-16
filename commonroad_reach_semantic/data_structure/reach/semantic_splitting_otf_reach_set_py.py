@@ -45,19 +45,8 @@ class PySemanticSplittingOTFReachableSet(PySemanticReachableSet):
         self.automaton = FiniteAutomaton(concatenated_specifications)
 
         # Compute initial reachable set
-        initial_reachable_sets = self._construct_initial_reachable_sets()
-
-        # Label initial state with propositions and automaton states
-        initial_reachable_sets = more_itertools.flatten(
-            self._split_reachable_set(self.step_start, initial_reachable_set)
-            for initial_reachable_set in initial_reachable_sets
-        )
-        initial_reachable_sets = self._filter_reachable_sets(initial_reachable_sets, self.step_start)
-
-        # Compute initial drivable area
-        self.dict_step_to_reachable_set[self.step_start] = initial_reachable_sets
-        self.dict_step_to_drivable_area[self.step_start] = reach_operation.project_propagated_sets_to_position_domain(
-            self.dict_step_to_reachable_set[self.step_start])
+        self.compute_drivable_area_at_step(self.step_start)
+        self.compute_reachable_set_at_step(self.step_start)
 
         logger.debug("PySemanticOTFReachableSet initialized.")
 
@@ -71,16 +60,21 @@ class PySemanticSplittingOTFReachableSet(PySemanticReachableSet):
             2. Project base sets onto the position domain to obtain position rectangles.
             3. Merge, repartition and check collisions for these rectangles. The order depends on the configuration.
         """
-        reachable_set_previous = self.dict_step_to_reachable_set[step - 1]
+        if step != self.step_start:
+            reachable_set_previous = self.dict_step_to_reachable_set[step - 1]
 
-        if len(reachable_set_previous) < 1:
-            self.dict_step_to_drivable_area[step] = list()
-            self.dict_step_to_states_to_drivable_area[step] = dict()
-            self.dict_step_to_states_to_propagated_set[step] = dict()
-            self.dict_step_to_propagated_set[step] = list()
-            return None
+            if len(reachable_set_previous) < 1:
+                self.dict_step_to_drivable_area[step] = list()
+                self.dict_step_to_states_to_drivable_area[step] = dict()
+                self.dict_step_to_states_to_propagated_set[step] = dict()
+                self.dict_step_to_propagated_set[step] = list()
+                return None
 
-        propagated_sets = self._propagate_reachable_set(reachable_set_previous)
+            propagated_sets = self._propagate_reachable_set(reachable_set_previous)
+        else:
+            # there is no preceding reachable set to propagate in the initial step
+            # we also don't need one as we have to use the set of initial states anyway
+            propagated_sets = self._construct_initial_reachable_sets()
 
         propagated_sets = more_itertools.flatten(
             self._split_reachable_set(step, propagated_set)
@@ -133,16 +127,22 @@ class PySemanticSplittingOTFReachableSet(PySemanticReachableSet):
         for automaton_states, drivable_area in dict_states_to_drivable_area.items():
             propagated_sets = dict_states_to_propagated_set[automaton_states]
 
-            list_nodes = reach_operation.construct_reach_nodes(drivable_area, propagated_sets)
+            reachable_sets = reach_operation.construct_reach_nodes(drivable_area, propagated_sets)
             if discard_small_node:
-                list_nodes = semantic_reach_operation.discard_nodes_with_short_edge(list_nodes,
+                reachable_sets = semantic_reach_operation.discard_nodes_with_short_edge(reachable_sets,
                                                                                     self.config.reachable_set.length_edge_node_min)
-            if list_nodes:
-                reachable_sets = reach_operation.connect_children_to_parents(step, list_nodes)
-                # assign label to all newly constructed reach nodes
+            if step != self.step_start:
+                # this sets the correct step for the new reach nodes ...
+                reachable_sets = reach_operation.connect_children_to_parents(step, reachable_sets)
+            else:
+                # ... so we need to do this manually for the initial step, as there are no parents here
                 for node in reachable_sets:
-                    self.reachable_set_to_label[node] = automaton_states
-                dict_propositions_to_reachable_set[automaton_states] = reachable_sets
+                    node.step = step
+
+            # assign label to all newly constructed reach nodes
+            for node in reachable_sets:
+                self.reachable_set_to_label[node] = automaton_states
+            dict_propositions_to_reachable_set[automaton_states] = reachable_sets
 
         self.dict_step_to_reachable_set[step] = list(
             more_itertools.flatten(dict_propositions_to_reachable_set.values()))
