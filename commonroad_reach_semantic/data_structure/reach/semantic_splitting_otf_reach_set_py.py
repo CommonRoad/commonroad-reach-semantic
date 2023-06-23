@@ -76,11 +76,10 @@ class PySemanticSplittingOTFReachableSet(PySemanticReachableSet):
             # we also don't need one as we have to use the set of initial states anyway
             propagated_sets = self._construct_initial_reachable_sets()
 
-        propagated_sets = more_itertools.flatten(
+        propagated_sets = list(more_itertools.flatten(
             self._split_reachable_set(step, propagated_set)
             for propagated_set in propagated_sets
-        )
-        propagated_sets = self._filter_reachable_sets(propagated_sets, step)
+        ))
 
         # partition propagated sets by their automaton states
         dict_states_to_propagated_set: Dict[FrozenSet[int], List[ReachNode]] = defaultdict(list)
@@ -147,19 +146,6 @@ class PySemanticSplittingOTFReachableSet(PySemanticReachableSet):
         self.dict_step_to_reachable_set[step] = list(
             more_itertools.flatten(dict_propositions_to_reachable_set.values()))
 
-    def _filter_reachable_sets(self, reachable_sets: Iterable[ReachNode], step: int) -> List[ReachNode]:
-        """Filter reachable sets that cannot be part of an accepting run of the automaton."""
-        is_final_step = (step == self.step_end)
-        return [
-            reachable_set for reachable_set in reachable_sets
-            if self.reachable_set_to_label[reachable_set] and (
-                    not is_final_step or self._has_accepting_state(reachable_set))
-        ]
-
-    def _has_accepting_state(self, reachable_set: ReachNode) -> bool:
-        """Check if the given reachable set has an accepting state."""
-        return any(self.automaton.is_accepting_state(state) for state in self.reachable_set_to_label[reachable_set])
-
     def _split_reachable_set(self, step: int, reachable_set: ReachNode) -> List[ReachNode]:
         """Split the given reachable set along the transitions of the automaton states of its propagation source.
 
@@ -174,7 +160,40 @@ class PySemanticSplittingOTFReachableSet(PySemanticReachableSet):
         transitions = list(self.automaton.combined_transitions_from(current_states))
         constrained_reachable_sets = self._split_to_minterms(step, [reachable_set], transitions)
 
+        constrained_reachable_sets = self._filter_reachable_sets(constrained_reachable_sets, step)
+
+        constrained_reachable_sets = self._deduplicate_reachable_sets(constrained_reachable_sets)
+
         return constrained_reachable_sets
+
+    def _filter_reachable_sets(self, reachable_sets: Iterable[ReachNode], step: int) -> List[ReachNode]:
+        """Filter reachable sets that cannot be part of an accepting run of the automaton."""
+        is_final_step = (step == self.step_end)
+        return [
+            reachable_set for reachable_set in reachable_sets
+            if self.reachable_set_to_label[reachable_set] and (
+                    not is_final_step or self._has_accepting_state(reachable_set))
+        ]
+
+    def _has_accepting_state(self, reachable_set: ReachNode) -> bool:
+        """Check if the given reachable set has an accepting state."""
+        return any(self.automaton.is_accepting_state(state) for state in self.reachable_set_to_label[reachable_set])
+
+    def _deduplicate_reachable_sets(self, constrained_reachable_sets: List[ReachNode]) -> List[ReachNode]:
+        """Deduplicate reachable sets and merge labels of duplicates."""
+        unique_reachable_sets = []
+        for reachable_set in constrained_reachable_sets:
+            for other in unique_reachable_sets:
+                # Two reachable sets are equal to us, if both their lat and lon polygons are equal
+                equal_lon = reachable_set.polygon_lon.shapely_object.equals(other.polygon_lon.shapely_object)
+                equal_lat = reachable_set.polygon_lat.shapely_object.equals(other.polygon_lat.shapely_object)
+                if equal_lon and equal_lat:
+                    other_labels = self.reachable_set_to_label[other]
+                    self.reachable_set_to_label[other] = other_labels.union(self.reachable_set_to_label[reachable_set])
+                    break
+            else:
+                unique_reachable_sets.append(reachable_set)
+        return unique_reachable_sets
 
     def _split_to_minterms(self, step: int, reachable_sets: List[ReachNode],
                            transitions: List[Tuple[FrozenSet[Tuple[str, bool]], int]],
