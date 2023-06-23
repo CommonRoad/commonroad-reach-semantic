@@ -24,8 +24,8 @@ class PySemanticSplittingOTFReachableSet(PySemanticReachableSet):
     """
 
     config: SemanticConfiguration
-    dict_step_to_states_to_drivable_area: Dict[int, Dict[FrozenSet[int], List[ReachPolygon]]]
-    dict_step_to_states_to_propagated_set: Dict[int, Dict[FrozenSet[int], List[ReachNode]]]
+    dict_step_to_states_to_drivable_area: Dict[int, Dict[Tuple[FrozenSet[int], FrozenSet[int]], List[ReachPolygon]]]
+    dict_step_to_states_to_propagated_set: Dict[int, Dict[Tuple[FrozenSet[int], FrozenSet[int]], List[ReachNode]]]
     reachable_set_to_label: Dict[ReachNode, FrozenSet[int]]
     automaton: FiniteAutomaton
 
@@ -82,9 +82,14 @@ class PySemanticSplittingOTFReachableSet(PySemanticReachableSet):
         ))
 
         # partition propagated sets by their automaton states
-        dict_states_to_propagated_set: Dict[FrozenSet[int], List[ReachNode]] = defaultdict(list)
+        dict_states_to_propagated_set: Dict[Tuple[FrozenSet[int], FrozenSet[int]], List[ReachNode]] = defaultdict(list)
         for propagated_set in propagated_sets:
-            dict_states_to_propagated_set[self.reachable_set_to_label[propagated_set]].append(propagated_set)
+            if step != self.step_start:
+                key = (self.reachable_set_to_label[propagated_set.source_propagation],
+                       self.reachable_set_to_label[propagated_set])
+            else:
+                key = (frozenset({self.automaton.initial_state}), self.reachable_set_to_label[propagated_set])
+            dict_states_to_propagated_set[key].append(propagated_set)
 
         # merge, collision check, and repartition propagated sets partitioned by their automaton states,
         # because we must not merge sets with different states
@@ -140,7 +145,7 @@ class PySemanticSplittingOTFReachableSet(PySemanticReachableSet):
 
             # assign label to all newly constructed reach nodes
             for node in reachable_sets:
-                self.reachable_set_to_label[node] = automaton_states
+                self.reachable_set_to_label[node] = automaton_states[1]  # second part are states of the propagated set
             dict_propositions_to_reachable_set[automaton_states] = reachable_sets
 
         self.dict_step_to_reachable_set[step] = list(
