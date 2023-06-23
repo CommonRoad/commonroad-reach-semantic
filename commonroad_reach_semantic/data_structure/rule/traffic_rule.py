@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import enum
 from enum import Enum, auto
-from typing import List, Set
+from typing import List, Set, Optional
 
 from commonroad.scenario.lanelet import LineMarking, LaneletType, Lanelet, LaneletNetwork
 from commonroad.scenario.traffic_sign import TrafficLightState, TrafficLightDirection
@@ -222,6 +222,7 @@ def _concretize_left_turning_rule(semantic_model: SemanticModel) -> List[str]:
 
     return list_specifications
 
+
 def _concretize_entering_vehicles_rule(semantic_model: SemanticModel) -> List[str]:
     """Entering vehicles rule R-I5 in Sebastian's paper.
 
@@ -257,18 +258,20 @@ def _concretize_entering_vehicles_rule(semantic_model: SemanticModel) -> List[st
         # if there is no rightmost lane, the consequence of the implication would always be true
         return list_specifications
 
-    pred_on_main_carriageway = f"({' | '.join(P.in_lanelet(lanelet_id) for lanelet_id in main_carriageway_lanelet_ids)})"
-    pred_on_right_lane = f"({' | '.join(P.in_lanelet(lanelet_id) for lanelet_id in right_lane_lanelet_ids)})"
+    pred_on_main_carriageway = _make_lanelet_prediate(main_carriageway_lanelet_ids)
+    pred_on_right_lane = _make_lanelet_prediate(right_lane_lanelet_ids)
 
     for vehicle in semantic_model.vehicle_model.list_vehicles:
         if not _is_entering_vehicle(vehicle, access_ramp_lanelet_ids, main_carriageway_lanelet_ids, step_start, step_end):
             # only entering vehicles are relevant for this rule
             continue
 
-        # TODO: define predicates for vehicle being in a lanelet
+        pred_v_on_access_ramp = _make_lanelet_prediate(access_ramp_lanelet_ids, vehicle.id_vehicle)
+        pred_v_on_main_carriageway = _make_lanelet_prediate(main_carriageway_lanelet_ids, vehicle.id_vehicle)
+
         specification_ltl = \
             f"G (" + \
-                f"{pred_on_main_carriageway} & {P.behind(vehicle.id_vehicle)} & true & F (true) ->" + \
+                f"{pred_on_main_carriageway} & {P.behind(vehicle.id_vehicle)} & {pred_v_on_access_ramp} & F {pred_v_on_main_carriageway} ->" + \
                 f"!(!{pred_on_right_lane} & F {pred_on_right_lane})" + \
             f")"
         list_specifications.append(f"LTL {specification_ltl}\n")
@@ -300,3 +303,11 @@ def _is_entering_vehicle(vehicle: Vehicle, access_ramp_lanelet_ids: Set[int], ma
         if access_ramp and carriageway_after_ramp:
             break
     return access_ramp and carriageway_after_ramp
+
+
+def _make_lanelet_prediate(lanelet_ids: Set[int], vehicle_id: Optional[int] = None) -> str:
+    """Make a predicate for a vehicle being in one of the lanelets."""
+    if vehicle_id is None:
+        return f"({' | '.join(P.in_lanelet(lanelet_id) for lanelet_id in lanelet_ids)})"
+    else:
+        return f"({' | '.join(P.vehicle_in_lanelet(vehicle_id, lanelet_id) for lanelet_id in lanelet_ids)})"
