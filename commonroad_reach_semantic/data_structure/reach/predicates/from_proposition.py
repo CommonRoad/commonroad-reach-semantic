@@ -22,6 +22,8 @@ from commonroad_reach_semantic.data_structure.reach.predicates.right_of_obstacle
 from commonroad_reach_semantic.data_structure.reach.predicates.same_priority_predicate import SamePriorityPredicate
 from commonroad_reach_semantic.data_structure.reach.predicates.vehicle_in_conflict_area_predicate import \
     VehicleInConflictAreaPredicate
+from commonroad_reach_semantic.data_structure.reach.predicates.vehicle_in_lanelet_predicate import \
+    VehicleInLaneletPredicate
 from commonroad_reach_semantic.data_structure.reach.predicates.vehicle_in_successor_predicate import \
     VehicleInSuccessorPredicate
 
@@ -29,6 +31,8 @@ from commonroad_reach_semantic.data_structure.reach.predicates.vehicle_in_succes
 def from_proposition(proposition: str, negated: bool):
     if matched := re.fullmatch(r"InLanelet_(\d+)", proposition):
         return InLaneletPredicate(int(matched.group(1)), negated)
+    elif matched := re.fullmatch(r"InLanelet_(\d+)_V(\d+)", proposition):
+        return VehicleInLaneletPredicate(int(matched.group(2)), int(matched.group(1)), negated)
     elif matched := re.fullmatch(r"Behind_V(\d+)", proposition):
         return BehindObstaclePredicate(int(matched.group(1)), negated)
     elif matched := re.fullmatch(r"Beside_V(\d+)", proposition):
