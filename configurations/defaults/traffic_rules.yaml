@@ -20,3 +20,4 @@ activated_rules:
   - PriorityRule
   - RightBeforeLeftRule
   - LeftTurningRule
+  - EnteringVehiclesRule
