@@ -43,11 +43,16 @@ class TrafficStatusModel:
                 for id_obstacle in lanelet.dynamic_obstacle_by_time_step(step):
                     dict_step_to_traffic_status_propositions[step].add(Prop.in_intersection(id_obstacle))
 
-        # extract propositions indicating a vehicle is in its outgoing lanelet
         for vehicle, step in itertools.product(self.vehicle_model.list_vehicles,
                                                range(self.step_start, self.step_end + 1)):
+            # extract propositions indicating a vehicle is in its outgoing lanelet
             if vehicle.set_ids_lanelets_successor_incoming.intersection(vehicle.lanelet_ids_at_step(step)):
                 dict_step_to_traffic_status_propositions[step].add(
                     Prop.in_direction_successor(vehicle.type_outgoing, vehicle.id_vehicle))
+
+            # extract propositions indicating a vehicle is in a specific lanelet
+            dict_step_to_traffic_status_propositions[step].update(
+                Prop.vehicle_in_lanelet(vehicle.id_vehicle, l_id) for l_id in vehicle.lanelet_ids_at_step(step)
+            )
 
         self.dict_step_to_traffic_status_propositions = dict_step_to_traffic_status_propositions

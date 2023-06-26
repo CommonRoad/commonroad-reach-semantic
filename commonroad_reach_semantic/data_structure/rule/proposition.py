@@ -28,6 +28,10 @@ class Proposition:
             return prefix + str(id_lanelet)
 
     @staticmethod
+    def vehicle_in_lanelet(id_obstacle: int, id_lanelet: int) -> str:
+        return f"InLanelet_{id_lanelet}_V{id_obstacle}"
+
+    @staticmethod
     def lanelet_transition(id_lanelet_source: int, id_lanelet_target: int) -> str:
         return f"Lanelet_{id_lanelet_source}_to_{id_lanelet_target}"
 
