@@ -1,5 +1,6 @@
 import copy
 import logging
+import os
 from pathlib import Path
 from typing import List, Tuple, Union, Set, Dict, FrozenSet
 
@@ -17,12 +18,13 @@ from commonroad.visualization.mp_renderer import MPRenderer
 from commonroad_reach.data_structure.reach.reach_interface import ReachableSetInterface
 from commonroad_reach.data_structure.reach.reach_node import ReachNode
 from commonroad_reach.utility import coordinate_system as util_coordinate_system
+from pyvis.network import Network
 
 import commonroad_reach_semantic.utility.graph as util_graph
-from commonroad_reach_semantic.data_structure.driving_corridor_extractor import DrivingCorridor
-from commonroad_reach_semantic.data_structure.model_checking.kripke import KripkeNode
 from commonroad_reach_semantic.data_structure.config.semantic_configuration import SemanticConfiguration
+from commonroad_reach_semantic.data_structure.driving_corridor_extractor import DrivingCorridor
 from commonroad_reach_semantic.data_structure.environment_model.semantic_model import SemanticModel
+from commonroad_reach_semantic.data_structure.model_checking.kripke import KripkeNode
 from commonroad_reach_semantic.data_structure.model_checking.spot_interface import SpotInterface
 
 logger = logging.getLogger(__name__)
@@ -96,6 +98,40 @@ def plot_reach_graph(reach_interface: ReachableSetInterface, figsize: Tuple = No
     else:
         plt.show()
 
+
+def show_interactive_reach_graph(reach_interface: ReachableSetInterface, *, show_image: bool = True, path_output: str = None, width: str = "100%", height: str = "1000px", node_to_label: Dict[ReachNode, FrozenSet[int]] = None):
+    """Show the reachability graph in an interactive plot."""
+    config: SemanticConfiguration = reach_interface.config
+    path_output = path_output or config.general.path_output
+    Path(path_output).mkdir(parents=True, exist_ok=True)
+
+    g = util_graph.reachability_graph_to_networkx(reach_interface)
+    pos = util_graph.reachability_graph_nx_layout(g, scale=5000)
+    n = Network(height, width, directed=True)
+
+    # not using n.from_nx(g), because it requires the nodes to be strings or ints
+    # for positioning of nodes: https://stackoverflow.com/questions/74108243/pyvis-is-there-a-way-to-disable-physics-without-losing-graphs-layout
+    for node in g.nodes():
+        group = hash(node_to_label[node]) if node_to_label is not None else None
+        title = f"Lon: [{node.p_lon_min:.4f}; {node.p_lon_max:.4f}] Lat: [{node.p_lat_min:.4f}; {node.p_lat_max:.4f}]"
+        shared_options = {"x": pos[node][0], "y": -pos[node][1], "size": 100, "physics": False, "title": title, "group": group}
+        if show_image:
+            image_path = os.path.join(path_output, f"png_reach_{node.step:05d}.png")
+            n.add_node(node.id, shape="image", image=f"file://{image_path}", **shared_options)
+        else:
+            n.add_node(node.id, **shared_options)
+
+    for src, dst in g.edges():
+        n.add_edge(src.id, dst.id, width=2, physics=False)
+
+    n.toggle_physics(False)
+    n.toggle_drag_nodes(False)
+
+    # need to change workdir so that pyvis puts its libraries in the right place
+    prevdir = os.getcwd()
+    os.chdir(path_output)
+    n.show("reach_graph.html")
+    os.chdir(prevdir)
 
 def plot_scenario_with_reachable_sets(reach_interface: ReachableSetInterface, figsize: Tuple = None,
                                       step_start: int = 0, step_end: int = 0, steps: List[int] = None,

@@ -61,6 +61,7 @@ def main():
     # corridor_optimal = dc_extractor.determine_optimal_corridor()
 
     # ==== plot computation results
+    util_visual.show_interactive_reach_graph(reach_interface, show_image=True, node_to_label=reach_interface._reach.reachable_set_to_label)
     util_visual.plot_reach_graph(reach_interface, node_to_label=reach_interface._reach.reachable_set_to_label)
     util_visual.plot_scenario_with_regions(semantic_model, "CVLN")
     util_visual.plot_scenario_with_reachable_sets(reach_interface, save_gif=True)
