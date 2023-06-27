@@ -144,25 +144,31 @@ def _plot_reach_node_for_interactive(reach_interface: ReachableSetInterface, rea
 
     :return: Path to the image.
     """
-    output_path = os.path.join(output_path, "img")
-
     config: SemanticConfiguration = reach_interface.config
     scenario = config.scenario
     planning_problem = config.planning_problem
     ref_path = config.planning.reference_path
 
+    output_path = os.path.join(output_path, "img")
     Path(output_path).mkdir(parents=True, exist_ok=True)
 
     figsize = (25, 15)
     plot_limits = compute_plot_limits_from_reachable_sets(reach_interface)
+    palette = sns.color_palette("GnBu_d", 3)
+    edge_color = (palette[0][0] * 0.75, palette[0][1] * 0.75, palette[0][2] * 0.75)
+
+    # generate default drawing parameters
     draw_params = reach_visualization.generate_default_drawing_parameters(config)
-    renderer = MPRenderer(plot_limits=plot_limits, figsize=figsize)
+    draw_params.shape.facecolor = palette[0]
+    draw_params.shape.edgecolor = edge_color
 
     # clear previous plot
     plt.cla()
 
+    renderer = MPRenderer(plot_limits=plot_limits, figsize=figsize)
+
     # plot scenario and planning problem
-    draw_params.time_begin = reach_node.step
+    draw_params.time_begin = reach_node.step * round(config.planning.dt / config.scenario.dt)
     scenario.draw(renderer, draw_params)
 
     if config.debug.draw_planning_problem:
