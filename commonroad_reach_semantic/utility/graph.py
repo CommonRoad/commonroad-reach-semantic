@@ -19,6 +19,6 @@ def reachability_graph_to_networkx(reach_interface: ReachableSetInterface) -> nx
     return graph
 
 
-def reachability_graph_nx_layout(graph: nx.Graph, scale: float = None) -> dict:
+def reachability_graph_nx_layout(graph: nx.Graph, scale: float = 1) -> dict:
     """Compute a layout for the reachability graph."""
     return nx.multipartite_layout(graph, subset_key="layer", scale=scale)
