@@ -102,8 +102,22 @@ def plot_reach_graph(reach_interface: ReachableSetInterface, figsize: Tuple = No
     plt.clf()
 
 
-def show_interactive_reach_graph(reach_interface: ReachableSetInterface, *, show_image: bool = True, path_output: str = None, width: str = "100%", height: str = "1000px", node_to_label: Dict[ReachNode, FrozenSet[int]] = None):
-    """Show the reachability graph in an interactive plot."""
+def show_interactive_reach_graph(reach_interface: ReachableSetInterface, *,
+                                 use_images: bool = True, path_output: str = None, file_name: str = "reach_graph",
+                                 width: str = "100%", height: str = "1000px", draggable: bool = True,
+                                 node_to_label: Dict[ReachNode, FrozenSet[int]] = None) -> None:
+    """Show the reachability graph in an interactive plot.
+
+    :param reach_interface: ReachableSetInterface storing the reachability graph.
+    :param use_images: Plot scenario for each node instead of just using a circle.
+    :param path_output: Path to output directory.
+    :param file_name: Name of the graph HTML file.
+    :param width: Width of the plot.
+    :param height: Height of the plot.
+    :param draggable: Whether the nodes can be dragged around.
+    :param node_to_label: Mapping from reach nodes to labels for coloring nodes and edges.
+    """
+
     config: SemanticConfiguration = reach_interface.config
     path_output = path_output or config.general.path_output
     Path(path_output).mkdir(parents=True, exist_ok=True)
@@ -114,13 +128,16 @@ def show_interactive_reach_graph(reach_interface: ReachableSetInterface, *, show
 
     # not using n.from_nx(g), because it requires the nodes to be strings or ints
     # for positioning of nodes: https://stackoverflow.com/questions/74108243/pyvis-is-there-a-way-to-disable-physics-without-losing-graphs-layout
-    for node in g.nodes():
+    util_logger.print_and_log_info(logger, "* Plotting individual reach nodes...")
+    for i, node in enumerate(g.nodes()):
         group = hash(node_to_label[node]) if node_to_label is not None else None
         title = f"Lon: [{node.p_lon_min:.4f}; {node.p_lon_max:.4f}] Lat: [{node.p_lat_min:.4f}; {node.p_lat_max:.4f}]"
         shared_options = {"x": pos[node][0], "y": -pos[node][1], "size": 100, "physics": False, "title": title, "group": group}
-        if show_image:
+        if use_images:
             image_path = _plot_reach_node_for_interactive(reach_interface, node, path_output)
             n.add_node(node.id, shape="image", image=f"file://{image_path}", **shared_options)
+            if i % 5 == 0:
+                util_logger.print_and_log_info(logger, f"\tSaving {image_path}")
         else:
             n.add_node(node.id, **shared_options)
 
@@ -128,12 +145,12 @@ def show_interactive_reach_graph(reach_interface: ReachableSetInterface, *, show
         n.add_edge(src.id, dst.id, width=2, physics=False)
 
     n.toggle_physics(False)
-    n.toggle_drag_nodes(False)
+    n.toggle_drag_nodes(draggable)
 
     # need to change workdir so that pyvis puts its libraries in the right place
     prevdir = os.getcwd()
     os.chdir(path_output)
-    n.show("reach_graph.html")
+    n.show(f"{file_name}.html")
     os.chdir(prevdir)
 
 
