@@ -98,6 +98,9 @@ def plot_reach_graph(reach_interface: ReachableSetInterface, figsize: Tuple = No
     else:
         plt.show()
 
+    # clear our plot
+    plt.clf()
+
 
 def show_interactive_reach_graph(reach_interface: ReachableSetInterface, *, show_image: bool = True, path_output: str = None, width: str = "100%", height: str = "1000px", node_to_label: Dict[ReachNode, FrozenSet[int]] = None):
     """Show the reachability graph in an interactive plot."""
