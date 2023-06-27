@@ -116,7 +116,7 @@ def show_interactive_reach_graph(reach_interface: ReachableSetInterface, *, show
         title = f"Lon: [{node.p_lon_min:.4f}; {node.p_lon_max:.4f}] Lat: [{node.p_lat_min:.4f}; {node.p_lat_max:.4f}]"
         shared_options = {"x": pos[node][0], "y": -pos[node][1], "size": 100, "physics": False, "title": title, "group": group}
         if show_image:
-            image_path = os.path.join(path_output, f"png_reach_{node.step:05d}.png")
+            image_path = _plot_reach_node_for_interactive(reach_interface, node, path_output)
             n.add_node(node.id, shape="image", image=f"file://{image_path}", **shared_options)
         else:
             n.add_node(node.id, **shared_options)
@@ -132,6 +132,61 @@ def show_interactive_reach_graph(reach_interface: ReachableSetInterface, *, show
     os.chdir(path_output)
     n.show("reach_graph.html")
     os.chdir(prevdir)
+
+
+def _plot_reach_node_for_interactive(reach_interface: ReachableSetInterface, reach_node: ReachNode, output_path: str) -> str:
+    """Plot the scenario with a single reach node.
+
+    Intended for use with interactive plotting.
+
+    :return: Path to the image.
+    """
+    output_path = os.path.join(output_path, "img")
+
+    config: SemanticConfiguration = reach_interface.config
+    scenario = config.scenario
+    planning_problem = config.planning_problem
+    ref_path = config.planning.reference_path
+
+    Path(output_path).mkdir(parents=True, exist_ok=True)
+
+    figsize = (25, 15)
+    plot_limits = compute_plot_limits_from_reachable_sets(reach_interface)
+    draw_params = reach_visualization.generate_default_drawing_parameters(config)
+    renderer = MPRenderer(plot_limits=plot_limits, figsize=figsize)
+
+    # clear previous plot
+    plt.cla()
+
+    # plot scenario and planning problem
+    draw_params.time_begin = reach_node.step
+    scenario.draw(renderer, draw_params)
+
+    if config.debug.draw_planning_problem:
+        planning_problem.draw(renderer, draw_params)
+
+    reach_visualization.draw_reachable_sets([reach_node], config, renderer, draw_params)
+
+    # plot traffic signs
+    for sign in scenario.lanelet_network.traffic_signs:
+        sign.draw(renderer)
+
+    # plot reference path
+    if config.debug.draw_ref_path and ref_path is not None:
+        renderer.ax.plot(ref_path[:, 0], ref_path[:, 1],
+                         color='g', marker='.', markersize=1, zorder=19, linewidth=2.0)
+
+    # settings and adjustments
+    plt.rc("axes", axisbelow=True)
+    ax = plt.gca()
+    ax.set_aspect("equal")
+    plt.margins(0, 0)
+    renderer.render()
+
+    figure_path = os.path.join(output_path, f"reach_node_{reach_node.id:010d}.svg")
+    plt.savefig(figure_path, format="svg", bbox_inches="tight", transparent=False)
+    return figure_path
+
 
 def plot_scenario_with_reachable_sets(reach_interface: ReachableSetInterface, figsize: Tuple = None,
                                       step_start: int = 0, step_end: int = 0, steps: List[int] = None,
