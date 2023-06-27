@@ -80,7 +80,7 @@ def plot_reach_graph(reach_interface: ReachableSetInterface, figsize: Tuple = No
 
     g = util_graph.reachability_graph_to_networkx(reach_interface)
     if node_to_label is None:
-        colors = 0
+        colors = "#1f78b4"
     else:
         colors = []
         state_colors = {}
@@ -104,7 +104,7 @@ def plot_reach_graph(reach_interface: ReachableSetInterface, figsize: Tuple = No
 
 def show_interactive_reach_graph(reach_interface: ReachableSetInterface, *,
                                  use_images: bool = True, path_output: str = None, file_name: str = "reach_graph",
-                                 width: str = "100%", height: str = "1000px", draggable: bool = True,
+                                 width: str = "100%", height: str = "1000px", scale: float = 5000, draggable: bool = True,
                                  node_to_label: Dict[ReachNode, FrozenSet[int]] = None) -> None:
     """Show the reachability graph in an interactive plot.
 
@@ -114,6 +114,7 @@ def show_interactive_reach_graph(reach_interface: ReachableSetInterface, *,
     :param file_name: Name of the graph HTML file.
     :param width: Width of the plot.
     :param height: Height of the plot.
+    :param scale: Scale factor for distances between nodes.
     :param draggable: Whether the nodes can be dragged around.
     :param node_to_label: Mapping from reach nodes to labels for coloring nodes and edges.
     """
@@ -123,7 +124,7 @@ def show_interactive_reach_graph(reach_interface: ReachableSetInterface, *,
     Path(path_output).mkdir(parents=True, exist_ok=True)
 
     g = util_graph.reachability_graph_to_networkx(reach_interface)
-    pos = util_graph.reachability_graph_nx_layout(g, scale=5000)
+    pos = util_graph.reachability_graph_nx_layout(g, scale=scale)
     n = Network(height, width, directed=True)
 
     # not using n.from_nx(g), because it requires the nodes to be strings or ints
