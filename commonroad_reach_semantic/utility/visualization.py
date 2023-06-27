@@ -1,11 +1,12 @@
 import copy
 import logging
 from pathlib import Path
-from typing import List, Tuple, Union, Set, Dict
+from typing import List, Tuple, Union, Set, Dict, FrozenSet
 
 import commonroad_reach.utility.logger as util_logger
 import commonroad_reach.utility.visualization as reach_visualization
 import matplotlib.pyplot as plt
+import networkx as nx
 import numpy as np
 import seaborn as sns
 # from commonroad_reach_semantic import pycrreachs as reach
@@ -14,8 +15,10 @@ from commonroad.scenario.lanelet import LaneletNetwork
 from commonroad.visualization.draw_params import MPDrawParams
 from commonroad.visualization.mp_renderer import MPRenderer
 from commonroad_reach.data_structure.reach.reach_interface import ReachableSetInterface
+from commonroad_reach.data_structure.reach.reach_node import ReachNode
 from commonroad_reach.utility import coordinate_system as util_coordinate_system
 
+import commonroad_reach_semantic.utility.graph as util_graph
 from commonroad_reach_semantic.data_structure.driving_corridor_extractor import DrivingCorridor
 from commonroad_reach_semantic.data_structure.model_checking.kripke import KripkeNode
 from commonroad_reach_semantic.data_structure.config.semantic_configuration import SemanticConfiguration
@@ -56,6 +59,42 @@ class ColorMapper:
             self.id_color_max += 1
 
         return self.palette[id_color]
+
+
+def plot_reach_graph(reach_interface: ReachableSetInterface, figsize: Tuple = None, path_output: str = None, node_to_label: Dict[ReachNode, FrozenSet[int]] = None):
+    """Plot the reachability graph."""
+    config: SemanticConfiguration = reach_interface.config
+    path_output = path_output or config.general.path_output
+    Path(path_output).mkdir(parents=True, exist_ok=True)
+
+    figsize = figsize if figsize else (25, 15)
+
+    if config.debug.save_plots:
+        # clear previous plot
+        plt.cla()
+    else:
+        # create new figure
+        plt.figure(figsize=figsize)
+
+    g = util_graph.reachability_graph_to_networkx(reach_interface)
+    if node_to_label is None:
+        colors = 0
+    else:
+        colors = []
+        state_colors = {}
+        distinct_state = 0
+        for node in g.nodes:
+            states = node_to_label[node]
+            if states not in state_colors:
+                state_colors[states] = distinct_state
+                distinct_state += 1
+            colors.append(state_colors[states])
+    nx.draw_networkx(g, pos=util_graph.reachability_graph_nx_layout(g), with_labels=False, node_size=50, width=0.5, node_color=colors, cmap="tab10")
+
+    if config.debug.save_plots:
+        reach_visualization.save_fig(False, path_output, 0, identifier="graph", verbose=True)
+    else:
+        plt.show()
 
 
 def plot_scenario_with_reachable_sets(reach_interface: ReachableSetInterface, figsize: Tuple = None,
