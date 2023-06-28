@@ -136,9 +136,9 @@ def show_interactive_reach_graph(reach_interface: ReachableSetInterface, *,
         shared_options = {"x": pos[node][0], "y": -pos[node][1], "size": 100, "physics": False, "title": title, "group": group}
         if use_images:
             image_path = _plot_reach_node_for_interactive(reach_interface, node, path_output)
-            n.add_node(node.id, shape="image", image=f"file://{image_path}", **shared_options)
+            n.add_node(node.id, shape="image", image=os.path.join(os.path.curdir, image_path), **shared_options)
             if i % 5 == 0:
-                util_logger.print_and_log_info(logger, f"\tSaving {image_path}")
+                util_logger.print_and_log_info(logger, f"\tSaving {os.path.join(path_output, image_path)}")
         else:
             n.add_node(node.id, **shared_options)
 
@@ -160,15 +160,16 @@ def _plot_reach_node_for_interactive(reach_interface: ReachableSetInterface, rea
 
     Intended for use with interactive plotting.
 
-    :return: Path to the image.
+    :return: Path to the image relative to output_path.
     """
     config: SemanticConfiguration = reach_interface.config
     scenario = config.scenario
     planning_problem = config.planning_problem
     ref_path = config.planning.reference_path
 
-    output_path = os.path.join(output_path, "img")
-    Path(output_path).mkdir(parents=True, exist_ok=True)
+    relative_figure_path = "img"
+    absolute_figure_path = os.path.join(output_path, relative_figure_path)
+    Path(absolute_figure_path).mkdir(parents=True, exist_ok=True)
 
     figsize = (25, 15)
     plot_limits = compute_plot_limits_from_reachable_sets(reach_interface)
@@ -210,9 +211,9 @@ def _plot_reach_node_for_interactive(reach_interface: ReachableSetInterface, rea
     plt.margins(0, 0)
     renderer.render()
 
-    figure_path = os.path.join(output_path, f"reach_node_{reach_node.id:010d}.svg")
-    plt.savefig(figure_path, format="svg", bbox_inches="tight", transparent=False)
-    return figure_path
+    filename = f"reach_node_{reach_node.id:010d}.svg"
+    plt.savefig(os.path.join(absolute_figure_path, filename), format="svg", bbox_inches="tight", transparent=False)
+    return os.path.join(relative_figure_path, filename)
 
 
 def plot_scenario_with_reachable_sets(reach_interface: ReachableSetInterface, figsize: Tuple = None,
