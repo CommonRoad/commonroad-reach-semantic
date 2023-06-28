@@ -2,7 +2,7 @@ import copy
 import logging
 import os
 from pathlib import Path
-from typing import List, Tuple, Union, Set, Dict, FrozenSet
+from typing import List, Tuple, Union, Set, Dict, FrozenSet, Iterable
 
 import commonroad_reach.utility.logger as util_logger
 import commonroad_reach.utility.visualization as reach_visualization
@@ -163,46 +163,23 @@ def _plot_reach_node_for_interactive(reach_interface: ReachableSetInterface, rea
     :return: Path to the image relative to output_path.
     """
     config: SemanticConfiguration = reach_interface.config
-    scenario = config.scenario
-    planning_problem = config.planning_problem
-    ref_path = config.planning.reference_path
 
     relative_figure_path = "img"
     absolute_figure_path = os.path.join(output_path, relative_figure_path)
     Path(absolute_figure_path).mkdir(parents=True, exist_ok=True)
 
     figsize = (25, 15)
-    plot_limits = compute_plot_limits_from_reachable_sets(reach_interface)
-    palette = sns.color_palette("GnBu_d", 3)
-    edge_color = (palette[0][0] * 0.75, palette[0][1] * 0.75, palette[0][2] * 0.75)
-
-    # generate default drawing parameters
-    draw_params = reach_visualization.generate_default_drawing_parameters(config)
-    draw_params.shape.facecolor = palette[0]
-    draw_params.shape.edgecolor = edge_color
+    plot_limits = reach_visualization.compute_plot_limits_from_reachable_sets(reach_interface)
+    draw_params = _create_draw_params(config)
 
     # clear previous plot
     plt.cla()
 
     renderer = MPRenderer(plot_limits=plot_limits, figsize=figsize)
 
-    # plot scenario and planning problem
     draw_params.time_begin = reach_node.step * round(config.planning.dt / config.scenario.dt)
-    scenario.draw(renderer, draw_params)
-
-    if config.debug.draw_planning_problem:
-        planning_problem.draw(renderer, draw_params)
-
-    reach_visualization.draw_reachable_sets([reach_node], config, renderer, draw_params)
-
-    # plot traffic signs
-    for sign in scenario.lanelet_network.traffic_signs:
-        sign.draw(renderer)
-
-    # plot reference path
-    if config.debug.draw_ref_path and ref_path is not None:
-        renderer.ax.plot(ref_path[:, 0], ref_path[:, 1],
-                         color='g', marker='.', markersize=1, zorder=19, linewidth=2.0)
+    draw_reachable_sets([reach_node], config, renderer, draw_params)
+    _draw_scenario_elements(config, renderer, draw_params)
 
     # settings and adjustments
     plt.rc("axes", axisbelow=True)
@@ -216,7 +193,7 @@ def _plot_reach_node_for_interactive(reach_interface: ReachableSetInterface, rea
     return os.path.join(relative_figure_path, filename)
 
 
-def plot_scenario_with_reachable_sets(reach_interface: ReachableSetInterface, figsize: Tuple = None,
+def plot_scenario_with_reachable_sets(reach_interface: ReachableSetInterface, figsize: Tuple = (25, 15),
                                       step_start: int = 0, step_end: int = 0, steps: List[int] = None,
                                       plot_limits: List = None, path_output: str = None,
                                       save_gif: bool = True, duration: float = None):
@@ -225,21 +202,12 @@ def plot_scenario_with_reachable_sets(reach_interface: ReachableSetInterface, fi
     """
     config: SemanticConfiguration = reach_interface.config
     scenario = config.scenario
-    planning_problem = config.planning_problem
-    ref_path = config.planning.reference_path
 
     path_output = path_output or config.general.path_output
     Path(path_output).mkdir(parents=True, exist_ok=True)
 
-    figsize = figsize if figsize else (25, 15)
-    plot_limits = plot_limits or compute_plot_limits_from_reachable_sets(reach_interface)
-    palette = sns.color_palette("GnBu_d", 3)
-    edge_color = (palette[0][0] * 0.75, palette[0][1] * 0.75, palette[0][2] * 0.75)
-
-    # generate default drawing parameters
-    draw_params = reach_visualization.generate_default_drawing_parameters(config)
-    draw_params.shape.facecolor = palette[0]
-    draw_params.shape.edgecolor = edge_color
+    plot_limits = plot_limits or reach_visualization.compute_plot_limits_from_reachable_sets(reach_interface)
+    draw_params = _create_draw_params(config)
 
     step_start = step_start or reach_interface.step_start
     step_end = step_end or reach_interface.step_end
@@ -250,12 +218,11 @@ def plot_scenario_with_reachable_sets(reach_interface: ReachableSetInterface, fi
         steps = [step_start] + list(range(step_start, step_end + 1))
     duration = duration if duration else config.planning.dt
 
-    mapper = ColorMapper(reach_interface, steps)
+    # mapper = ColorMapper(reach_interface, steps)
 
     util_logger.print_and_log_info(logger, "* Plotting reachable sets...")
     renderer = MPRenderer(plot_limits=plot_limits, figsize=figsize) if config.debug.save_plots else None
     for step in steps:
-        time_step = step * round(config.planning.dt / config.scenario.dt)
         if config.debug.save_plots:
             # clear previous plot
             plt.cla()
@@ -264,24 +231,12 @@ def plot_scenario_with_reachable_sets(reach_interface: ReachableSetInterface, fi
             plt.figure(figsize=figsize)
             renderer = MPRenderer(plot_limits=plot_limits)
 
-        # plot scenario and planning problem
+        time_step = step * round(config.planning.dt / config.scenario.dt)
         draw_params.time_begin = time_step
-        scenario.draw(renderer, draw_params)
 
-        if config.debug.draw_planning_problem:
-            planning_problem.draw(renderer, draw_params)
-
-        dict_nodes_reach = reach_interface.reachable_set_at_step(step)
-        draw_reachable_sets(dict_nodes_reach, config, renderer, draw_params, mapper, reach_interface)
-
-        # plot traffic signs
-        for sign in scenario.lanelet_network.traffic_signs:
-            sign.draw(renderer)
-
-        # plot reference path
-        if config.debug.draw_ref_path and ref_path is not None:
-            renderer.ax.plot(ref_path[:, 0], ref_path[:, 1],
-                             color='g', marker='.', markersize=1, zorder=19, linewidth=2.0)
+        list_nodes = reach_interface.reachable_set_at_step(step)
+        draw_reachable_sets(list_nodes, config, renderer, draw_params)
+        _draw_scenario_elements(config, renderer, draw_params)
 
         # settings and adjustments
         plt.rc("axes", axisbelow=True)
@@ -309,7 +264,7 @@ def plot_scenario_with_reachable_sets(reach_interface: ReachableSetInterface, fi
 
 
 def plot_scenario_with_regions(semantic_model: SemanticModel, coordinate_system: str = "CVLN",
-                               figsize: Tuple = None, plot_limits: Union[List] = None, path_output: str = None):
+                               figsize: Tuple = (25, 15), plot_limits: Union[List] = None, path_output: str = None):
     """
     Plots scenario with computed lanelet regions.
     """
@@ -319,7 +274,6 @@ def plot_scenario_with_regions(semantic_model: SemanticModel, coordinate_system:
     path_output = path_output or config.general.path_output
     Path(path_output).mkdir(parents=True, exist_ok=True)
 
-    figsize = figsize if figsize else (25, 15)
     plot_limits = plot_limits or compute_plot_limits_from_lanelet_network(semantic_model.lanelet_model.local_lanelet_network)
     draw_params = reach_visualization.generate_default_drawing_parameters(config)
 
@@ -351,7 +305,7 @@ def plot_scenario_with_regions(semantic_model: SemanticModel, coordinate_system:
 
 
 def plot_scenario_with_kripke_nodes(spot_interface: SpotInterface, plot_accepting: bool = True,
-                                    figsize: Tuple = None,
+                                    figsize: Tuple = (25, 15),
                                     step_start: int = 0, step_end: int = 0, steps: List[int] = None,
                                     plot_limits: Union[List] = None, path_output: str = None,
                                     save_gif: bool = True, duration: float = None):
@@ -361,21 +315,12 @@ def plot_scenario_with_kripke_nodes(spot_interface: SpotInterface, plot_acceptin
     config: SemanticConfiguration = spot_interface.reach_interface.config
     reach_interface = spot_interface.reach_interface
     scenario = config.scenario
-    planning_problem = config.planning_problem
-    ref_path = config.planning.reference_path
 
     path_output = path_output or config.general.path_output
     Path(path_output).mkdir(parents=True, exist_ok=True)
 
-    figsize = figsize if figsize else (25, 15)
-    plot_limits = plot_limits or compute_plot_limits_from_reachable_sets(reach_interface)
-    palette = sns.color_palette("GnBu_d", 3)
-    edge_color = (palette[0][0] * 0.75, palette[0][1] * 0.75, palette[0][2] * 0.75)
-
-    # generate default drawing parameters
-    draw_params = reach_visualization.generate_default_drawing_parameters(config)
-    draw_params.shape.facecolor = palette[0]
-    draw_params.shape.edgecolor = edge_color
+    plot_limits = plot_limits or reach_visualization.compute_plot_limits_from_reachable_sets(reach_interface)
+    draw_params = _create_draw_params(config)
 
     step_start = step_start or reach_interface.step_start
     step_end = step_end or reach_interface.step_end
@@ -392,12 +337,11 @@ def plot_scenario_with_kripke_nodes(spot_interface: SpotInterface, plot_acceptin
     else:
         dict_step_to_set_nodes_kripke = spot_interface.kripke_structure.kripke_nodes(merge=True)
 
-    mapper = ColorMapper(reach_interface, steps)
+    # mapper = ColorMapper(reach_interface, steps)
 
     util_logger.print_and_log_info(logger, "* Plotting reachable sets in accepting kripke nodes...")
     renderer = MPRenderer(plot_limits=plot_limits, figsize=figsize) if config.debug.save_plots else None
     for step in steps:
-        time_step = step * round(config.planning.dt / config.scenario.dt)
         if config.debug.save_plots:
             # clear previous plot
             plt.cla()
@@ -406,23 +350,11 @@ def plot_scenario_with_kripke_nodes(spot_interface: SpotInterface, plot_acceptin
             plt.figure(figsize=figsize)
             renderer = MPRenderer(plot_limits=plot_limits)
 
-        # plot scenario and planning problem
+        time_step = step * round(config.planning.dt / config.scenario.dt)
         draw_params.time_begin = time_step
-        scenario.draw(renderer, draw_params)
 
-        if config.debug.draw_planning_problem:
-            planning_problem.draw(renderer, draw_params)
-
-        draw_kripke_nodes(dict_step_to_set_nodes_kripke[step], config, renderer, draw_params, mapper, reach_interface)
-
-        # plot traffic signs
-        for sign in scenario.lanelet_network.traffic_signs:
-            sign.draw(renderer)
-
-        # plot reference path
-        if config.debug.draw_ref_path and ref_path is not None:
-            renderer.ax.plot(ref_path[:, 0], ref_path[:, 1],
-                             color='g', marker='.', markersize=1, zorder=19, linewidth=2.0)
+        draw_kripke_nodes(dict_step_to_set_nodes_kripke[step], config, renderer, draw_params)
+        _draw_scenario_elements(config, renderer, draw_params)
 
         # settings and adjustments
         plt.rc("axes", axisbelow=True)
@@ -445,7 +377,7 @@ def plot_scenario_with_kripke_nodes(spot_interface: SpotInterface, plot_acceptin
     util_logger.print_and_log_info(logger, "\tReachable sets of Kripke nodes plotted.")
 
 
-def plot_scenario_with_driving_corridor(spot_interface: SpotInterface, corridor: DrivingCorridor, figsize: Tuple = None,
+def plot_scenario_with_driving_corridor(spot_interface: SpotInterface, corridor: DrivingCorridor, figsize: Tuple = (25, 15),
                                         step_start: int = 0, step_end: int = 0, steps: List[int] = None,
                                         plot_limits: Union[List] = None, path_output: str = None,
                                         save_gif: bool = True, duration: float = None):
@@ -458,22 +390,12 @@ def plot_scenario_with_driving_corridor(spot_interface: SpotInterface, corridor:
 
     config: SemanticConfiguration = spot_interface.reach_interface.config
     reach_interface = spot_interface.reach_interface
-    scenario = config.scenario
-    planning_problem = config.planning_problem
-    ref_path = config.planning.reference_path
 
     path_output = path_output or config.general.path_output
     Path(path_output).mkdir(parents=True, exist_ok=True)
 
-    figsize = figsize if figsize else (25, 15)
-    plot_limits = plot_limits or compute_plot_limits_from_reachable_sets(reach_interface)
-    palette = sns.color_palette("GnBu_d", 3)
-    edge_color = (palette[0][0] * 0.75, palette[0][1] * 0.75, palette[0][2] * 0.75)
-
-    # generate default drawing parameters
-    draw_params = reach_visualization.generate_default_drawing_parameters(config)
-    draw_params.shape.facecolor = palette[0]
-    draw_params.shape.edgecolor = edge_color
+    plot_limits = plot_limits or reach_visualization.compute_plot_limits_from_reachable_sets(reach_interface)
+    draw_params = _create_draw_params(config)
 
     step_start = step_start or reach_interface.step_start
     step_end = step_end or reach_interface.step_end
@@ -486,12 +408,11 @@ def plot_scenario_with_driving_corridor(spot_interface: SpotInterface, corridor:
 
     dict_step_to_set_nodes_kripke = corridor.retrieve_kripke_nodes()
 
-    mapper = ColorMapper(reach_interface, steps)
+    # mapper = ColorMapper(reach_interface, steps)
 
     util_logger.print_and_log_info(logger, "* Plotting driving corridor...")
     renderer = MPRenderer(plot_limits=plot_limits, figsize=figsize) if config.debug.save_plots else None
     for step in steps:
-        time_step = step * round(config.planning.dt / config.scenario.dt)
         if config.debug.save_plots:
             # clear previous plot
             plt.cla()
@@ -500,26 +421,14 @@ def plot_scenario_with_driving_corridor(spot_interface: SpotInterface, corridor:
             plt.figure(figsize=figsize)
             renderer = MPRenderer(plot_limits=plot_limits)
 
-        # plot scenario and planning problem
+        time_step = step * round(config.planning.dt / config.scenario.dt)
         draw_params.time_begin = time_step
-        scenario.draw(renderer, draw_params)
-
-        if config.debug.draw_planning_problem:
-            planning_problem.draw(renderer, draw_params)
 
         set_nodes_reach = set()
         for node_kripke in dict_step_to_set_nodes_kripke[step]:
             set_nodes_reach.update(node_kripke.set_nodes_reach)
-        draw_reachable_sets(set_nodes_reach, config, renderer, draw_params, mapper, reach_interface)
-
-        # plot traffic signs
-        for sign in scenario.lanelet_network.traffic_signs:
-            sign.draw(renderer)
-
-        # plot reference path
-        if config.debug.draw_ref_path and ref_path is not None:
-            renderer.ax.plot(ref_path[:, 0], ref_path[:, 1],
-                             color='g', marker='.', markersize=1, zorder=19, linewidth=2.0)
+        draw_reachable_sets(set_nodes_reach, config, renderer, draw_params)
+        _draw_scenario_elements(config, renderer, draw_params)
 
         # settings and adjustments
         plt.rc("axes", axisbelow=True)
@@ -542,47 +451,6 @@ def plot_scenario_with_driving_corridor(spot_interface: SpotInterface, corridor:
     util_logger.print_and_log_info(logger, "\tDriving corridor plotted.")
 
 
-def compute_plot_limits_from_reachable_sets(reach_interface: ReachableSetInterface, margin: int = 20):
-    """
-    Returns plot limits from the computed reachable sets.
-
-    :param reach_interface: interface holding the computed reachable sets.
-    :param margin: additional margin for the plot limits.
-    :return:
-    """
-    config: SemanticConfiguration = reach_interface.config
-    x_min = y_min = np.infty
-    x_max = y_max = -np.infty
-    coordinate_system = config.planning.coordinate_system
-
-    if coordinate_system == "CART":
-        for step in range(reach_interface.step_start, reach_interface.step_end):
-            for rectangle in reach_interface.drivable_area_at_step(step):
-                bounds = rectangle.bounds
-                x_min = min(x_min, bounds[0])
-                y_min = min(y_min, bounds[1])
-                x_max = max(x_max, bounds[2])
-                y_max = max(y_max, bounds[3])
-
-    elif config.planning.coordinate_system == "CVLN":
-        for step in range(reach_interface.step_start, reach_interface.step_end):
-            for rectangle_cvln in reach_interface.drivable_area_at_step(step):
-                list_rectangles_cart = util_coordinate_system.convert_to_cartesian_polygons(rectangle_cvln,
-                                                                                            config.planning.CLCS, False)
-                for rectangle_cart in list_rectangles_cart:
-                    bounds = rectangle_cart.bounds
-                    x_min = min(x_min, bounds[0])
-                    y_min = min(y_min, bounds[1])
-                    x_max = max(x_max, bounds[2])
-                    y_max = max(y_max, bounds[3])
-
-    if np.inf in (x_min, y_min) or -np.inf in (x_max, y_max):
-        return None
-
-    else:
-        return [x_min - margin, x_max + margin, y_min - margin, y_max + margin]
-
-
 def compute_plot_limits_from_lanelet_network(lanelet_network: LaneletNetwork, margin: int = 20):
     list_vertices = []
     for lanelet in lanelet_network.lanelets:
@@ -599,7 +467,7 @@ def compute_plot_limits_from_lanelet_network(lanelet_network: LaneletNetwork, ma
     return plot_limits
 
 
-def draw_reachable_sets(nodes, config: SemanticConfiguration, renderer, draw_params, mapper: ColorMapper, reach_interface: ReachableSetInterface):
+def draw_reachable_sets(nodes: Iterable[ReachNode], config: SemanticConfiguration, renderer: MPRenderer, draw_params: MPDrawParams) -> None:
     coordinate_system = config.planning.coordinate_system
 
     if coordinate_system == "CART":
@@ -616,31 +484,14 @@ def draw_reachable_sets(nodes, config: SemanticConfiguration, renderer, draw_par
             # draw_params.shape.facecolor = mapper.map_to_color(reach_interface._reach.labeler.reachable_set_to_propositions[node].set_propositions)
             for polygon in list_polygons_cart:
                 Polygon(vertices=np.array(polygon.vertices)).draw(renderer, draw_params)
+    else:
+        raise RuntimeError(f"Unknown coordinate system {coordinate_system}. Valid values are 'CART' and 'CVLN'.")
 
 
-def draw_kripke_nodes(set_nodes_kripke: Set[KripkeNode], config: SemanticConfiguration, renderer,
-                      draw_params: MPDrawParams,
-                      mapper: ColorMapper,
-                      reach_interface: ReachableSetInterface):
-    coordinate_system = config.planning.coordinate_system
-
+def draw_kripke_nodes(set_nodes_kripke: Set[KripkeNode], config: SemanticConfiguration, renderer: MPRenderer, draw_params: MPDrawParams) -> None:
     for node_kripke in set_nodes_kripke:
         draw_params_nodes = copy.deepcopy(draw_params)
-
-        if coordinate_system == "CART":
-            for node in node_kripke.set_nodes_reach:
-                vertices = node.position_rectangle.vertices
-                # draw_params.shape.facecolor = mapper.map_to_color(reach_interface._reach.labeler.reachable_set_to_propositions[node].set_propositions)
-                Polygon(vertices=np.array(vertices)).draw(renderer, draw_params_nodes)
-
-        elif coordinate_system == "CVLN":
-            for node in node_kripke.set_nodes_reach:
-                position_rectangle = node.position_rectangle
-                list_polygons_cart = util_coordinate_system.convert_to_cartesian_polygons(position_rectangle,
-                                                                                          config.planning.CLCS, True)
-                # draw_params_nodes.shape.facecolor = mapper.map_to_color(reach_interface._reach.labeler.reachable_set_to_propositions[node].set_propositions)
-                for polygon in list_polygons_cart:
-                    Polygon(vertices=np.array(polygon.vertices)).draw(renderer, draw_params_nodes)
+        draw_reachable_sets(node_kripke.set_nodes_reach, config, renderer, draw_params_nodes)
 
 
 def draw_regions(semantic_model: SemanticModel, coordinate_system: str, renderer):
@@ -669,7 +520,7 @@ def draw_regions(semantic_model: SemanticModel, coordinate_system: str, renderer
                     continue
 
         else:
-            raise Exception("Coordinate system not defined.")
+            raise RuntimeError(f"Unknown coordinate system {coordinate_system}. Valid values are 'CART' and 'CVLN'.")
 
         if list_vertices_cart:
             list_vertices_cart.append(list_vertices_cart[0])
@@ -681,3 +532,31 @@ def draw_regions(semantic_model: SemanticModel, coordinate_system: str, renderer
             draw_params.shape.zorder = 10
 
             Polygon(vertices=np.array(list_vertices_cart)).draw(renderer, draw_params)
+
+
+def _create_draw_params(config: SemanticConfiguration) -> MPDrawParams:
+    palette = sns.color_palette("GnBu_d", 3)
+    edge_color = (palette[0][0] * 0.75, palette[0][1] * 0.75, palette[0][2] * 0.75)
+    # generate default drawing parameters
+    draw_params = reach_visualization.generate_default_drawing_parameters(config)
+    draw_params.shape.facecolor = palette[0]
+    draw_params.shape.edgecolor = edge_color
+    return draw_params
+
+
+def _draw_scenario_elements(config: SemanticConfiguration, renderer: MPRenderer, draw_params: MPDrawParams) -> None:
+    """Draw scenario from config with traffic signs.
+
+    If requested by the debug config, also draw planning problem and reference path.
+    """
+    scenario = config.scenario
+    scenario.draw(renderer, draw_params)
+    for sign in scenario.lanelet_network.traffic_signs:
+        sign.draw(renderer)
+
+    if config.debug.draw_planning_problem:
+        config.planning_problem.draw(renderer, draw_params)
+
+    ref_path = config.planning.reference_path
+    if config.debug.draw_ref_path and ref_path is not None:
+        renderer.ax.plot(ref_path[:, 0], ref_path[:, 1], color='g', marker='.', markersize=1, zorder=19, linewidth=2.0)
