@@ -69,8 +69,9 @@ def main():
     # corridor_optimal = dc_extractor.determine_optimal_corridor()
 
     # ==== plot computation results
-    node_to_label = reach_interface._reach.reachable_set_to_label if otf else None
-    util_visual.plot_reach_graph(reach_interface, node_to_label=node_to_label)
+    node_to_group = util_visual.groups_from_states(reach_interface._reach.reachable_set_to_label) if otf \
+        else util_visual.groups_from_propositions(reach_interface._reach.labeler.reachable_set_to_propositions)
+    util_visual.plot_reach_graph(reach_interface, node_to_group=node_to_group)
     util_visual.plot_scenario_with_regions(semantic_model, "CVLN")
     util_visual.plot_scenario_with_reachable_sets(reach_interface, save_gif=True)
     if not otf:
@@ -78,7 +79,7 @@ def main():
     # util_visual.plot_scenario_with_driving_corridor(spot_interface, corridor_optimal, save_gif=True)
 
     # ==== show interactive visualization
-    util_visual.show_interactive_reach_graph(reach_interface, use_images=True, node_to_label=node_to_label)
+    util_visual.show_interactive_reach_graph(reach_interface, use_images=True, node_to_group=node_to_group)
 
 
 if __name__ == "__main__":

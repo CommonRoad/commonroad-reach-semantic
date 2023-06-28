@@ -26,6 +26,7 @@ from commonroad_reach_semantic.data_structure.driving_corridor_extractor import 
 from commonroad_reach_semantic.data_structure.environment_model.semantic_model import SemanticModel
 from commonroad_reach_semantic.data_structure.model_checking.kripke import KripkeNode
 from commonroad_reach_semantic.data_structure.model_checking.spot_interface import SpotInterface
+from commonroad_reach_semantic.data_structure.rule.proposition_holder import PropositionHolder
 
 logger = logging.getLogger(__name__)
 logging.getLogger('PIL').setLevel(logging.WARNING)
@@ -63,7 +64,27 @@ class ColorMapper:
         return self.palette[id_color]
 
 
-def plot_reach_graph(reach_interface: ReachableSetInterface, figsize: Tuple = None, path_output: str = None, node_to_label: Dict[ReachNode, FrozenSet[int]] = None):
+def groups_from_states(node_to_states: Dict[ReachNode, FrozenSet[int]]) -> Dict[ReachNode, int]:
+    """Create groups from automaton state labels."""
+    states_to_group = {states: i for i, states in enumerate(set(node_to_states.values()))}
+    return {node: states_to_group[states] for node, states in node_to_states.items()}
+
+
+def groups_from_propositions(node_to_propositions: Dict[ReachNode, PropositionHolder]) -> Dict[ReachNode, int]:
+    """Create groups from proposition labels."""
+    propositions_to_group = {
+        propositions: i
+        for i, propositions in enumerate({
+            frozenset(prop_holder.set_propositions) for prop_holder in node_to_propositions.values()
+        })
+    }
+    return {
+        node: propositions_to_group[frozenset(prop_holder.set_propositions)]
+        for node, prop_holder in node_to_propositions.items()
+    }
+
+
+def plot_reach_graph(reach_interface: ReachableSetInterface, figsize: Tuple = None, path_output: str = None, node_to_group: Dict[ReachNode, int] = None):
     """Plot the reachability graph."""
     config: SemanticConfiguration = reach_interface.config
     path_output = path_output or config.general.path_output
@@ -79,18 +100,7 @@ def plot_reach_graph(reach_interface: ReachableSetInterface, figsize: Tuple = No
         plt.figure(figsize=figsize)
 
     g = util_graph.reachability_graph_to_networkx(reach_interface)
-    if node_to_label is None:
-        colors = "#1f78b4"
-    else:
-        colors = []
-        state_colors = {}
-        distinct_state = 0
-        for node in g.nodes:
-            states = node_to_label[node]
-            if states not in state_colors:
-                state_colors[states] = distinct_state
-                distinct_state += 1
-            colors.append(state_colors[states])
+    colors = [node_to_group[node] for node in g.nodes] if node_to_group is not None else "#1f78b4"
     nx.draw_networkx(g, pos=util_graph.reachability_graph_nx_layout(g), with_labels=False, node_size=50, width=0.5, node_color=colors, cmap="tab10")
 
     if config.debug.save_plots:
@@ -105,7 +115,7 @@ def plot_reach_graph(reach_interface: ReachableSetInterface, figsize: Tuple = No
 def show_interactive_reach_graph(reach_interface: ReachableSetInterface, *,
                                  use_images: bool = True, path_output: str = None, file_name: str = "reach_graph",
                                  width: str = "100%", height: str = "1000px", scale: float = 5000, draggable: bool = True,
-                                 node_to_label: Dict[ReachNode, FrozenSet[int]] = None) -> None:
+                                 node_to_group: Dict[ReachNode, int] = None) -> None:
     """Show the reachability graph in an interactive plot.
 
     :param reach_interface: ReachableSetInterface storing the reachability graph.
@@ -116,7 +126,7 @@ def show_interactive_reach_graph(reach_interface: ReachableSetInterface, *,
     :param height: Height of the plot.
     :param scale: Scale factor for distances between nodes.
     :param draggable: Whether the nodes can be dragged around.
-    :param node_to_label: Mapping from reach nodes to labels for coloring nodes and edges.
+    :param node_to_group: Mapping from reach nodes to groups for coloring nodes and edges.
     """
 
     config: SemanticConfiguration = reach_interface.config
@@ -131,7 +141,7 @@ def show_interactive_reach_graph(reach_interface: ReachableSetInterface, *,
     # for positioning of nodes: https://stackoverflow.com/questions/74108243/pyvis-is-there-a-way-to-disable-physics-without-losing-graphs-layout
     util_logger.print_and_log_info(logger, "* Plotting individual reach nodes...")
     for i, node in enumerate(g.nodes()):
-        group = hash(node_to_label[node]) if node_to_label is not None else None
+        group = node_to_group[node] if node_to_group is not None else None
         title = f"Lon: [{node.p_lon_min:.4f}; {node.p_lon_max:.4f}] Lat: [{node.p_lat_min:.4f}; {node.p_lat_max:.4f}]"
         shared_options = {"x": pos[node][0], "y": -pos[node][1], "size": 100, "physics": False, "title": title, "group": group}
         if use_images:
