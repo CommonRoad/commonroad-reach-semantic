@@ -188,8 +188,8 @@ def _plot_reach_node_for_interactive(reach_interface: ReachableSetInterface, rea
     plt.margins(0, 0)
     renderer.render()
 
-    filename = f"reach_node_{reach_node.id:010d}.svg"
-    plt.savefig(os.path.join(absolute_figure_path, filename), format="svg", bbox_inches="tight", transparent=False)
+    filename = f"reach_node_{reach_node.id:010d}.png"
+    plt.savefig(os.path.join(absolute_figure_path, filename), format="png", bbox_inches="tight", transparent=False)
     return os.path.join(relative_figure_path, filename)
 
 
