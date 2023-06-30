@@ -48,7 +48,7 @@ class TrafficRule(Enum):
     def concretize(self, semantic_model: SemanticModel = None) -> List[str]:
         match self:
             case TrafficRule.NO_BACKWARD_DRIVING:
-                return []
+                return [f"LTL G !{P.drives_backward()}"]
             case TrafficRule.NO_OPPOSITE_DRIVING:
                 return [f"TPL {P.same_driving_direction()}"]
             case TrafficRule.LINE_MARKING:
