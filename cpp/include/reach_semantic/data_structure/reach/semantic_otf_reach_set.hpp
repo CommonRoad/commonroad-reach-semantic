@@ -10,8 +10,8 @@ namespace semantic_reach {
 
         void _compute_reachable_set_at_step(int const &step) override;
 
-        std::map<int, std::map<std::set<unsigned int>, std::vector<reach::ReachPolygonPtr>>> map_step_to_states_to_drivable_area{};
-        std::map<int, std::map<std::set<unsigned int>, std::vector<reach::ReachNodePtr>>> map_step_to_states_to_propagated_set{};
+        std::map<int, std::map<std::pair<std::set<unsigned int>, std::set<unsigned int>>, std::vector<reach::ReachPolygonPtr>>> map_step_to_states_to_drivable_area{};
+        std::map<int, std::map<std::pair<std::set<unsigned int>, std::set<unsigned int>>, std::vector<reach::ReachNodePtr>>> map_step_to_states_to_propagated_set{};
         std::map<reach::ReachNodePtr, std::set<unsigned int>> reachable_set_to_label{};
         std::unique_ptr<FiniteAutomaton> automaton;
 

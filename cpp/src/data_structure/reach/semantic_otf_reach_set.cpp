@@ -50,7 +50,7 @@ void SemanticOTFReachableSet::_compute_drivable_area_at_step(const int &step) {
 
     // examine whether the propagated sets satisfy TPL specifications
     propagated_sets = rule_interface->examine_tpl_specifications(step, propagated_sets,
-                                                                    labeler->reachable_set_to_propositions);
+                                                                 labeler->reachable_set_to_propositions);
 
     // update traffic propositions of the propagated sets
     propagated_sets = labeler->label_traffic_propositions(step, propagated_sets);
@@ -59,14 +59,18 @@ void SemanticOTFReachableSet::_compute_drivable_area_at_step(const int &step) {
     _filter_reachable_sets(propagated_sets, step);
 
     // partition propagated sets by their automaton states
-    std::map<std::set<unsigned int>, std::vector<reach::ReachNodePtr>> map_states_to_propagated_set{};
+    std::map<std::pair<std::set<unsigned int>, std::set<unsigned int>>, std::vector<reach::ReachNodePtr>> map_states_to_propagated_set{};
     for (auto const &propagated_set: propagated_sets) {
-        map_states_to_propagated_set[reachable_set_to_label[propagated_set]].emplace_back(propagated_set);
+        auto key = std::make_pair(reachable_set_to_label[propagated_set->vec_nodes_source[0]],
+                                  reachable_set_to_label[propagated_set]);
+        map_states_to_propagated_set[key].emplace_back(propagated_set);
     }
 
-    // merge, collision check, and repartition propagated sets partitioned by their automaton states,
-    // because we must not merge sets with different states
-    std::map<std::set<unsigned int>, std::vector<reach::ReachPolygonPtr>> map_states_to_drivable_area{};
+    // merge, collision check, and repartition propagated sets
+    // this is done individually for each group calculated above, because we must not merge sets semantically different base sets
+    // it is necessary to also consider the states of the propagation source for the partitioning, because only if these are equal, the automaton cannot distinguish the base sets
+    // if only the target states were considered, the automaton could possibly distinguish them if the source states reach the target state via different propositions
+    std::map<std::pair<std::set<unsigned int>, std::set<unsigned int>>, std::vector<reach::ReachPolygonPtr>> map_states_to_drivable_area{};
     std::vector<reach::ReachPolygonPtr> vec_drivable_area{};
     for (const auto &[states, propagated_sets_per_states]: map_states_to_propagated_set) {
         auto vec_rectangles_projected = reach::project_base_sets_to_position_domain(propagated_sets_per_states);
@@ -116,8 +120,9 @@ void SemanticOTFReachableSet::_compute_reachable_set_at_step(const int &step) {
         if (!vec_nodes.empty()) {
             auto reachable_sets = reach::connect_children_to_parents(step, vec_nodes, num_threads);
             // assign label to all newly constructed reach nodes
+            auto [_, target_states] = automaton_states;
             for (const auto &node: reachable_sets) {
-                reachable_set_to_label[node] = automaton_states;
+                reachable_set_to_label[node] = target_states;
             }
             new_reachable_sets.insert(new_reachable_sets.end(),
                                       std::make_move_iterator(reachable_sets.begin()),
@@ -142,7 +147,7 @@ SemanticOTFReachableSet::_label_reachable_sets_with_automaton_states(std::vector
 void
 SemanticOTFReachableSet::_label_automaton_states(const reach::ReachNodePtr &reachable_set, unsigned int current_state) {
     auto reach_props = labeler->reachable_set_to_propositions[reachable_set].set_propositions;
-    for (const auto &[next_state, minterms]: automaton->transitions_from(current_state)) {
+    for (const auto &[minterms, next_state]: automaton->transitions_from(current_state)) {
         for (const auto &minterm: minterms) {
             std::vector<std::string> positive_props{};
             std::vector<std::string> negative_props{};
