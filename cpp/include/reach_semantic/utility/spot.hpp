@@ -1,6 +1,7 @@
 #pragma once
 
 #include <spot/tl/formula.hh>
+#include <set>
 
 namespace util_spot {
     /// Return all conjuncts of a spot formula.
@@ -22,5 +23,5 @@ namespace util_spot {
     /// @param formula A formula in disjunctive normal form
     /// @returns The minterms of the formula
     /// @throws std::invalid_argument If the formula is not in DNF
-    std::vector<std::vector<std::pair<std::string, bool>>> extract_minterms_from_dnf(const spot::formula &formula);
+    std::vector<std::set<std::pair<std::string, bool>>> extract_minterms_from_dnf(const spot::formula &formula);
 }

@@ -34,7 +34,7 @@ std::pair<std::string, bool> util_spot::extract_atomic_proposition(const spot::f
     }
 }
 
-std::vector<std::vector<std::pair<std::string, bool>>>
+std::vector<std::set<std::pair<std::string, bool>>>
 util_spot::extract_minterms_from_dnf(const spot::formula &formula_dnf) {
     // We need to handle true and false separately, because they contain no literals we could extract
     if (formula_dnf.is(spot::op::tt)) {
@@ -45,11 +45,11 @@ util_spot::extract_minterms_from_dnf(const spot::formula &formula_dnf) {
         return {};
     } else {
         try {
-            std::vector<std::vector<std::pair<std::string, bool>>> minterms{};
+            std::vector<std::set<std::pair<std::string, bool>>> minterms{};
             for (const auto &disjunct: disjuncts(formula_dnf)) {
-                std::vector<std::pair<std::string, bool>> minterm{};
+                std::set<std::pair<std::string, bool>> minterm{};
                 for (const auto &conjunct: conjuncts(disjunct)) {
-                    minterm.emplace_back(extract_atomic_proposition(conjunct));
+                    minterm.emplace(extract_atomic_proposition(conjunct));
                 }
                 minterms.emplace_back(minterm);
             }
