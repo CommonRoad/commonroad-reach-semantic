@@ -22,3 +22,7 @@ class CppSemanticOTFReachableSet(CppSemanticReachableSet):
                                                          pycrreachs.TrafficRuleInterface(rule_interface))
 
         logger.info("CppSemanticOTFReachableSet initialized.")
+
+    @property
+    def reachable_set_to_label(self):
+        return {reach_set: frozenset(states) for reach_set, states in self._reach.reachable_set_to_label.items()}

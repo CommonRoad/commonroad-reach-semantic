@@ -12,7 +12,6 @@ namespace semantic_reach {
 
         std::map<int, std::map<std::pair<std::set<unsigned int>, std::set<unsigned int>>, std::vector<reach::ReachPolygonPtr>>> map_step_to_states_to_drivable_area{};
         std::map<int, std::map<std::pair<std::set<unsigned int>, std::set<unsigned int>>, std::vector<reach::ReachNodePtr>>> map_step_to_states_to_propagated_set{};
-        std::map<reach::ReachNodePtr, std::set<unsigned int>> reachable_set_to_label{};
         std::unique_ptr<FiniteAutomaton> automaton;
 
         void _label_reachable_sets_with_automaton_states(std::vector<reach::ReachNodePtr> &reachable_sets,
@@ -32,6 +31,8 @@ namespace semantic_reach {
                                 collision::CollisionCheckerPtr collision_checker,
                                 SemanticModelPtr semantic_model,
                                 TrafficRuleInterfacePtr traffic_rule_interface);
+
+        std::map<reach::ReachNodePtr, std::set<unsigned int>> reachable_set_to_label{};
     };
 
     using SemanticOTFReachableSetPtr = std::shared_ptr<SemanticOTFReachableSet>;
