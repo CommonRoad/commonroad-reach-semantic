@@ -217,5 +217,6 @@ class TrafficRuleConfiguration(ConfigurationBase):
 
         self.distance_braking = config_relevant.distance_braking
         self.acceleration_braking_hard = config_relevant.acceleration_braking_hard
+        self.backward_driving_v_err = config_relevant.backward_driving_v_err
         self.activated_rules = config_relevant.activated_rules
         self.mode_spot = config_relevant.mode_spot

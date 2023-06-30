@@ -3,6 +3,8 @@ distance_drives_right_most: 1.5
 distance_braking: 15
 # acceleration beyond which it is considered a hard braking
 acceleration_braking_hard: -4
+# maximal allowed backward velocity before the vehicle is considered to be driving backwards
+backward_driving_v_err: 0
 # mode for handling LTL specifications with Spot
 # 1: concatenate specifications and handle them with a single automaton
 # 2: handle specifications with multiple automata
