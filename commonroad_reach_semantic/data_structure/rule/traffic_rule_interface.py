@@ -94,6 +94,3 @@ class TrafficRuleInterface:
 
         for line in string.split("\n"):
             util_logger.print_and_log_info(logger, line)
-
-    def get_combined_ltl_specs(self) -> str:
-        return "(" + ") & (".join(self.list_specifications_ltl) + ")"

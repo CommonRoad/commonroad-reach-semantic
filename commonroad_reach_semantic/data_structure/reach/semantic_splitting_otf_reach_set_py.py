@@ -41,8 +41,7 @@ class PySemanticSplittingOTFReachableSet(PySemanticReachableSet):
         self._initialize_zero_state_polygons()
 
         # Construct finite automaton from traffic rules
-        concatenated_specifications = self.rule_interface.get_combined_ltl_specs()
-        self.automaton = FiniteAutomaton(concatenated_specifications)
+        self.automaton = FiniteAutomaton(self.rule_interface.list_specifications_ltl)
 
         # Compute initial reachable set
         self.compute_drivable_area_at_step(self.step_start)

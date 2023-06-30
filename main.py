@@ -23,8 +23,8 @@ def main():
     # name_scenario = "ARG_Carcarana-1_1_T-1"
     # name_scenario = "USA_US101-6_1_T-1"
     # name_scenario = "USA_US101-15_2_T-1"
-    name_scenario = "ZAM_Intersection-1_1_T-1"
-    # name_scenario = "ZAM_Intersection-1_2_T-1"
+    # name_scenario = "ZAM_Intersection-1_1_T-1"
+    name_scenario = "ZAM_Intersection-1_2_T-1"
     # name_scenario = "ZAM_Merge-1_1_T-1"
     # name_scenario = "ESP_Monzon-2_2_T-1"
 
@@ -67,6 +67,8 @@ def main():
     # dc_extractor = DrivingCorridorExtractor(spot_interface)
     # dc_extractor.extract_corridors(search=True)
     # corridor_optimal = dc_extractor.determine_optimal_corridor()
+
+    # return
 
     # ==== plot computation results
     node_to_group = util_visual.groups_from_states(reach_interface._reach.reachable_set_to_label) if otf \
