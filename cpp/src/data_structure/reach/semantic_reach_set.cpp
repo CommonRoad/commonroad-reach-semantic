@@ -37,8 +37,10 @@ std::vector<reach::ReachNodePtr> SemanticReachableSet::_construct_initial_reacha
             generate_tuples_vertices_polygons_initial(config);
     auto polygon_lon = make_shared<reach::ReachPolygon>(tuple_vertices_polygon_lon);
     auto polygon_lat = make_shared<reach::ReachPolygon>(tuple_vertices_polygon_lat);
-
-    return {std::make_shared<reach::ReachNode>(step_start, polygon_lon, polygon_lat)};
+    auto node = std::make_shared<reach::ReachNode>(step_start, polygon_lon, polygon_lat);
+    // set source propagation to vector containing nullptr as first element, as the vector is expected to be non-empty by subsequent methods
+    node->vec_nodes_source = {nullptr};
+    return {node};
 }
 
 void SemanticReachableSet::compute(int step_start, int step_end) {

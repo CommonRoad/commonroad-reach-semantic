@@ -10,17 +10,10 @@ namespace semantic_reach {
 
         void _compute_reachable_set_at_step(int const &step) override;
 
-        std::map<int, std::map<std::set<unsigned int>, std::vector<reach::ReachPolygonPtr>>> map_step_to_states_to_drivable_area{};
-        std::map<int, std::map<std::set<unsigned int>, std::vector<reach::ReachNodePtr>>> map_step_to_states_to_propagated_set{};
+        std::map<int, std::map<std::pair<std::set<unsigned int>, std::set<unsigned int>>, std::vector<reach::ReachPolygonPtr>>> map_step_to_states_to_drivable_area{};
+        std::map<int, std::map<std::pair<std::set<unsigned int>, std::set<unsigned int>>, std::vector<reach::ReachNodePtr>>> map_step_to_states_to_propagated_set{};
         std::map<reach::ReachNodePtr, std::set<unsigned int>> reachable_set_to_label{};
         std::unique_ptr<FiniteAutomaton> automaton;
-
-        /// Filter reachable sets that cannot be part of an accepting run of the automaton.
-        void _filter_reachable_sets(std::vector<reach::ReachNodePtr> &reachable_sets,
-                                    int step);
-
-        /// Check if the given reachable set has an accepting state.
-        bool _has_accepting_state(const reach::ReachNodePtr &reachable_set);
 
         /// Split the given reachable set along the transitions of the automaton states of its propagation source.
         /// For this, consider the outgoing transitions of all automaton states in the labels of the propagation source.
@@ -29,6 +22,16 @@ namespace semantic_reach {
         /// @param reachable_set The reachable set to split.
         /// @return List of reachable sets so that each is a subset of the given reachable set, and satisfies the condition of at least one transition (up to overapproximation).
         std::vector<reach::ReachNodePtr> _split_reachable_set(int step, const reach::ReachNodePtr &reachable_set);
+
+        /// Filter reachable sets that cannot be part of an accepting run of the automaton.
+        void _filter_reachable_sets(std::vector<reach::ReachNodePtr> &reachable_sets,
+                                    int step);
+
+        /// Check if the given reachable set has an accepting state.
+        bool _has_accepting_state(const reach::ReachNodePtr &reachable_set);
+
+        /// Deduplicate reachable sets and merge labels of duplicates.
+        std::vector<reach::ReachNodePtr> _deduplicate_reachable_sets(const std::vector<reach::ReachNodePtr> &reachable_sets);
 
         /// Split the given reachable sets along the given transitions.
         /// This is a recursive function that splits the reachable sets along the given transitions.
@@ -51,7 +54,7 @@ namespace semantic_reach {
         /// @return List of reachable sets so that each is a subset of the given reachable sets, and satisfies the condition of at least one transition (up to overapproximation).
         std::vector<reach::ReachNodePtr>
         _split_to_minterms(int step, const std::vector<reach::ReachNodePtr> &reachable_sets,
-                           const std::map<Minterm, std::set<unsigned int>> &transitions,
+                           const std::vector<std::pair<Minterm, unsigned int>> &transitions,
                            std::set<Literal> &finished_literals, bool regionized);
 
         /// Restrict the reachable sets to the given literal.
@@ -71,8 +74,8 @@ namespace semantic_reach {
         /// @param literal The literal to partition the transitions along.
         /// @param transitions The transitions to partition.
         /// @return A tuple of two dictionaries, the first containing the transitions that don't depend on the literal, the second containing the transitions that do.
-        static std::pair<std::map<Minterm, std::set<unsigned int>>, std::map<Minterm, std::set<unsigned int>>>
-        _partition_transitions(const Literal &literal, const std::map<Minterm, std::set<unsigned int>> &transitions);
+        static std::pair<std::vector<std::pair<Minterm, unsigned int>>, std::vector<std::pair<Minterm, unsigned int>>>
+        _partition_transitions(const Literal &literal, const std::vector<std::pair<Minterm, unsigned int>> &transitions);
 
         /// Selects the next literal along which to split the reachable set.
         /// We use a greedy approach, so we choose the literal that occurs most often in the minterms.
