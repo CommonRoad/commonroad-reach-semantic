@@ -79,14 +79,7 @@ class PySemanticReachableSet(SemanticReachableSet, ABC):
         pass
 
     def _propagate_reachable_set(self, list_nodes: List[ReachNode]) -> List[ReachNode]:
-        """
-        Propagates nodes of the reachable set.
-        """
-        # TODO: set propagation constraints
-        no_backward_driving = "NoBackwardDrivingRule" in self.rule_interface.list_traffic_rules_activated
-        v_lon_min = max(0, self.config.vehicle.ego.v_lon_min) if no_backward_driving \
-            else self.config.vehicle.ego.v_lon_min
-
+        """Propagates nodes of the reachable set."""
         list_base_sets_propagated = []
         for node in list_nodes:
             try:
@@ -94,7 +87,7 @@ class PySemanticReachableSet(SemanticReachableSet, ABC):
                 polygon_lon_propagated = reach_operation.propagate_polygon(node.polygon_lon,
                                                                            self.polygon_zero_state_lon,
                                                                            self.config.planning.dt,
-                                                                           v_lon_min,
+                                                                           self.config.vehicle.ego.v_lon_min,
                                                                            self.config.vehicle.ego.v_lon_max)
 
                 polygon_lat_propagated = reach_operation.propagate_polygon(node.polygon_lat,
