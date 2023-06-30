@@ -110,8 +110,8 @@ class Proposition:
         return 'AboveRequiredVelocity'
 
     @staticmethod
-    def driving_forward() -> str:
-        return 'DrivingForward'
+    def drives_backward() -> str:
+        return 'DrivesBackward'
 
     @staticmethod
     def safe_following_distance_to(id_obstacle: int = None) -> str:
