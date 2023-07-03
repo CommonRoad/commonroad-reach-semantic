@@ -18,6 +18,20 @@ struct SemanticReachableSetConfiguration : reach::ReachableSetConfiguration {
     explicit SemanticReachableSetConfiguration(YAML::Node const& node);
 };
 
+/// Struct storing traffic rule configurations.
+struct TrafficRuleConfiguration : reach::ReachableSetConfiguration {
+    double distance_braking{};
+    double acceleration_braking_hard{};
+    double backward_driving_v_err{};
+    std::vector<std::string> activated_rules{};
+    int mode_spot{};
+    int mode_automata{};
+
+    TrafficRuleConfiguration() = default;
+
+    explicit TrafficRuleConfiguration(YAML::Node const& node);
+};
+
 struct SemanticModelConfiguration {
     bool is_intersection{};
     double ego_radius_inflation{};
@@ -29,6 +43,7 @@ struct SemanticModelConfiguration {
 /// Struct storing all configurations.
 struct SemanticConfiguration : reach::Configuration {
     SemanticReachableSetConfiguration config_reachable_set{};
+    TrafficRuleConfiguration config_traffic_rule{};
     SemanticModelConfiguration config_semantic_model{};
 
     SemanticConfiguration() = default;

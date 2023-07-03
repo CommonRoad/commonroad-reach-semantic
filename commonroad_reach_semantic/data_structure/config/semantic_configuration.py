@@ -117,6 +117,13 @@ class SemanticConfiguration(Configuration):
             config.reachable_set.lut_lon_enlargement = \
                 pycrreach.LUTLongitudinalEnlargement(self.reachable_set.lut_longitudinal_enlargement)
 
+        config.traffic_rule.distance_braking = self.traffic_rule.distance_braking
+        config.traffic_rule.acceleration_braking_hard = self.traffic_rule.acceleration_braking_hard
+        config.traffic_rule.backward_driving_v_err = self.traffic_rule.backward_driving_v_err
+        config.traffic_rule.activated_rules = self.traffic_rule.activated_rules
+        config.traffic_rule.mode_spot = self.traffic_rule.mode_spot
+        config.traffic_rule.mode_automata = self.traffic_rule.mode_automata
+
         config.semantic_model.is_intersection = self.semantic_model.incoming_element_route is not None
         config.semantic_model.ego_radius_inflation = self.vehicle.ego.radius_inflation
         config.semantic_model.vec_route_lanelet_ids = self.planning.route.list_ids_lanelets
@@ -220,3 +227,4 @@ class TrafficRuleConfiguration(ConfigurationBase):
         self.backward_driving_v_err = config_relevant.backward_driving_v_err
         self.activated_rules = config_relevant.activated_rules
         self.mode_spot = config_relevant.mode_spot
+        self.mode_automata = config_relevant.mode_automata

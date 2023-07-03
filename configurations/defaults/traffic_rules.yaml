@@ -9,6 +9,11 @@ backward_driving_v_err: 0
 # 1: concatenate specifications and handle them with a single automaton
 # 2: handle specifications with multiple automata
 mode_spot: 2
+# mode for combining the LTL specifications into a single automaton
+# 0: decide automatically
+# 1: translate individually and then compute the product automaton (faster)
+# 2: form conjunction of the formulas and translate the result (probably smaller automaton)
+mode_automata: 0
 # clauses should be preceded and followed by a whitespace
 # TPL: timed propositional logic
 # CTL: computation tree logic, checked with PyNuSMV (uses TRUE, FALSE, .. in NuSMV 2.5.4)

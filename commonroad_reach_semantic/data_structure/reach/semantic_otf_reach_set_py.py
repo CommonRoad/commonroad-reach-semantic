@@ -39,7 +39,7 @@ class PySemanticOTFReachableSet(PySemanticReachableSet):
         self._initialize_zero_state_polygons()
 
         # Construct finite automaton from traffic rules
-        self.automaton = FiniteAutomaton(self.rule_interface.list_specifications_ltl)
+        self.automaton = FiniteAutomaton(self.rule_interface.list_specifications_ltl, config.traffic_rule.mode_automata)
 
         # Compute initial reachable set
         initial_reachable_sets = self._construct_initial_reachable_sets()

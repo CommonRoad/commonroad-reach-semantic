@@ -72,11 +72,21 @@ void export_configuration(py::module& m) {
     py::class_<SemanticConfiguration, shared_ptr<SemanticConfiguration>, reach::Configuration>(m, "SemanticConfiguration")
             .def(py::init<>())
             .def_readwrite("reachable_set", &SemanticConfiguration::config_reachable_set)
+            .def_readwrite("traffic_rule", &SemanticConfiguration::config_traffic_rule)
             .def_readwrite("semantic_model", &SemanticConfiguration::config_semantic_model);
 
     py::class_<SemanticReachableSetConfiguration, shared_ptr<SemanticReachableSetConfiguration>, reach::ReachableSetConfiguration>(m, "SemanticReachableSetConfiguration")
             .def(py::init<>())
             .def_readwrite("length_edge_node_min", &SemanticReachableSetConfiguration::length_edge_node_min);
+
+    py::class_<TrafficRuleConfiguration, shared_ptr<TrafficRuleConfiguration>>(m, "TrafficRuleConfiguration")
+            .def(py::init<>())
+            .def_readwrite("distance_braking", &TrafficRuleConfiguration::distance_braking)
+            .def_readwrite("acceleration_braking_hard", &TrafficRuleConfiguration::acceleration_braking_hard)
+            .def_readwrite("backward_driving_v_err", &TrafficRuleConfiguration::backward_driving_v_err)
+            .def_readwrite("activated_rules", &TrafficRuleConfiguration::activated_rules)
+            .def_readwrite("mode_spot", &TrafficRuleConfiguration::mode_spot)
+            .def_readwrite("mode_automata", &TrafficRuleConfiguration::mode_automata);
 
     py::class_<SemanticModelConfiguration, shared_ptr<SemanticModelConfiguration>>(m, "SemanticModelConfiguration")
             .def(py::init<>())
