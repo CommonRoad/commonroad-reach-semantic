@@ -29,14 +29,16 @@ class FiniteAutomaton:
 
         spot_formulas = [spot.from_ltlf(f) for f in ltlf_formulas]
         if mode == 1:
+            if not spot_formulas:
+                spot_formulas = [spot.formula.tt]
             buechi_automata = [self._translate_ltlf_to_buechi(f) for f in spot_formulas]
             product_automaton = functools.reduce(spot.product, buechi_automata)
             self._spot_automaton = spot.to_finite(product_automaton)
         elif mode == 2:
-            conjunction = self._formula_conjunction(spot_formulas)
+            conjunction = spot.formula.And(spot_formulas)
             self._spot_automaton = spot.to_finite(self._translate_ltlf_to_buechi(conjunction))
         else:
-            raise ValueError("Invalid mode")
+            raise ValueError("Invalid mode for combining LTLf formulas.")
 
         self._bdict = self._spot_automaton.get_dict()
 
@@ -81,11 +83,6 @@ class FiniteAutomaton:
         # https://spot.lre.epita.fr/doxygen/namespacespot.html#aba9b9efe994006c29a6d77da94897df8
         formula_dnf = spot.bdd_to_formula(cond, self._bdict)
         return [frozenset(minterm) for minterm in util_spot.extract_minterms_from_dnf(formula_dnf)]
-
-    @staticmethod
-    def _formula_conjunction(formulas: List[spot.formula]) -> spot.formula:
-        """Conjunction the given LTLf formulas."""
-        return spot.formula.And(formulas)
 
     @staticmethod
     def _translate_ltlf_to_buechi(ltlf_formula: spot.formula) -> spot.twa_graph:

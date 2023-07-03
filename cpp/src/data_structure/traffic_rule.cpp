@@ -15,9 +15,11 @@ TrafficRuleInterface::TrafficRuleInterface(py::handle const &obj_traffic_rule_py
         auto set_propositions_mandatory = dict_step_to_propositions_mandatory[step];
         auto set_propositions_forbidden = dict_step_to_propositions_forbidden[step];
 
-        map_step_to_propositions_mandatory[step.cast<int>()] = set_propositions_mandatory.cast<set<string>>();
-        map_step_to_propositions_forbidden[step.cast<int>()] = set_propositions_forbidden.cast<set<string>>();
+        map_step_to_propositions_mandatory[step.cast<int>()] = set_propositions_mandatory.cast<std::set<string>>();
+        map_step_to_propositions_forbidden[step.cast<int>()] = set_propositions_forbidden.cast<std::set<string>>();
     }
+
+    vec_specifications_ltl = obj_traffic_rule_py.attr("list_specifications_ltl").cast<std::vector<std::string>>();
 }
 
 vector<reach::ReachNodePtr>
@@ -47,8 +49,4 @@ TrafficRuleInterface::examine_tpl_specifications(int const &step, vector<reach::
     }
 
     return vec_nodes_keep;
-}
-
-std::string TrafficRuleInterface::get_combined_ltl_specs() {
-    return obj_rule_interface_py.attr("get_combined_ltl_specs")().cast<std::string>();
 }

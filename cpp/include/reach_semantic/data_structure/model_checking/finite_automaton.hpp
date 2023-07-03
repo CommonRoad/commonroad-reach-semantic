@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include <spot/tl/parse.hh>
 #include <spot/tl/ltlf.hh>
 #include <spot/twaalgos/translate.hh>
@@ -24,8 +25,12 @@ namespace semantic_reach {
 
     public:
         /// Construct the finite automaton accepting those words that make the given LTLf formula true
-        /// @param ltlf_formula The LTLf formula to translate.
-        FiniteAutomaton(const std::string &ltlf_formula);
+        /// @param ltlf_formulas The LTLf formulas to translate.
+        /// @param mode How to combine the formulas into a single automaton:
+        ///            0 = decide automatically
+        ///            1 = translate individually and then compute the product automaton (faster)
+        ///            2 = form conjunction of the formulas and translate the result (probably smaller automaton)
+        FiniteAutomaton(const std::vector<std::string> &ltlf_formulas, int mode = 0);
 
         /// The number of the initial state.
         unsigned int initial_state();

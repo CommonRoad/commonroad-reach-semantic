@@ -16,7 +16,7 @@ SemanticSplittingOTFReachableSet::SemanticSplittingOTFReachableSet(semantic_reac
     _initialize_zero_state_polygons();
 
     // Construct finite automaton from traffic rules
-    automaton = std::make_unique<FiniteAutomaton>(rule_interface->get_combined_ltl_specs());
+    automaton = std::make_unique<FiniteAutomaton>(rule_interface->vec_specifications_ltl);
 
     // Compute initial reachable set
     SemanticSplittingOTFReachableSet::_compute_drivable_area_at_step(step_start);

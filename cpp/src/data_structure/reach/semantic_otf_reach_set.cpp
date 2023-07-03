@@ -15,7 +15,7 @@ SemanticOTFReachableSet::SemanticOTFReachableSet(semantic_reach::SemanticConfigu
     _initialize_zero_state_polygons();
 
     // Construct finite automaton from traffic rules
-    automaton = std::make_unique<FiniteAutomaton>(rule_interface->get_combined_ltl_specs());
+    automaton = std::make_unique<FiniteAutomaton>(rule_interface->vec_specifications_ltl);
 
     auto initial_reachable_sets = _construct_initial_reachable_sets();
 

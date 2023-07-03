@@ -16,14 +16,14 @@ public:
     std::map<int, std::set<std::string>> map_step_to_propositions_mandatory;
     std::map<int, std::set<std::string>> map_step_to_propositions_forbidden;
 
+    std::vector<std::string> vec_specifications_ltl;
+
     explicit TrafficRuleInterface(py::handle const& obj_traffic_rule_py);
 
     // Examines whether the given propagated sets satisfy the TPL specifications.
     vector<reach::ReachNodePtr>
     examine_tpl_specifications(int const &step, vector<reach::ReachNodePtr> const &vec_nodes_reach,
                                const std::map<reach::ReachNodePtr, PropositionHolder>& reachable_set_to_propositions);
-
-    std::string get_combined_ltl_specs();
 };
 
 using TrafficRuleInterfacePtr = std::shared_ptr<TrafficRuleInterface>;

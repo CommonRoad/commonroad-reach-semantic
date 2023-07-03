@@ -1,25 +1,53 @@
 #include <spot/misc/optionmap.hh>
 #include <spot/twa/formula2bdd.hh>
+#include <spot/twaalgos/product.hh>
 #include <utility>
 #include "reach_semantic/data_structure/model_checking/finite_automaton.hpp"
 #include "reach_semantic/utility/spot.hpp"
 
 using namespace semantic_reach;
 
-FiniteAutomaton::FiniteAutomaton(const std::string &ltlf_formula) {
-    spot::parsed_formula pf = spot::parse_infix_psl(ltlf_formula);
-    if (pf.format_errors(std::cerr)) {
-        throw std::runtime_error("Error while parsing LTLf formula.");
+FiniteAutomaton::FiniteAutomaton(const std::vector<std::string> &ltlf_formulas, int mode) {
+    if (mode == 0) {
+        // We always use the product automaton for now
+        mode = 1;
     }
-    spot::option_map options = spot::option_map();
+
+    std::vector<spot::formula> spot_formulas;
+    spot_formulas.reserve(ltlf_formulas.size());
+    std::transform(ltlf_formulas.begin(), ltlf_formulas.end(), std::back_inserter(spot_formulas), [](const std::string &f) {
+        spot::parsed_formula pf = spot::parse_infix_psl(f);
+        if (pf.format_errors(std::cerr)) {
+            throw std::runtime_error("Error while parsing LTLf formula.");
+        }
+        return spot::from_ltlf(pf.f);
+    });
+
+    spot::option_map options{};
     // disable simulation based reductions to speed up translation
     // see https://spot.lre.epita.fr/man/spot-x.7.html
     options.set("simul", 0);
     spot::translator trans{&options};
     trans.set_type(spot::postprocessor::Buchi);
     trans.set_pref(spot::postprocessor::SBAcc | spot::postprocessor::Small);
-    spot::twa_graph_ptr buechi_automaton = trans.run(spot::from_ltlf(pf.f));
-    _spot_automaton = spot::to_finite(buechi_automaton);
+
+    switch (mode) {
+        case 1: {
+            auto true_automaton = trans.run(spot::formula::tt());
+            auto product_automaton = std::accumulate(spot_formulas.begin(), spot_formulas.end(), true_automaton, [&trans](const spot::twa_graph_ptr &acc, const spot::formula &f) {
+                return spot::product(acc, trans.run(f));
+            });
+            _spot_automaton = spot::to_finite(product_automaton);
+            break;
+        }
+        case 2: {
+            auto conjunction = spot::formula::And(std::move(spot_formulas));
+            _spot_automaton = spot::to_finite(trans.run(conjunction));
+            break;
+        }
+        default: throw std::runtime_error("Invalid mode for combining LTLf formulas.");
+    }
+
     _bdict = _spot_automaton->get_dict();
 }
 
