@@ -67,7 +67,7 @@ class RegionModel:
         A lanelet region is a polygon which encloses all positions within the lanelet. The reachable sets are later
         cut down to lanelet regions for determining their position propositions.
         """
-        Region.initialize(self.config, self.lanelet_model.road_network, self.lanelet_model.set_lanelets_route_related)
+        Region.initialize(self.config, self.lanelet_model)
         set_tuples_ids_lanelets_intersecting = \
             util_region.detect_intersecting_lanelets(self.lanelet_model.set_lanelets_route_related)
 

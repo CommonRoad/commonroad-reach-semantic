@@ -11,6 +11,7 @@ from commonroad_reach.data_structure.reach.reach_polygon import ReachPolygon
 
 from commonroad_reach_semantic.data_structure.config.outgoing_direction import OutgoingDirection
 from commonroad_reach_semantic.data_structure.config.semantic_configuration import SemanticConfiguration
+from commonroad_reach_semantic.data_structure.environment_model.lanelet_model import LaneletModel
 from commonroad_reach_semantic.data_structure.rule.proposition_holder import MultiStepPropositionHolder
 from commonroad_reach_semantic.data_structure.environment_model.road_network import RoadNetwork
 from commonroad_reach_semantic.data_structure.environment_model.vehicle import Vehicle
@@ -29,6 +30,7 @@ class Region:
     """
     config: SemanticConfiguration
     step_end: int
+    lanelet_model: LaneletModel
     road_network: RoadNetwork
     lanelet_network: LaneletNetwork
     incoming_element_route: IntersectionIncomingElement
@@ -42,11 +44,12 @@ class Region:
     dict_id_lanelet_to_polygon_cart: dict
 
     @classmethod
-    def initialize(cls, config: SemanticConfiguration, road_network: RoadNetwork, set_lanelets_route_related: Set[Lanelet]):
+    def initialize(cls, config: SemanticConfiguration, lanelet_model: LaneletModel):
         cls.config = config
         cls.step_end = config.planning.step_start + config.planning.steps_computation
-        cls.road_network = road_network
-        cls.lanelet_network = road_network.lanelet_network
+        cls.lanelet_model = lanelet_model
+        cls.road_network = lanelet_model.road_network
+        cls.lanelet_network = lanelet_model.road_network.lanelet_network
         cls.incoming_element_route = config.semantic_model.incoming_element_route
         cls.discard_region_small = config.semantic_model.discard_region_small
         cls.area_polygon_desired_min = config.semantic_model.area_polygon_desired_min
@@ -435,6 +438,10 @@ class Region:
         """
         for id_lanelet in self.set_ids_lanelets:
             self.proposition_holder.add_proposition(P.in_lanelet(id_lanelet), group=PG.POSITION)
+            if id_lanelet in self.lanelet_model.main_carriageway_lanelet_ids:
+                self.proposition_holder.add_proposition(P.on_main_carriageway(), group=PG.POSITION)
+            if id_lanelet in self.lanelet_model.right_lane_lanelet_ids:
+                self.proposition_holder.add_proposition(P.on_right_lane(), group=PG.POSITION)
 
     def _label_traffic_light_propositions(self):
         """
