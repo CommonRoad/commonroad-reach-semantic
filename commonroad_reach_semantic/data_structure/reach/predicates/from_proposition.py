@@ -18,6 +18,9 @@ from commonroad_reach_semantic.data_structure.reach.predicates.in_straight_succe
     InStraightSuccessorPredicate
 from commonroad_reach_semantic.data_structure.reach.predicates.left_of_obstacle_predicate import LeftOfObstaclePredicate
 from commonroad_reach_semantic.data_structure.reach.predicates.no_priority_predicate import NoPriorityPredicate
+from commonroad_reach_semantic.data_structure.reach.predicates.on_main_carriageway_predicate import \
+    OnMainCarriagewayPredicate
+from commonroad_reach_semantic.data_structure.reach.predicates.on_right_lane_predicate import OnRightLanePredicate
 from commonroad_reach_semantic.data_structure.reach.predicates.right_of_obstacle_predicate import \
     RightOfObstaclePredicate
 from commonroad_reach_semantic.data_structure.reach.predicates.same_priority_predicate import SamePriorityPredicate
@@ -27,6 +30,10 @@ from commonroad_reach_semantic.data_structure.reach.predicates.vehicle_in_lanele
     VehicleInLaneletPredicate
 from commonroad_reach_semantic.data_structure.reach.predicates.vehicle_in_successor_predicate import \
     VehicleInSuccessorPredicate
+from commonroad_reach_semantic.data_structure.reach.predicates.vehicle_on_access_ramp_predicate import \
+    VehicleOnAccessRampPredicate
+from commonroad_reach_semantic.data_structure.reach.predicates.vehicle_on_main_carriageway_predicate import \
+    VehicleOnMainCarriagewayPredicate
 
 
 def from_proposition(proposition: str, negated: bool):
@@ -34,6 +41,14 @@ def from_proposition(proposition: str, negated: bool):
         return InLaneletPredicate(int(matched.group(1)), negated)
     elif matched := re.fullmatch(r"InLanelet_(\d+)_V(\d+)", proposition):
         return VehicleInLaneletPredicate(int(matched.group(2)), int(matched.group(1)), negated)
+    elif re.fullmatch(r"OnMainCarriageway", proposition):
+        return OnMainCarriagewayPredicate(negated)
+    elif matched := re.fullmatch(r"OnMainCarriageway_V(\d+)", proposition):
+        return VehicleOnMainCarriagewayPredicate(int(matched.group(1)), negated)
+    elif re.fullmatch(r"OnRightLane", proposition):
+        return OnRightLanePredicate(negated)
+    elif matched := re.fullmatch(r"OnAccessRamp_V(\d+)", proposition):
+        return VehicleOnAccessRampPredicate(int(matched.group(1)), negated)
     elif matched := re.fullmatch(r"Behind_V(\d+)", proposition):
         return BehindObstaclePredicate(int(matched.group(1)), negated)
     elif matched := re.fullmatch(r"Beside_V(\d+)", proposition):

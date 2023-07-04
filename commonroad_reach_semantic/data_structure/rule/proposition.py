@@ -32,6 +32,22 @@ class Proposition:
         return f"InLanelet_{id_lanelet}_V{id_obstacle}"
 
     @staticmethod
+    def on_main_carriageway() -> str:
+        return "OnMainCarriageway"
+
+    @staticmethod
+    def vehicle_on_main_carriageway(id_obstacle: int) -> str:
+        return f"OnMainCarriageway_V{id_obstacle}"
+
+    @staticmethod
+    def on_right_lane() -> str:
+        return "OnRightLane"
+
+    @staticmethod
+    def vehicle_on_access_ramp(id_obstacle: int) -> str:
+        return f"OnAccessRamp_V{id_obstacle}"
+
+    @staticmethod
     def lanelet_transition(id_lanelet_source: int, id_lanelet_target: int) -> str:
         return f"Lanelet_{id_lanelet_source}_to_{id_lanelet_target}"
 
