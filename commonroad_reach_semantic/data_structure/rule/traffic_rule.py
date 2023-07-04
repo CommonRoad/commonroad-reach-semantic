@@ -240,18 +240,9 @@ def _concretize_entering_vehicles_rule(semantic_model: SemanticModel) -> List[st
     step_start = semantic_model.config.planning.step_start
     step_end = step_start + semantic_model.config.planning.steps_computation
 
-    access_ramp_lanelet_ids = {
-        lanelet.lanelet_id for lanelet in semantic_model.lanelet_model.local_lanelet_network.lanelets
-        if LaneletType.ACCESS_RAMP in lanelet.lanelet_type
-    }
-    main_carriageway_lanelet_ids = {
-        lanelet.lanelet_id for lanelet in semantic_model.lanelet_model.local_lanelet_network.lanelets
-        if LaneletType.MAIN_CARRIAGE_WAY in lanelet.lanelet_type
-    }
-    right_lane_lanelet_ids = {
-        lanelet.lanelet_id for lanelet in semantic_model.lanelet_model.local_lanelet_network.lanelets
-        if _is_rightmost_lanelet(lanelet, semantic_model.lanelet_model.local_lanelet_network)
-    }
+    access_ramp_lanelet_ids = semantic_model.lanelet_model.access_ramp_lanelet_ids
+    main_carriageway_lanelet_ids = semantic_model.lanelet_model.main_carriageway_lanelet_ids
+    right_lane_lanelet_ids = semantic_model.lanelet_model.right_lane_lanelet_ids
 
     if not access_ramp_lanelet_ids or not main_carriageway_lanelet_ids or not right_lane_lanelet_ids:
         # there cannot be an entering vehicle if there is no access ramp or main carriageway
@@ -277,12 +268,6 @@ def _concretize_entering_vehicles_rule(semantic_model: SemanticModel) -> List[st
         list_specifications.append(f"LTL {specification_ltl}\n")
 
     return list_specifications
-
-
-def _is_rightmost_lanelet(lanelet: Lanelet, lanelet_network: LaneletNetwork) -> bool:
-    """Check if lanelet is the rightmost lanelet in the lanelet network."""
-    adj_right_not_main_carriageway = LaneletType.MAIN_CARRIAGE_WAY not in lanelet_network.find_lanelet_by_id(lanelet.adj_right).lanelet_type if lanelet.adj_right is not None else True
-    return LaneletType.MAIN_CARRIAGE_WAY in lanelet.lanelet_type and adj_right_not_main_carriageway
 
 
 def _is_entering_vehicle(vehicle: Vehicle, access_ramp_lanelet_ids: Set[int], main_carriageway_lanelet_ids: Set[int], step_start: int, step_end: int) -> bool:

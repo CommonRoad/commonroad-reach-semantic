@@ -1,10 +1,11 @@
+import functools
 import logging
 import warnings
 from collections import defaultdict
 from typing import Set, Dict, Callable
 
 import numpy as np
-from commonroad.scenario.lanelet import LaneletNetwork, Lanelet
+from commonroad.scenario.lanelet import LaneletNetwork, Lanelet, LaneletType
 
 from commonroad_reach_semantic.data_structure.config.semantic_configuration import SemanticConfiguration
 from commonroad_reach_semantic.data_structure.environment_model.road_network import RoadNetwork
@@ -182,3 +183,37 @@ class LaneletModel:
                 set_ids_lanelets_intersection.update(incoming.successors_right)
 
         return set_ids_lanelets_intersection
+
+    @property
+    @functools.lru_cache(maxsize=1)
+    def main_carriageway_lanelet_ids(self) -> Set[int]:
+        """Lanelet IDs of the main carriageway."""
+        return self._lanelet_ids_by_type(LaneletType.MAIN_CARRIAGE_WAY)
+
+    @property
+    @functools.lru_cache(maxsize=1)
+    def access_ramp_lanelet_ids(self) -> Set[int]:
+        """Lanelet IDs of the access ramp(s)."""
+        return self._lanelet_ids_by_type(LaneletType.ACCESS_RAMP)
+
+    def _lanelet_ids_by_type(self, lanelet_type: LaneletType) -> Set[int]:
+        """Lanelet IDs of the given type."""
+        return {
+            lanelet.lanelet_id for lanelet in self.local_lanelet_network.lanelets
+            if lanelet_type in lanelet.lanelet_type
+        }
+
+    @property
+    @functools.lru_cache(maxsize=1)
+    def right_lane_lanelet_ids(self) -> Set[int]:
+        """Lanelet IDs of the right lane on the main carriageway."""
+        return {
+            lanelet.lanelet_id for lanelet in self.local_lanelet_network.lanelets
+            if self._is_rightmost_lanelet(lanelet)
+        }
+
+    def _is_rightmost_lanelet(self, lanelet: Lanelet) -> bool:
+        """Check if lanelet is the rightmost lanelet in the lanelet network."""
+        adj_right_not_mcw = LaneletType.MAIN_CARRIAGE_WAY not in self.local_lanelet_network.find_lanelet_by_id(
+            lanelet.adj_right).lanelet_type if lanelet.adj_right is not None else True
+        return LaneletType.MAIN_CARRIAGE_WAY in lanelet.lanelet_type and adj_right_not_mcw
