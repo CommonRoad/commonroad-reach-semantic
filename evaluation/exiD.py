@@ -1,19 +1,16 @@
 import glob
 import os
 import shutil
-from typing import Iterator
+from typing import Iterator, Callable
 
-from alive_progress import alive_bar
 from multiprocessing import Pool
 
 import commonroad_reach.utility.logger as util_logger
 from commonroad_reach.data_structure.reach.reach_interface import ReachableSetInterface
-from commonroad_reach.utility import configuration as util_configuration
 
 import commonroad_reach_semantic.data_structure.rule.priorities as priorities
 from commonroad_reach_semantic.data_structure.config.semantic_configuration import SemanticConfiguration
 from commonroad_reach_semantic.data_structure.config.semantic_configuration_builder import SemanticConfigurationBuilder
-from commonroad_reach_semantic.data_structure.driving_corridor_extractor import DrivingCorridorExtractor
 from commonroad_reach_semantic.data_structure.environment_model.semantic_model import SemanticModel
 from commonroad_reach_semantic.data_structure.model_checking.spot_interface import SpotInterface
 from commonroad_reach_semantic.data_structure.reach.semantic_labeling_reach_set_py import PySemanticLabelingReachableSet
@@ -27,24 +24,21 @@ from commonroad_reach_semantic.utility import visualization as util_visual
 
 
 def main():
-    num_processes = 15
+    num_processes = 16
     scenario_paths = glob.glob("/home/lercher/datasets/exiD-commonroad-only6-merge/scenarios/DEU_MerzenichRather-*.xml")
 
-    # scenario_names = list(scenarios_from_file("evaluation/driving_right_scenarios.txt"))
-    # base = "/home/lercher/datasets"
-    # for name in scenario_names:
-    #     src = os.path.join(base, "exiD-commonroad-only6", "scenarios", name + ".xml")
-    #     dst = os.path.join(base, "exiD-commonroad-only6-merge", "scenarios", name + ".xml")
-    #     shutil.copy(src, dst)
+    # copy_scenarios_from_file_list(
+    #     "evaluation/driving_right_scenarios.txt",
+    #     "/home/lercher/datasets/exiD-commonroad-only6/scenarios",
+    #     "/home/lercher/datasets/exiD-commonroad-only6-merge/scenarios",
+    # )
 
-    # with Pool(num_processes) as p:
-    #     p.map(run_with_except, (os.path.splitext(os.path.basename(path))[0] for path in scenario_paths))
-    # with alive_bar(len(scenario_paths), force_tty=True) as bar:
-    #     for path in scenario_paths:
-    #         name = os.path.splitext(os.path.basename(path))[0]
-    #         bar.text(name)
-    #         run_with_except(name)
-    #         bar()
+    # run_parallel(
+    #     lambda n: run_with_except(n, filter_scenario),
+    #     (os.path.splitext(os.path.basename(path))[0] for path in scenario_paths),
+    #     num_processes=num_processes,
+    # )
+
     # name = "DEU_MerzenichRather-2_882250_T-2399"  # vehicle not in local road network
     # name = "DEU_MerzenichRather-2_887500_T-7649"  # successful scenario
     # name = "DEU_MerzenichRather-2_887050_T-7199"  # conversion initial state to CLCS failed
@@ -61,24 +55,9 @@ def scenarios_from_file(path: str) -> Iterator[str]:
             yield line.strip()
 
 
-def run_with_except(name: str):
-    try:
-        run_scenario(name)
-    except ValueError as e:
-        if "Coordinate outside of projection domain" in e.args[0]:
-            print("failed CLCS:", name)
-        else:
-            print("failed:", name)
-            print(e)
-    except Exception as e:
-        print("failed:", name)
-        print(e)
-
-
-def run_scenario(name: str, draw: bool = False, otf: bool = True):
+def run_scenario(name: str, draw: bool = False, otf: bool = True, path_root: str = "/home/lercher/datasets/exiD-commonroad-only6-merge") -> None:
     # ==== build configuration
-    config = SemanticConfigurationBuilder.build_configuration(name,
-                                                              path_root="/home/lercher/datasets/exiD-commonroad-only6-merge")
+    config = SemanticConfigurationBuilder.build_configuration(name, path_root=path_root)
 
     config.update()
     util_logger.initialize_logger(config)
@@ -87,18 +66,8 @@ def run_scenario(name: str, draw: bool = False, otf: bool = True):
     # ==== initialize semantic model and traffic rules
     semantic_model = SemanticModel(config)
     semantic_model.determine_traffic_priorities(priorities.dict_traffic_sign_to_priorities)
-
-    # if is_good_initial_state(semantic_model, config):
-    #     print(name)
-    # return
-
     rule_interface = TrafficRuleInterface(config, semantic_model)
     rule_interface.print_summary()
-
-    # if len(rule_interface.list_specifications_ltl) > 1:
-    #     print(name)
-    # return
-
 
     # ==== compute reachable sets using reachability interface
     reach_interface = ReachableSetInterface(config)
@@ -130,10 +99,41 @@ def run_scenario(name: str, draw: bool = False, otf: bool = True):
     util_visual.plot_scenario_with_reachable_sets(reach_interface, save_gif=True)
     if not otf:
         util_visual.plot_scenario_with_kripke_nodes(spot_interface, plot_accepting=True, save_gif=True)
-    # util_visual.plot_scenario_with_driving_corridor(spot_interface, corridor_optimal, save_gif=True)
 
     # ==== show interactive visualization
-    # util_visual.show_interactive_reach_graph(reach_interface, use_images=True, node_to_group=node_to_group)
+    util_visual.show_interactive_reach_graph(reach_interface, use_images=True, node_to_group=node_to_group)
+
+
+def filter_scenario(name: str, path_root: str = "/home/lercher/datasets/exiD-commonroad-only6-merge") -> None:
+    # ==== build configuration
+    config = SemanticConfigurationBuilder.build_configuration(name, path_root=path_root)
+    config.update()
+    util_logger.initialize_logger(config)
+
+    # ==== initialize semantic model and traffic rules
+    semantic_model = SemanticModel(config)
+    semantic_model.determine_traffic_priorities(priorities.dict_traffic_sign_to_priorities)
+    if not is_good_initial_state(semantic_model, config):
+        return
+
+    rule_interface = TrafficRuleInterface(config, semantic_model)
+    if not len(rule_interface.list_specifications_ltl) > 1:
+        return
+
+    print(name)
+
+
+def run_parallel(func: Callable[[str], None], names: Iterator[str], num_processes: int = 16) -> None:
+    with Pool(num_processes) as p:
+        p.map(func, names)
+
+
+def run_with_except(name: str, func: Callable[[str], None]) -> None:
+    try:
+        func(name)
+    except Exception as e:
+        print("failed:", name)
+        print(e)
 
 
 def is_good_initial_state(semantic_model: SemanticModel, config: SemanticConfiguration) -> bool:
@@ -144,6 +144,13 @@ def is_good_initial_state(semantic_model: SemanticModel, config: SemanticConfigu
         if id_lanelet in good_lanelets:
             return True
     return False
+
+
+def copy_scenarios_from_file_list(list_path: str, src_dir: str, dst_dir: str) -> None:
+    for name in scenarios_from_file(list_path):
+        src = os.path.join(src_dir, name + ".xml")
+        dst = os.path.join(dst_dir, name + ".xml")
+        shutil.copy(src, dst)
 
 
 if __name__ == "__main__":
