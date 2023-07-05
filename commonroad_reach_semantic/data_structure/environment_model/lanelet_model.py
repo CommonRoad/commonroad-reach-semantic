@@ -164,7 +164,7 @@ class LaneletModel:
 
             # add lanelets
             for lanelet in set_lanelets:
-                if lanelet not in local_lanelet_network.lanelets:
+                if local_lanelet_network.find_lanelet_by_id(lanelet.lanelet_id) is None:
                     local_lanelet_network.add_lanelet(lanelet)
 
             local_lanelet_network.cleanup_lanelet_references()
