@@ -566,6 +566,9 @@ class Vehicle:
 
         # extract properties for static obstacles
         if isinstance(obstacle, StaticObstacle):
+            attrs = cls.extract_vehicle_attributes_from_static_obstacle(obstacle)
+            if attrs is None:
+                return None
             lane, dict_step_to_state_cr, \
                 dict_step_to_state_lon_ref, dict_step_to_state_lat_ref, \
                 dict_step_to_state_lon_ego, dict_step_to_state_lat_ego, \
@@ -573,10 +576,13 @@ class Vehicle:
                 incoming_element, direction_outgoing, set_ids_lanelets_outgoing_left, \
                 set_ids_lanelets_outgoing_straight, set_ids_lanelets_outgoing_right, set_ids_lanelets_oncoming, \
                 dict_step_to_sonia_prediction_occupancy = \
-                cls.extract_vehicle_attributes_from_static_obstacle(obstacle)
+                attrs
 
         # extract properties for dynamic obstacles
         elif isinstance(obstacle, DynamicObstacle):
+            attrs = cls.extract_vehicle_attributes_from_dynamic_obstacle(obstacle, dict_sonia_prediction)
+            if attrs is None:
+                return None
             lane, dict_step_to_state_cr, \
                 dict_step_to_state_lon_ref, dict_step_to_state_lat_ref, \
                 dict_step_to_state_lon_ego, dict_step_to_state_lat_ego, \
@@ -584,7 +590,7 @@ class Vehicle:
                 incoming_element, direction_outgoing, set_ids_lanelets_outgoing_left, \
                 set_ids_lanelets_outgoing_straight, set_ids_lanelets_outgoing_right, set_ids_lanelets_oncoming, \
                 dict_step_to_sonia_prediction_occupancy = \
-                cls.extract_vehicle_attributes_from_dynamic_obstacle(obstacle, dict_sonia_prediction)
+                attrs
             if use_sonia:
                 dict_step_to_sonia_extrema = \
                     util_vehicle.extract_sonia_extrema(dict_step_to_sonia_prediction_occupancy, cls.config)
@@ -623,6 +629,9 @@ class Vehicle:
         steps_computation = cls.config.planning.steps_computation
 
         lane = util_vehicle.extract_lane_of_vehicle(obstacle, cls.road_network)
+        if lane is None:
+            # If we did not find a lane in the local road network, the obstacle is too far away to be relevant
+            return None
         incoming_element, direction_outgoing = util_vehicle.extract_incoming_from_lane(lane, cls.lanelet_network)
         set_ids_lanelets_outgoing_left, \
             set_ids_lanelets_outgoing_straight, \
@@ -669,6 +678,9 @@ class Vehicle:
         dict_sonia_prediction = dict_sonia_prediction[obstacle.obstacle_id]
 
         lane_vehicle = util_vehicle.extract_lane_of_vehicle(obstacle, cls.road_network)
+        if lane_vehicle is None:
+            # If we did not find a lane in the local road network, the vehicle is too far away to be relevant
+            return None
         # extract intersection-related attributes
         incoming_element, direction_outgoing = util_vehicle.extract_incoming_from_lane(lane_vehicle,
                                                                                        cls.lanelet_network)

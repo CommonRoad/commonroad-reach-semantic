@@ -1,4 +1,4 @@
-from typing import Union, Dict, Set
+from typing import Union, Dict, Set, Optional
 
 from commonroad.scenario.intersection import IntersectionIncomingElement
 from commonroad.scenario.lanelet import Lanelet, LaneletType, LaneletNetwork
@@ -130,7 +130,7 @@ def determine_intersection_attributes(lanelet_network: LaneletNetwork, set_ids_l
            set_ids_lanelets_outgoing_straight, set_ids_lanelets_outgoing_right
 
 
-def extract_lane_of_vehicle(obstacle: Union[DynamicObstacle, StaticObstacle], road_network: RoadNetwork) -> Lane:
+def extract_lane_of_vehicle(obstacle: Union[DynamicObstacle, StaticObstacle], road_network: RoadNetwork) -> Optional[Lane]:
     """Extracts the lane of the vehicle based on vehicle-specific future information.
 
     Only keeps one lane.
@@ -163,7 +163,10 @@ def extract_lane_of_vehicle(obstacle: Union[DynamicObstacle, StaticObstacle], ro
             break
 
     # use anyone if there are multiple lanes
-    return set_lanes_last_nonempty.pop()
+    if set_lanes_last_nonempty:
+        return set_lanes_last_nonempty.pop()
+    else:
+        return None
 
 
 def extract_incoming_from_lane(lane: Lane, lanelet_network: LaneletNetwork):
