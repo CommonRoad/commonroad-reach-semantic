@@ -22,7 +22,7 @@ class LeftOfObstaclePredicate(predicate.Predicate):
             reach_node.intersect_in_position_domain(p_lat_min=vehicle_left)
             return [reach_node]
         else:
-            raise RuntimeError(f"Vehicle {self.obstacle_id} not found")
+            raise RuntimeError(f"Vehicle {self.obstacle_id} not found or no prediction for step {step}")
 
     def _restrict_reach_node_forbidden(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel,
                                        _node_lanelet_ids: Optional[Set[int]] = None) -> List[ReachNode]:
@@ -30,10 +30,13 @@ class LeftOfObstaclePredicate(predicate.Predicate):
             reach_node.intersect_in_position_domain(p_lat_max=vehicle_left)
             return [reach_node]
         else:
-            raise RuntimeError(f"Vehicle {self.obstacle_id} not found")
+            raise RuntimeError(f"Vehicle {self.obstacle_id} not found or no prediction for step {step}")
 
     def _get_vehicle_left(self, step: int, semantic_model: SemanticModel) -> Optional[float]:
         if vehicle := semantic_model.vehicle_model.find_vehicle_by_id(self.obstacle_id):
-            return vehicle.p_lat_max_ref(step, semantic_model.config.vehicle.ego.width / 2)
+            try:
+                return vehicle.p_lat_max_ref(step, semantic_model.config.vehicle.ego.width / 2)
+            except KeyError:
+                return None
         else:
             return None

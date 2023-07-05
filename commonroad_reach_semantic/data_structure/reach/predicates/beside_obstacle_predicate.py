@@ -23,7 +23,7 @@ class BesideObstaclePredicate(predicate.Predicate):
             reach_node.intersect_in_position_domain(p_lon_min=vehicle_rear, p_lon_max=vehicle_front)
             return [reach_node]
         else:
-            raise RuntimeError(f"Vehicle {self.obstacle_id} not found")
+            raise RuntimeError(f"Vehicle {self.obstacle_id} not found or no prediction for step {step}")
 
     def _restrict_reach_node_forbidden(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel,
                                        _node_lanelet_ids: Optional[Set[int]] = None) -> List[ReachNode]:
@@ -35,12 +35,16 @@ class BesideObstaclePredicate(predicate.Predicate):
             in_front.intersect_in_position_domain(p_lon_min=vehicle_front)
             return [behind, in_front]
         else:
-            raise RuntimeError(f"Vehicle {self.obstacle_id} not found")
+            raise RuntimeError(f"Vehicle {self.obstacle_id} not found or no prediction for step {step}")
 
     def _get_vehicle_front_rear(self, step: int, semantic_model: SemanticModel) -> Optional[Tuple[float, float]]:
         if vehicle := semantic_model.vehicle_model.find_vehicle_by_id(self.obstacle_id):
-            vehicle_front = vehicle.p_lon_max_ref(step, semantic_model.config.vehicle.ego.length / 2)
-            vehicle_rear = vehicle.p_lon_min_ref(step, semantic_model.config.vehicle.ego.length / 2)
-            return vehicle_front, vehicle_rear
+            try:
+                vehicle_front = vehicle.p_lon_max_ref(step, semantic_model.config.vehicle.ego.length / 2)
+                vehicle_rear = vehicle.p_lon_min_ref(step, semantic_model.config.vehicle.ego.length / 2)
+            except KeyError:
+                return None
+            else:
+                return vehicle_front, vehicle_rear
         else:
             return None
