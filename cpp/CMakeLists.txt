@@ -58,7 +58,6 @@ target_link_libraries(crreachs PUBLIC
         ${CRDC_LIBRARY}
         fcl
         ccd
-        ${S11N_LIBRARY}
         yaml-cpp
         spot
         bddx)
@@ -98,5 +97,4 @@ target_link_libraries(playground_semantic PRIVATE
 #        ${CRDC_LIBRARY}
 #        ${CRCCOSY_LIBRARY}
 #        fcl
-#        ccd
-#        ${S11N_LIBRARY})
+#        ccd)
