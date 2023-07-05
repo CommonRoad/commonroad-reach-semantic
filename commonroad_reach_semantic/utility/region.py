@@ -169,7 +169,7 @@ def create_regions_from_polygon(tuple_ids_lanelets, polygon_cart):
             list_regions.append(region)
 
     elif isinstance(polygon_cart, MultiPolygon):
-        for p_cart in polygon_cart:
+        for p_cart in polygon_cart.geoms:
             region = create_region_from_polygon(tuple_ids_lanelets, p_cart)
             if region:
                 list_regions.append(region)
