@@ -1,4 +1,5 @@
 import enum
+import math
 from collections import defaultdict
 from typing import Union, Dict, List, Set, Optional
 
@@ -679,10 +680,16 @@ class Vehicle:
 
         state_cr_previous = None
         list_states_obstacle_all = [obstacle.initial_state] + obstacle.prediction.trajectory.state_list
-        # sample states based on specified dt
-        list_states_obstacle_sampled = list_states_obstacle_all[::round(dt * 10)]
+        # we know that planning config dt is a multiple of scenario dt
+        # --> divide planning dt by scenario dt to determine how many scenario time steps are in one planning time step
+        numeric_scaling = 100
+        step_width = round((dt * numeric_scaling) / (cls.config.scenario.dt * numeric_scaling))
+        # sample states based on the computed step width
+        sampled_obstacle_states = [state for state in list_states_obstacle_all if state.time_step % step_width == 0]
 
-        for step, state_cr in enumerate(list_states_obstacle_sampled):
+        for state_cr in sampled_obstacle_states:
+            # divide time step by step width to get step wrt dt from planning config
+            step = state_cr.time_step // step_width
             if not state_cr_previous:
                 state_cr_previous = state_cr
 
