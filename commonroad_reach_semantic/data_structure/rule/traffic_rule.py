@@ -5,7 +5,7 @@ from enum import Enum, auto
 from typing import List, Set, Optional
 
 from commonroad.scenario.lanelet import LineMarking, LaneletType, Lanelet, LaneletNetwork
-from commonroad.scenario.traffic_sign import TrafficLightState, TrafficLightDirection
+from commonroad.scenario.traffic_light import TrafficLightState, TrafficLightDirection
 
 from commonroad_reach_semantic.data_structure.environment_model.semantic_model import SemanticModel
 from commonroad_reach_semantic.data_structure.environment_model.vehicle import Vehicle
