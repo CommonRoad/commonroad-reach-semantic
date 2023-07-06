@@ -6,6 +6,7 @@ using namespace semantic_reach;
 SemanticReachableSetConfiguration::SemanticReachableSetConfiguration(YAML::Node const& node) : reach::ReachableSetConfiguration(node) {
     auto node_reachable_set = node["reachable_set"];
 
+    discard_small_nodes = node_reachable_set["discard_small_nodes"].as<bool>();
     length_edge_node_min = node_reachable_set["length_edge_node_min"].as<double>();
 }
 
