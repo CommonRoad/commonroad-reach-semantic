@@ -6,6 +6,7 @@
 #include "reach_semantic/data_structure/reach/reachable_set_labeler.hpp"
 #include "reach_semantic/data_structure/semantic_configuration.hpp"
 #include "reach_semantic/data_structure/semantic_model.hpp"
+#include "reach_semantic/benchmark/benchmark_result.hpp"
 
 namespace semantic_reach {
     class SemanticReachableSet {
@@ -32,6 +33,8 @@ namespace semantic_reach {
     public:
         SemanticReachableSet(SemanticConfigurationPtr config, collision::CollisionCheckerPtr collision_checker,
                              SemanticModelPtr semantic_model, TrafficRuleInterfacePtr traffic_rule_interface);
+
+        ReachBenchmarkResults benchmark_result{};
 
         SemanticConfigurationPtr config;
         collision::CollisionCheckerPtr collision_checker;

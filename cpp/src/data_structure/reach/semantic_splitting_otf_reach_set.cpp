@@ -1,3 +1,4 @@
+#include <chrono>
 #include <utility>
 
 #include "reachset/utility/reach_operation.hpp"
@@ -16,7 +17,10 @@ SemanticSplittingOTFReachableSet::SemanticSplittingOTFReachableSet(semantic_reac
     _initialize_zero_state_polygons();
 
     // Construct finite automaton from traffic rules
+    auto time_start = std::chrono::high_resolution_clock::now();
     automaton = std::make_unique<FiniteAutomaton>(rule_interface->vec_specifications_ltl, this->config->config_traffic_rule.mode_automata);
+    benchmark_result.automaton_creation_time = std::chrono::duration_cast<std::chrono::microseconds>(
+            std::chrono::high_resolution_clock::now() - time_start).count();
 
     // Compute initial reachable set
     SemanticSplittingOTFReachableSet::_compute_drivable_area_at_step(step_start);
@@ -25,6 +29,7 @@ SemanticSplittingOTFReachableSet::SemanticSplittingOTFReachableSet(semantic_reac
 }
 
 void SemanticSplittingOTFReachableSet::_compute_drivable_area_at_step(const int &step) {
+    auto time_start = std::chrono::high_resolution_clock::now();
     std::vector<ReachNodePtr> propagated_sets;
     if (step != step_start) {
         auto reachable_set_previous = map_step_to_reachable_set[step - 1];
@@ -38,14 +43,20 @@ void SemanticSplittingOTFReachableSet::_compute_drivable_area_at_step(const int 
     } else {
         propagated_sets = _construct_initial_reachable_sets();
     }
+    benchmark_result.computation_times_per_step[step].propagation = std::chrono::duration_cast<std::chrono::microseconds>(
+            std::chrono::high_resolution_clock::now() - time_start).count();
 
+    time_start = std::chrono::high_resolution_clock::now();
     std::vector<reach::ReachNodePtr> propagated_sets_split{};
     for (const auto &propagated_set: propagated_sets) {
         auto split_reachable_sets = _split_reachable_set(step, propagated_set);
         propagated_sets_split.insert(propagated_sets_split.end(), split_reachable_sets.begin(),
                                      split_reachable_sets.end());
     }
+    benchmark_result.computation_times_per_step[step].splitting = std::chrono::duration_cast<std::chrono::microseconds>(
+            std::chrono::high_resolution_clock::now() - time_start).count();
 
+    time_start = std::chrono::high_resolution_clock::now();
     // partition propagated sets by their automaton states
     std::map<std::pair<std::set<unsigned int>, std::set<unsigned int>>, std::vector<reach::ReachNodePtr>> map_states_to_propagated_set{};
     for (auto const &propagated_set: propagated_sets_split) {
@@ -78,9 +89,12 @@ void SemanticSplittingOTFReachableSet::_compute_drivable_area_at_step(const int 
     map_step_to_states_to_drivable_area[step] = map_states_to_drivable_area;
     map_step_to_states_to_propagated_set[step] = map_states_to_propagated_set;
     map_step_to_propagated_set[step] = propagated_sets_split;
+    benchmark_result.computation_times_per_step[step].collision_check = std::chrono::duration_cast<std::chrono::microseconds>(
+            std::chrono::high_resolution_clock::now() - time_start).count();
 }
 
 void SemanticSplittingOTFReachableSet::_compute_reachable_set_at_step(const int &step) {
+    auto time_start = std::chrono::high_resolution_clock::now();
     auto map_states_to_propagated_set = map_step_to_states_to_propagated_set[step];
     auto map_states_to_drivable_area = map_step_to_states_to_drivable_area[step];
 
@@ -132,6 +146,8 @@ void SemanticSplittingOTFReachableSet::_compute_reachable_set_at_step(const int 
                                   std::make_move_iterator(reachable_sets.end()));
     }
     map_step_to_reachable_set[step] = new_reachable_sets;
+    benchmark_result.computation_times_per_step[step].node_creation = std::chrono::duration_cast<std::chrono::microseconds>(
+            std::chrono::high_resolution_clock::now() - time_start).count();
 }
 
 std::vector<reach::ReachNodePtr>

@@ -1,4 +1,5 @@
 import logging
+import time
 from abc import ABC
 
 from commonroad_reach_semantic import pycrreachs
@@ -41,6 +42,21 @@ class CppSemanticReachableSet(SemanticReachableSet, ABC):
         self.dict_step_to_reachable_set = self._reach.reachable_set()
         self.dict_step_to_propagated_set = self._reach.propagated_set()
 
+        # Copy C++ benchmark results to Python benchmark results
+        self.benchmark_result.automaton_creation_time = self._reach.benchmark_result.automaton_creation_time
+        self.benchmark_result.cnt_nodes_before_pruning = self._reach.benchmark_result.cnt_nodes_before_pruning
+        self.benchmark_result.cnt_nodes_after_pruning = self._reach.benchmark_result.cnt_nodes_after_pruning
+        for step in range(step_start, step_end + 1):
+            self.benchmark_result.computation_times_per_step[step].propagation = \
+                self._reach.benchmark_result.computation_times_per_step[step].propagation
+            self.benchmark_result.computation_times_per_step[step].splitting = \
+                self._reach.benchmark_result.computation_times_per_step[step].splitting
+            self.benchmark_result.computation_times_per_step[step].collision_check = \
+                self._reach.benchmark_result.computation_times_per_step[step].collision_check
+            self.benchmark_result.computation_times_per_step[step].node_creation = \
+                self._reach.benchmark_result.computation_times_per_step[step].node_creation
+
+
     def drivable_area_at_step(self, step: int):
         return self._reach.drivable_area_at_step(step)
 
@@ -48,7 +64,9 @@ class CppSemanticReachableSet(SemanticReachableSet, ABC):
         return self._reach.reachable_set_at_step(step)
 
     def prune_nodes_not_reaching_final_step(self):
+        time_start = time.perf_counter()
         self._reach.prune_nodes_not_reaching_final_step()
+        self.benchmark_result.pruning_time = time.perf_counter() - time_start
 
     @property
     def labeler(self):

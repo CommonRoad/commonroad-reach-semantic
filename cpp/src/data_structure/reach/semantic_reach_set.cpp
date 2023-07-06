@@ -192,6 +192,9 @@ void SemanticReachableSet::prune_nodes_not_reaching_final_step() {
 
     _pruned = true;
 
+    benchmark_result.cnt_nodes_before_pruning = static_cast<int>(cnt_nodes_before_pruning);
+    benchmark_result.cnt_nodes_after_pruning = static_cast<int>(cnt_nodes_after_pruning);
+
      std::cout << "\t#Nodes before pruning: \t" << cnt_nodes_before_pruning << endl;
      std::cout << "\t#Nodes after pruning: \t" << cnt_nodes_after_pruning << endl;
 }

@@ -14,6 +14,7 @@ void export_reachable_set_interface(py::module &m) {
             .def_readonly("step_end", &SemanticReachableSet::step_end)
             .def_readonly("config", &SemanticReachableSet::config)
             .def_readonly("labeler", &SemanticReachableSet::labeler)
+            .def_readonly("benchmark_result", &SemanticReachableSet::benchmark_result)
             .def("compute", &SemanticReachableSet::compute, py::arg("step_start") = 1, py::arg("step_end") = 0)
             .def("drivable_area_at_step", &SemanticReachableSet::drivable_area_at_step, py::arg("step"))
             .def("reachable_set_at_step", &SemanticReachableSet::reachable_set_at_step, py::arg("step"))
