@@ -1,6 +1,7 @@
 import glob
 import os
 import shutil
+import time
 from typing import Iterator, Callable
 
 from multiprocessing import Pool
@@ -46,7 +47,7 @@ def main():
     # name = "DEU_MerzenichRather-2_9223250_T-23399"  # scenario, where rule should actually cut some states
     # name = "DEU_MerzenichRather-2_7915150_T-15299"  # already in right lane
     name = "DEU_MerzenichRather-2_8814400_T-14549"  # very good scenario with two entering vehicles, but only one reaches main carriageway
-    run_scenario(name, draw=True, otf=True)
+    run_scenario(name, draw=False, otf=True)
 
 
 def scenarios_from_file(path: str) -> Iterator[str]:
@@ -77,16 +78,22 @@ def run_scenario(name: str, draw: bool = False, otf: bool = True, path_root: str
     else:
         # reach_interface._reach = PySemanticOTFReachableSet(config, semantic_model, rule_interface)
         # reach_interface._reach = CppSemanticOTFReachableSet(config, semantic_model, rule_interface)
-        # reach_interface._reach = PySemanticSplittingOTFReachableSet(config, semantic_model, rule_interface)
-        reach_interface._reach = CppSemanticSplittingOTFReachableSet(config, semantic_model, rule_interface)
+        reach_interface._reach = PySemanticSplittingOTFReachableSet(config, semantic_model, rule_interface)
+        # reach_interface._reach = CppSemanticSplittingOTFReachableSet(config, semantic_model, rule_interface)
     reach_interface.compute_reachable_sets()
+
+    benchmark_result = reach_interface._reach.benchmark_result
+    print(benchmark_result)
 
     # ==== construct an interface to interact with Spot
     if not otf:
+        time_start = time.perf_counter()
         spot_interface = SpotInterface(reach_interface, rule_interface)
         spot_interface.translate_ltl_formulas()
         spot_interface.translate_reachability_graph()
         spot_interface.check()
+        model_checking_time = time.perf_counter() - time_start
+        print(f"Model checking time: {model_checking_time:.3f}s")
 
     if not draw:
         return

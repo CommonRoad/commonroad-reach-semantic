@@ -20,20 +20,37 @@ class ReachBenchmarkResults:
             self.pruning_time
 
     @property
-    def total_propagation_time(self):
+    def total_propagation_time(self) -> float:
         return sum(step_times.propagation for step_times in self.computation_times_per_step.values())
 
     @property
-    def total_splitting_time(self):
+    def total_splitting_time(self) -> float:
         return sum(step_times.splitting for step_times in self.computation_times_per_step.values())
 
     @property
-    def total_collision_check_time(self):
+    def total_collision_check_time(self) -> float:
         return sum(step_times.collision_check for step_times in self.computation_times_per_step.values())
 
     @property
-    def total_node_creation_time(self):
+    def total_node_creation_time(self) -> float:
         return sum(step_times.node_creation for step_times in self.computation_times_per_step.values())
+
+    def __str__(self) -> str:
+        return "\n".join([
+            f"==============Results================",
+            f"Nodes before pruning:\t{self.cnt_nodes_before_pruning}",
+            f"Nodes after pruning:\t{self.cnt_nodes_after_pruning}",
+            f"-------------------------------------",
+            f"Automaton creation time:\t{self.automaton_creation_time:.3f}s",
+            f"Propagation time:\t\t\t{self.total_propagation_time:.3f}s",
+            f"Splitting time:\t\t\t\t{self.total_splitting_time:.3f}s",
+            f"Collision check time:\t\t{self.total_collision_check_time:.3f}s",
+            f"Node creation time:\t\t\t{self.total_node_creation_time:.3f}s",
+            f"Pruning time:\t\t\t\t{self.pruning_time:.3f}s",
+            f"-------------------------------------",
+            f"Total time:\t\t\t\t\t{self.total_time:.3f}s",
+            f"=====================================",
+        ])
 
 
 @dataclass
