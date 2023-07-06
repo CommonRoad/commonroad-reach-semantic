@@ -1,4 +1,5 @@
 import logging
+import time
 from abc import ABC, abstractmethod
 from typing import List
 
@@ -55,7 +56,9 @@ class PySemanticReachableSet(SemanticReachableSet, ABC):
             self._list_steps_computed.append(step)
 
         if self.config.reachable_set.prune_nodes_not_reaching_final_step:
+            start_time = time.perf_counter()
             self.prune_nodes_not_reaching_final_step()
+            self.benchmark_result.pruning_time = time.perf_counter() - start_time
 
     def compute_drivable_area_at_step(self, step):
         logger.debug(f"Computing drivable area for step {step}")
@@ -181,6 +184,9 @@ class PySemanticReachableSet(SemanticReachableSet, ABC):
             cnt_nodes_after_pruning += len(self.dict_step_to_reachable_set[step])
 
         self._pruned = True
+
+        self.benchmark_result.cnt_nodes_before_pruning = cnt_nodes_before_pruning
+        self.benchmark_result.cnt_nodes_after_pruning = cnt_nodes_after_pruning
 
         util_logger.print_and_log_info(logger, f"\t#Nodes before pruning: \t{cnt_nodes_before_pruning}")
         util_logger.print_and_log_info(logger, f"\t#Nodes after pruning: \t{cnt_nodes_after_pruning}")

@@ -1,6 +1,7 @@
 import logging
+import time
 from collections import defaultdict, Counter
-from typing import List, Dict, FrozenSet, Set, Tuple, Iterable, Optional
+from typing import List, Dict, FrozenSet, Tuple, Iterable, Optional
 
 import more_itertools
 from commonroad_reach.data_structure.reach.reach_node import ReachNode
@@ -41,7 +42,9 @@ class PySemanticSplittingOTFReachableSet(PySemanticReachableSet):
         self._initialize_zero_state_polygons()
 
         # Construct finite automaton from traffic rules
+        start_time = time.perf_counter()
         self.automaton = FiniteAutomaton(self.rule_interface.list_specifications_ltl, config.traffic_rule.mode_automata)
+        self.benchmark_result.automaton_creation_time = time.perf_counter() - start_time
 
         # Compute initial reachable set
         self.compute_drivable_area_at_step(self.step_start)
@@ -59,6 +62,7 @@ class PySemanticSplittingOTFReachableSet(PySemanticReachableSet):
             2. Project base sets onto the position domain to obtain position rectangles.
             3. Merge, repartition and check collisions for these rectangles. The order depends on the configuration.
         """
+        time_start = time.perf_counter()
         if step != self.step_start:
             reachable_set_previous = self.dict_step_to_reachable_set[step - 1]
 
@@ -74,12 +78,16 @@ class PySemanticSplittingOTFReachableSet(PySemanticReachableSet):
             # there is no preceding reachable set to propagate in the initial step
             # we also don't need one as we have to use the set of initial states anyway
             propagated_sets = self._construct_initial_reachable_sets()
+        self.benchmark_result.computation_times_per_step[step].propagation = time.perf_counter() - time_start
 
+        time_start = time.perf_counter()
         propagated_sets = list(more_itertools.flatten(
             self._split_reachable_set(step, propagated_set)
             for propagated_set in propagated_sets
         ))
+        self.benchmark_result.computation_times_per_step[step].splitting = time.perf_counter() - time_start
 
+        time_start = time.perf_counter()
         # partition propagated sets by their automaton states and the states of their propagation source
         dict_states_to_propagated_set: Dict[Tuple[FrozenSet[int], FrozenSet[int]], List[ReachNode]] = defaultdict(list)
         for propagated_set in propagated_sets:
@@ -105,6 +113,7 @@ class PySemanticSplittingOTFReachableSet(PySemanticReachableSet):
         self.dict_step_to_states_to_drivable_area[step] = dict_states_to_drivable_area
         self.dict_step_to_states_to_propagated_set[step] = dict_states_to_propagated_set
         self.dict_step_to_propagated_set[step] = propagated_sets
+        self.benchmark_result.computation_times_per_step[step].collision_check = time.perf_counter() - time_start
 
     def _compute_reachable_set_at_step(self, step):
         """
@@ -114,6 +123,7 @@ class PySemanticSplittingOTFReachableSet(PySemanticReachableSet):
             1. construct reach nodes from drivable area and the propagated sets.
             2. update parent-child relationship of the nodes.
         """
+        time_start = time.perf_counter()
         dict_states_to_propagated_set = self.dict_step_to_states_to_propagated_set[step]
         dict_states_to_drivable_area = self.dict_step_to_states_to_drivable_area[step]
 
@@ -152,6 +162,7 @@ class PySemanticSplittingOTFReachableSet(PySemanticReachableSet):
 
         self.dict_step_to_reachable_set[step] = list(
             more_itertools.flatten(dict_propositions_to_reachable_set.values()))
+        self.benchmark_result.computation_times_per_step[step].node_creation = time.perf_counter() - time_start
 
     def _split_reachable_set(self, step: int, reachable_set: ReachNode) -> List[ReachNode]:
         """Split the given reachable set along the transitions of the automaton states of its propagation source.
