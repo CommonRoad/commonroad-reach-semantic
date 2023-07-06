@@ -97,6 +97,7 @@ class PySemanticSplittingOTFReachableSet(PySemanticReachableSet):
             else:
                 key = (frozenset({self.automaton.initial_state}), self.reachable_set_to_label[propagated_set])
             dict_states_to_propagated_set[key].append(propagated_set)
+        self.benchmark_result.computation_times_per_step[step].partitioning = time.perf_counter() - time_start
 
         # merge, collision check, and repartition propagated sets
         # this is done individually for each group calculated above, because we must not merge sets semantically different base sets
@@ -113,7 +114,6 @@ class PySemanticSplittingOTFReachableSet(PySemanticReachableSet):
         self.dict_step_to_states_to_drivable_area[step] = dict_states_to_drivable_area
         self.dict_step_to_states_to_propagated_set[step] = dict_states_to_propagated_set
         self.dict_step_to_propagated_set[step] = propagated_sets
-        self.benchmark_result.computation_times_per_step[step].collision_check = time.perf_counter() - time_start
 
     def _compute_reachable_set_at_step(self, step):
         """

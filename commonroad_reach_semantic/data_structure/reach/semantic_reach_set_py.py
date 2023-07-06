@@ -116,33 +116,49 @@ class PySemanticReachableSet(SemanticReachableSet, ABC):
 
         # repartition, then collision check
         if mode_repartition == 1:
+            time_start = time.perf_counter()
             list_rectangles_repartitioned = \
                 reach_operation.create_repartitioned_rectangles(rectangles, size_grid)
+            self.benchmark_result.computation_times_per_step[step].merge += time.perf_counter() - time_start
+
+            time_start = time.perf_counter()
             rectangles = reach_operation.check_collision_and_split_rectangles(self.collision_checker, step,
                                                                               list_rectangles_repartitioned,
                                                                               radius_terminal_split)
+            self.benchmark_result.computation_times_per_step[step].collision_check += time.perf_counter() - time_start
 
         # collision check, then repartition
         elif mode_repartition == 2:
+            time_start = time.perf_counter()
             list_rectangles_collision_free = \
                 reach_operation.check_collision_and_split_rectangles(self.collision_checker, step,
                                                                      rectangles,
                                                                      radius_terminal_split)
+            self.benchmark_result.computation_times_per_step[step].collision_check += time.perf_counter() - time_start
+
+            time_start = time.perf_counter()
             rectangles = reach_operation.create_repartitioned_rectangles(list_rectangles_collision_free,
                                                                          size_grid)
+            self.benchmark_result.computation_times_per_step[step].merge += time.perf_counter() - time_start
 
         # repartition, collision check, then repartition again
         elif mode_repartition == 3:
+            time_start = time.perf_counter()
             list_rectangles_repartitioned = reach_operation.create_repartitioned_rectangles(rectangles,
                                                                                             size_grid)
+            self.benchmark_result.computation_times_per_step[step].merge += time.perf_counter() - time_start
 
+            time_start = time.perf_counter()
             list_rectangles_collision_free = \
                 reach_operation.check_collision_and_split_rectangles(self.collision_checker, step,
                                                                      list_rectangles_repartitioned,
                                                                      radius_terminal_split)
+            self.benchmark_result.computation_times_per_step[step].collision_check += time.perf_counter() - time_start
 
+            time_start = time.perf_counter()
             rectangles = reach_operation.create_repartitioned_rectangles(list_rectangles_collision_free,
                                                                          size_grid_2nd)
+            self.benchmark_result.computation_times_per_step[step].merge += time.perf_counter() - time_start
 
         else:
             raise Exception("Invalid mode for repartition.")

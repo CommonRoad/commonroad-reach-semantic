@@ -28,8 +28,16 @@ class ReachBenchmarkResults:
         return sum(step_times.splitting for step_times in self.computation_times_per_step.values())
 
     @property
+    def total_partitioning_time(self) -> float:
+        return sum(step_times.partitioning for step_times in self.computation_times_per_step.values())
+
+    @property
     def total_collision_check_time(self) -> float:
         return sum(step_times.collision_check for step_times in self.computation_times_per_step.values())
+
+    @property
+    def total_merge_time(self) -> float:
+        return sum(step_times.merge for step_times in self.computation_times_per_step.values())
 
     @property
     def total_node_creation_time(self) -> float:
@@ -44,7 +52,9 @@ class ReachBenchmarkResults:
             f"Automaton creation time:\t{self.automaton_creation_time:.3f}s",
             f"Propagation time:\t\t\t{self.total_propagation_time:.3f}s",
             f"Splitting time:\t\t\t\t{self.total_splitting_time:.3f}s",
+            f"Partitioning time:\t\t\t{self.total_partitioning_time:.3f}s",
             f"Collision check time:\t\t{self.total_collision_check_time:.3f}s",
+            f"Merge time:\t\t\t\t\t{self.total_merge_time:.3f}s",
             f"Node creation time:\t\t\t{self.total_node_creation_time:.3f}s",
             f"Pruning time:\t\t\t\t{self.pruning_time:.3f}s",
             f"-------------------------------------",
@@ -58,9 +68,11 @@ class ReachComputationTimes:
     """Class to store the computation times of a single reach set step."""
     propagation: float = 0.0
     splitting: float = 0.0
+    partitioning: float = 0.0
     collision_check: float = 0.0
+    merge: float = 0.0
     node_creation: float = 0.0
 
     @property
     def total(self) -> float:
-        return self.propagation + self.splitting + self.collision_check + self.node_creation
+        return self.propagation + self.splitting + self.partitioning + self.collision_check + self.merge + self.node_creation
