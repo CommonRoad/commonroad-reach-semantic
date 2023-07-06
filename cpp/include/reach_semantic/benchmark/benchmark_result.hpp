@@ -8,7 +8,9 @@ namespace semantic_reach {
     struct ReachComputationTimes {
         Microseconds propagation{};
         Microseconds splitting{};
+        Microseconds partitioning{};
         Microseconds collision_check{};
+        Microseconds merge{};
         Microseconds node_creation{};
     };
 

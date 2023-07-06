@@ -70,6 +70,8 @@ void SemanticSplittingOTFReachableSet::_compute_drivable_area_at_step(const int 
         }
         map_states_to_propagated_set[key].emplace_back(propagated_set);
     }
+    benchmark_result.computation_times_per_step[step].partitioning = std::chrono::duration_cast<std::chrono::microseconds>(
+            std::chrono::high_resolution_clock::now() - time_start).count();
 
     // merge, collision check, and repartition propagated sets
     // this is done individually for each group calculated above, because we must not merge sets semantically different base sets
@@ -89,8 +91,6 @@ void SemanticSplittingOTFReachableSet::_compute_drivable_area_at_step(const int 
     map_step_to_states_to_drivable_area[step] = map_states_to_drivable_area;
     map_step_to_states_to_propagated_set[step] = map_states_to_propagated_set;
     map_step_to_propagated_set[step] = propagated_sets_split;
-    benchmark_result.computation_times_per_step[step].collision_check = std::chrono::duration_cast<std::chrono::microseconds>(
-            std::chrono::high_resolution_clock::now() - time_start).count();
 }
 
 void SemanticSplittingOTFReachableSet::_compute_reachable_set_at_step(const int &step) {

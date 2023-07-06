@@ -23,8 +23,14 @@ void export_benchmark(py::module &m) {
             .def_property_readonly("splitting", [](const ReachComputationTimes &r) {
                 return static_cast<double>(r.splitting) / 1'000'000;
             })
+            .def_property_readonly("partitioning", [](const ReachComputationTimes &r) {
+                return static_cast<double>(r.partitioning) / 1'000'000;
+            })
             .def_property_readonly("collision_check", [](const ReachComputationTimes &r) {
                 return static_cast<double>(r.collision_check) / 1'000'000;
+            })
+            .def_property_readonly("merge", [](const ReachComputationTimes &r) {
+                return static_cast<double>(r.merge) / 1'000'000;
             })
             .def_property_readonly("node_creation", [](const ReachComputationTimes &r) {
                 return static_cast<double>(r.node_creation) / 1'000'000;

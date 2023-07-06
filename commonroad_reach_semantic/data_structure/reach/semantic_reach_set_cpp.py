@@ -51,8 +51,12 @@ class CppSemanticReachableSet(SemanticReachableSet, ABC):
                 self._reach.benchmark_result.computation_times_per_step[step].propagation
             self.benchmark_result.computation_times_per_step[step].splitting = \
                 self._reach.benchmark_result.computation_times_per_step[step].splitting
+            self.benchmark_result.computation_times_per_step[step].partitioning = \
+                self._reach.benchmark_result.computation_times_per_step[step].partitioning
             self.benchmark_result.computation_times_per_step[step].collision_check = \
                 self._reach.benchmark_result.computation_times_per_step[step].collision_check
+            self.benchmark_result.computation_times_per_step[step].merge = \
+                self._reach.benchmark_result.computation_times_per_step[step].merge
             self.benchmark_result.computation_times_per_step[step].node_creation = \
                 self._reach.benchmark_result.computation_times_per_step[step].node_creation
 

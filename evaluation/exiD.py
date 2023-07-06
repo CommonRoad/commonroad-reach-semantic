@@ -78,8 +78,8 @@ def run_scenario(name: str, draw: bool = False, otf: bool = True, path_root: str
     else:
         # reach_interface._reach = PySemanticOTFReachableSet(config, semantic_model, rule_interface)
         # reach_interface._reach = CppSemanticOTFReachableSet(config, semantic_model, rule_interface)
-        reach_interface._reach = PySemanticSplittingOTFReachableSet(config, semantic_model, rule_interface)
-        # reach_interface._reach = CppSemanticSplittingOTFReachableSet(config, semantic_model, rule_interface)
+        # reach_interface._reach = PySemanticSplittingOTFReachableSet(config, semantic_model, rule_interface)
+        reach_interface._reach = CppSemanticSplittingOTFReachableSet(config, semantic_model, rule_interface)
     reach_interface.compute_reachable_sets()
 
     benchmark_result = reach_interface._reach.benchmark_result

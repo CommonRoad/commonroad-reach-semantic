@@ -1,5 +1,6 @@
 #include "reach_semantic/data_structure/reach/semantic_reach_set.hpp"
 
+#include <chrono>
 #include <utility>
 #include "reachset/utility/shared_using.hpp"
 #include "reachset/utility/reach_operation.hpp"
@@ -112,35 +113,58 @@ SemanticReachableSet::_collision_check_and_repartition(std::vector<reach::ReachP
     // repartition, then collision check
     if (mode_repartition == 1) {
         // create repartitioned rectangles from the projected base sets
+        auto time_start = std::chrono::high_resolution_clock::now();
         auto vec_rectangles_repartitioned = create_repartitioned_rectangles(rectangles, size_grid);
+        benchmark_result.computation_times_per_step[step].merge +=
+                std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - time_start).count();
+
+        time_start = std::chrono::high_resolution_clock::now();
         drivable_area = check_collision_and_split_rectangles(step, collision_checker,
                                                              vec_rectangles_repartitioned,
                                                              radius_terminal_split,
                                                              config->reachable_set().num_threads);
+        benchmark_result.computation_times_per_step[step].collision_check +=
+                std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - time_start).count();
     }
 
     // collision check, then repartition
     else if (mode_repartition == 2) {
+        auto time_start = std::chrono::high_resolution_clock::now();
         auto vec_rectangles_collision_free = \
                     check_collision_and_split_rectangles(step, collision_checker,
                                                          rectangles,
                                                          radius_terminal_split,
                                                          config->reachable_set().num_threads);
+        benchmark_result.computation_times_per_step[step].collision_check +=
+                std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - time_start).count();
+
+        time_start = std::chrono::high_resolution_clock::now();
         drivable_area = create_repartitioned_rectangles(vec_rectangles_collision_free, size_grid);
+        benchmark_result.computation_times_per_step[step].merge +=
+                std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - time_start).count();
     }
 
     // repartition, collision check, then repartition again
     else if (mode_repartition == 3) {
+        auto time_start = std::chrono::high_resolution_clock::now();
         auto vec_rectangles_repartitioned = create_repartitioned_rectangles(rectangles, size_grid);
+        benchmark_result.computation_times_per_step[step].merge +=
+                std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - time_start).count();
 
+        time_start = std::chrono::high_resolution_clock::now();
         auto vec_rectangles_collision_free = \
                     check_collision_and_split_rectangles(step, collision_checker,
                                                          vec_rectangles_repartitioned,
                                                          radius_terminal_split,
                                                          config->reachable_set().num_threads);
+        benchmark_result.computation_times_per_step[step].collision_check +=
+                std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - time_start).count();
 
+        time_start = std::chrono::high_resolution_clock::now();
         drivable_area = create_repartitioned_rectangles(vec_rectangles_collision_free,
                                                         size_grid_2nd);
+        benchmark_result.computation_times_per_step[step].merge +=
+                std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - time_start).count();
     } else {
         throw (std::logic_error("Invalid mode for repartition."));
     }
