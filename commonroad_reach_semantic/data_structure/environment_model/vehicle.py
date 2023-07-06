@@ -8,7 +8,8 @@ from commonroad.geometry.shape import Shape, Rectangle
 from commonroad.scenario.intersection import IntersectionIncomingElement
 from commonroad.scenario.lanelet import LaneletNetwork
 from commonroad.scenario.obstacle import ObstacleType, SignalState, StaticObstacle, DynamicObstacle
-from commonroad.scenario.traffic_sign import TrafficSign, TrafficLight
+from commonroad.scenario.traffic_sign import TrafficSign
+from commonroad.scenario.traffic_light import TrafficLight
 from commonroad.scenario.trajectory import State
 from commonroad_dc.pycrccosy import CurvilinearCoordinateSystem
 from commonroad_reach import pycrreach

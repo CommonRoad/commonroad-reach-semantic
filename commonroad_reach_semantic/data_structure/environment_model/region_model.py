@@ -2,7 +2,7 @@ import itertools
 import logging
 from typing import List, Dict, Set, Optional, FrozenSet
 
-from commonroad.scenario.traffic_sign import TrafficLightState, TrafficLightDirection
+from commonroad.scenario.traffic_light import TrafficLightState, TrafficLightDirection
 
 import commonroad_reach_semantic.utility.region as util_region
 from commonroad_reach_semantic.data_structure.config.outgoing_direction import OutgoingDirection
