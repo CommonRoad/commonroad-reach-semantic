@@ -143,7 +143,7 @@ class PySemanticOTFReachableSet(PySemanticReachableSet):
         # discard drivable area with small area if there are more than one node (this is subject to change)
         num_drivable_area = sum(
             [len(list_drivable) for list_drivable in dict_states_to_drivable_area.values()])
-        discard_small_node = (num_drivable_area > 1)
+        discard_small_node = (num_drivable_area > 1) and self.config.reachable_set.discard_small_nodes
 
         # work with the reachable sets partitioned by automaton states here, because otherwise it could happen
         # that we merge two reachable sets with different states when they intersect with the same drivable area
