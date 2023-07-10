@@ -34,12 +34,14 @@ class PySemanticSplittingOTFReachableSet(PySemanticReachableSet):
                  rule_interface: TrafficRuleInterface):
         super().__init__(config, semantic_model, rule_interface)
 
+        start_time = time.perf_counter()
         self.dict_step_to_states_to_drivable_area = dict()
         self.dict_step_to_states_to_propagated_set = dict()
 
         self.reachable_set_to_label = dict()
 
         self._initialize_zero_state_polygons()
+        self.benchmark_result.other_initialization_time += time.perf_counter() - start_time
 
         # Construct finite automaton from traffic rules
         start_time = time.perf_counter()

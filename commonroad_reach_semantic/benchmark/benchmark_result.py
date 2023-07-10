@@ -9,13 +9,14 @@ class ReachBenchmarkResults:
     """Class to store the results of a benchmark run."""
     computation_times_per_step: Dict[int, ReachComputationTimes] = field(default_factory=dict)
     automaton_creation_time: float = 0.0
+    other_initialization_time: float = 0.0
     pruning_time: float = 0.0
     cnt_nodes_before_pruning: int = 0
     cnt_nodes_after_pruning: int = 0
 
     @property
     def total_time(self) -> float:
-        return self.automaton_creation_time + \
+        return self.automaton_creation_time + self.other_initialization_time + \
             sum(step_times.total for step_times in self.computation_times_per_step.values()) + \
             self.pruning_time
 
@@ -50,6 +51,7 @@ class ReachBenchmarkResults:
             f"Nodes after pruning:\t{self.cnt_nodes_after_pruning}",
             f"-------------------------------------",
             f"Automaton creation time:\t{self.automaton_creation_time:.3f}s",
+            f"Other initialization time:\t{self.other_initialization_time:.3f}s",
             f"Propagation time:\t\t\t{self.total_propagation_time:.3f}s",
             f"Splitting time:\t\t\t\t{self.total_splitting_time:.3f}s",
             f"Partitioning time:\t\t\t{self.total_partitioning_time:.3f}s",
