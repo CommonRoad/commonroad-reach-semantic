@@ -18,6 +18,7 @@ from commonroad_reach_semantic.data_structure.reach.semantic_labeling_reach_set_
 from commonroad_reach_semantic.data_structure.reach.semantic_labeling_reach_set_cpp import CppSemanticLabelingReachableSet
 from commonroad_reach_semantic.data_structure.reach.semantic_otf_reach_set_py import PySemanticOTFReachableSet
 from commonroad_reach_semantic.data_structure.reach.semantic_otf_reach_set_cpp import CppSemanticOTFReachableSet
+from commonroad_reach_semantic.data_structure.reach.semantic_reach_interface import SemanticReachableSetInterface
 from commonroad_reach_semantic.data_structure.reach.semantic_splitting_otf_reach_set_py import PySemanticSplittingOTFReachableSet
 from commonroad_reach_semantic.data_structure.reach.semantic_splitting_otf_reach_set_cpp import CppSemanticSplittingOTFReachableSet
 from commonroad_reach_semantic.data_structure.rule.traffic_rule_interface import TrafficRuleInterface
@@ -71,16 +72,19 @@ def run_scenario(name: str, draw: bool = False, otf: bool = True, path_root: str
     rule_interface.print_summary()
 
     # ==== compute reachable sets using reachability interface
-    reach_interface = ReachableSetInterface(config)
+    time_start = time.perf_counter()
+    reach_interface = SemanticReachableSetInterface(config, semantic_model, rule_interface)
     if not otf:
-        # reach_interface._reach = PySemanticLabelingReachableSet(config, semantic_model, rule_interface)
-        reach_interface._reach = CppSemanticLabelingReachableSet(config, semantic_model, rule_interface)
+        # reach_interface.set_reach(PySemanticLabelingReachableSet(config, semantic_model, rule_interface))
+        reach_interface.set_reach(CppSemanticLabelingReachableSet(config, semantic_model, rule_interface))
     else:
-        # reach_interface._reach = PySemanticOTFReachableSet(config, semantic_model, rule_interface)
-        # reach_interface._reach = CppSemanticOTFReachableSet(config, semantic_model, rule_interface)
-        # reach_interface._reach = PySemanticSplittingOTFReachableSet(config, semantic_model, rule_interface)
-        reach_interface._reach = CppSemanticSplittingOTFReachableSet(config, semantic_model, rule_interface)
+        # reach_interface.set_reach(PySemanticOTFReachableSet(config, semantic_model, rule_interface))
+        # reach_interface.set_reach(CppSemanticOTFReachableSet(config, semantic_model, rule_interface))
+        reach_interface.set_reach(PySemanticSplittingOTFReachableSet(config, semantic_model, rule_interface))
+        # reach_interface.set_reach(CppSemanticSplittingOTFReachableSet(config, semantic_model, rule_interface))
     reach_interface.compute_reachable_sets()
+    overall_time = time.perf_counter() - time_start
+    print(f"Overall time: {overall_time:.3f}s")
 
     benchmark_result = reach_interface._reach.benchmark_result
     print(benchmark_result)
