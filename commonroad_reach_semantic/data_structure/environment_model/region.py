@@ -61,9 +61,9 @@ class Region:
 
         cls.dict_id_lanelet_to_polygon_cart = dict()
         # handles lon and lat similarly
-        cls.attach_inflated_polygon_to_lanelets_simple()
+        # cls.attach_inflated_polygon_to_lanelets_simple()
         # differentiates between lon and lat
-        # cls.attach_inflated_polygon_to_lanelets(set_lanelets_route_related)
+        cls.attach_inflated_polygon_to_lanelets(lanelet_model.set_lanelets_route_related)
 
     @classmethod
     def attach_inflated_polygon_to_lanelets_simple(cls):
