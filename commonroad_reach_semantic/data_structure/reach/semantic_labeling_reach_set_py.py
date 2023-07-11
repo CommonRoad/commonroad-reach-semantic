@@ -1,3 +1,5 @@
+import time
+
 import more_itertools
 import logging
 from collections import defaultdict
@@ -23,15 +25,24 @@ class PySemanticLabelingReachableSet(PySemanticReachableSet):
     def __init__(self, config: SemanticConfiguration, semantic_model: SemanticModel,
                  rule_interface: TrafficRuleInterface):
         super().__init__(config, semantic_model, rule_interface)
-        self.dict_step_to_reachable_set[self.step_start] = self._construct_initial_reachable_sets()
-        self.dict_step_to_drivable_area[self.step_start] = reach_operation.project_propagated_sets_to_position_domain(
-            self.dict_step_to_reachable_set[self.step_start])
-
+        time_start = time.perf_counter()
         self.dict_step_to_propositions_to_drivable_area = dict()
         self.dict_step_to_propositions_to_propagated_set = dict()
 
-        self.labeler.label_initial_state(self.dict_step_to_reachable_set[self.step_start], self.step_start)
         self._initialize_zero_state_polygons()
+        self.benchmark_result.other_initialization_time += time.perf_counter() - time_start
+
+        time_start = time.perf_counter()
+        self.dict_step_to_reachable_set[self.step_start] = self._construct_initial_reachable_sets()
+        self.benchmark_result.computation_times_per_step[self.step_start].propagation = time.perf_counter() - time_start
+        time_start = time.perf_counter()
+        self.dict_step_to_drivable_area[self.step_start] = reach_operation.project_propagated_sets_to_position_domain(
+            self.dict_step_to_reachable_set[self.step_start])
+        self.benchmark_result.computation_times_per_step[self.step_start].collision_check = time.perf_counter() - time_start
+
+        time_start = time.perf_counter()
+        self.labeler.label_initial_state(self.dict_step_to_reachable_set[self.step_start], self.step_start)
+        self.benchmark_result.computation_times_per_step[self.step_start].splitting = time.perf_counter() - time_start
 
         logger.debug("PySemanticLabelingReachableSet initialized.")
 
@@ -45,6 +56,7 @@ class PySemanticLabelingReachableSet(PySemanticReachableSet):
             2. Project base sets onto the position domain to obtain position rectangles.
             3. Merge, repartition and check collisions for these rectangles. The order depends on the configuration.
         """
+        time_start = time.perf_counter()
         reachable_set_previous = self.dict_step_to_reachable_set[step - 1]
 
         if len(reachable_set_previous) < 1:
@@ -55,32 +67,37 @@ class PySemanticLabelingReachableSet(PySemanticReachableSet):
             return None
 
         propagated_sets = self._propagate_reachable_set(reachable_set_previous)
+        self.benchmark_result.computation_times_per_step[step].propagation = time.perf_counter() - time_start
 
+        time_start = time.perf_counter()
         # split w.r.t regions and position intervals
         propagated_sets = more_itertools.flatten(
             self.labeler.split_wrt_regions(step, propagated_set)
             for propagated_set in propagated_sets
         )
-        propagated_sets = more_itertools.flatten(
+        propagated_sets = list(more_itertools.flatten(
             self.labeler.split_wrt_position_intervals(step, propagated_set)
             for propagated_set in propagated_sets
-        )
+        ))
 
         # discard the ones colliding with vehicles
-        propagated_sets = self.labeler.discard_colliding_nodes(propagated_sets)
+        # propagated_sets = self.labeler.discard_colliding_nodes(propagated_sets)
 
         # examine whether the propagated sets satisfy TPL specifications
-        propagated_sets = self.rule_interface.tpl_checker.examine_tpl_specifications(step, propagated_sets,
-                                                                                     self.labeler.reachable_set_to_propositions)
+        # propagated_sets = self.rule_interface.tpl_checker.examine_tpl_specifications(step, propagated_sets,
+        #                                                                              self.labeler.reachable_set_to_propositions)
 
         # update traffic propositions of the propagated sets
         propagated_sets = self.labeler.label_traffic_propositions(step, propagated_sets)
+        self.benchmark_result.computation_times_per_step[step].splitting = time.perf_counter() - time_start
 
+        time_start = time.perf_counter()
         # partition propagated sets by their propositions
         dict_propositions_to_propagated_set = defaultdict(list)
         for propagated_set in propagated_sets:
             dict_propositions_to_propagated_set[self.labeler.reachable_set_to_propositions[propagated_set]].append(
                 propagated_set)
+        self.benchmark_result.computation_times_per_step[step].partitioning = time.perf_counter() - time_start
 
         # merge, collision check, and repartition propagated sets partitioned by their propositions,
         # because we must not merge sets with different propositions
@@ -105,6 +122,7 @@ class PySemanticLabelingReachableSet(PySemanticReachableSet):
             1. construct reach nodes from drivable area and the propagated sets.
             2. update parent-child relationship of the nodes.
         """
+        time_start = time.perf_counter()
         dict_propositions_to_propagated_set = self.dict_step_to_propositions_to_propagated_set[step]
         dict_propositions_to_drivable_area = self.dict_step_to_propositions_to_drivable_area[step]
 
@@ -136,3 +154,4 @@ class PySemanticLabelingReachableSet(PySemanticReachableSet):
 
         self.dict_step_to_reachable_set[step] = list(
             more_itertools.flatten(dict_propositions_to_reachable_set.values()))
+        self.benchmark_result.computation_times_per_step[step].node_creation = time.perf_counter() - time_start
