@@ -25,7 +25,8 @@ from commonroad_reach_semantic.data_structure.rule.traffic_rule_interface import
 
 
 def main():
-    scenario_names = list(scenarios_from_file("evaluation/real_access_ramp.txt"))
+    # scenario_names = list(scenarios_from_file("evaluation/real_access_ramp.txt"))
+    scenario_names = list(scenarios_from_file("evaluation/scenarios_starting_in_front.txt"))
     with alive_bar(len(scenario_names)) as bar:
         for name in scenario_names:
             print(f"Running benchmark for {name}")

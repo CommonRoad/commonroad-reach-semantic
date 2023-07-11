@@ -36,7 +36,7 @@ def main():
     # )
 
     # run_parallel(
-    #     lambda n: run_with_except(n, filter_scenario),
+    #     run_filter,
     #     (os.path.splitext(os.path.basename(path))[0] for path in scenario_paths),
     #     num_processes=num_processes,
     # )
@@ -48,7 +48,13 @@ def main():
     # name = "DEU_MerzenichRather-2_9223250_T-23399"  # scenario, where rule should actually cut some states
     # name = "DEU_MerzenichRather-2_7915150_T-15299"  # already in right lane
     name = "DEU_MerzenichRather-2_8814400_T-14549"  # very good scenario with two entering vehicles, but only one reaches main carriageway
-    run_scenario(name, draw=False, otf=True)
+    # name = "DEU_MerzenichRather-2_8621150_T-21299"  # fails because of missing prediction
+    # name = "DEU_MerzenichRather-2_8619050_T-19199"  # takes longer than the others (probably because there are three vehicles to consider)
+    run_scenario(name, draw=False, otf=True, verbose=True)
+
+
+def run_filter(name: str) -> None:
+    run_with_except(name, filter_scenario)
 
 
 def scenarios_from_file(path: str) -> Iterator[str]:
@@ -151,7 +157,8 @@ def run_with_except(name: str, func: Callable[[str], None]) -> None:
 def is_good_initial_state(semantic_model: SemanticModel, config: SemanticConfiguration) -> bool:
     [list_ids_lanelets] = semantic_model.lanelet_model.road_network.lanelet_network.find_lanelet_by_position(
         [config.planning_problem.initial_state.position])
-    good_lanelets = [10, 11, 12, 13, 14, 15, 17, 18, 19, 31, 33, 35, 32, 34, 36]
+    # good_lanelets = [10, 11, 12, 13, 14, 15, 17, 18, 19, 31, 33, 35, 32, 34, 36]
+    good_lanelets = [10, 11, 12, 13, 14, 15, 17, 18, 19, 31, 33, 35]
     for id_lanelet in list_ids_lanelets:
         if id_lanelet in good_lanelets:
             return True
