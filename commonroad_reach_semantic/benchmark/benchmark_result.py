@@ -64,6 +64,20 @@ class ReachBenchmarkResults:
             f"=====================================",
         ])
 
+    def to_dict(self) -> dict:
+        steps = list(self.computation_times_per_step.keys())
+        computation_time_keys = ReachComputationTimes.tuple_keys()
+        computation_times = [self.computation_times_per_step[step].to_tuple() for step in steps]
+        return {
+            "nodes_before_pruning": self.cnt_nodes_before_pruning,
+            "nodes_after_pruning": self.cnt_nodes_after_pruning,
+            "automaton_creation_time": self.automaton_creation_time,
+            "other_initialization_time": self.other_initialization_time,
+            "steps": steps,
+            "computation_time_keys": computation_time_keys,
+            "computation_times": computation_times,
+        }
+
 
 @dataclass
 class ReachComputationTimes:
@@ -78,3 +92,10 @@ class ReachComputationTimes:
     @property
     def total(self) -> float:
         return self.propagation + self.splitting + self.partitioning + self.collision_check + self.merge + self.node_creation
+
+    def to_tuple(self) -> tuple:
+        return self.propagation, self.splitting, self.partitioning, self.collision_check, self.merge, self.node_creation
+
+    @staticmethod
+    def tuple_keys() -> tuple:
+        return "propagation", "splitting", "partitioning", "collision_check", "merge", "node_creation"
