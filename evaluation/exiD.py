@@ -57,19 +57,21 @@ def scenarios_from_file(path: str) -> Iterator[str]:
             yield line.strip()
 
 
-def run_scenario(name: str, draw: bool = False, otf: bool = True, path_root: str = "/home/lercher/datasets/exiD-commonroad-only6-merge") -> None:
+def run_scenario(name: str, draw: bool = False, otf: bool = True, verbose: bool = False, path_root: str = "/home/lercher/datasets/exiD-commonroad-only6-merge") -> None:
     # ==== build configuration
     config = SemanticConfigurationBuilder.build_configuration(name, path_root=path_root)
 
     config.update()
     util_logger.initialize_logger(config)
-    config.print_configuration_summary()
+    if verbose:
+        config.print_configuration_summary()
 
     # ==== initialize semantic model and traffic rules
     semantic_model = SemanticModel(config)
     semantic_model.determine_traffic_priorities(priorities.dict_traffic_sign_to_priorities)
     rule_interface = TrafficRuleInterface(config, semantic_model)
-    rule_interface.print_summary()
+    if verbose:
+        rule_interface.print_summary()
 
     # ==== compute reachable sets using reachability interface
     time_start = time.perf_counter()
@@ -80,39 +82,38 @@ def run_scenario(name: str, draw: bool = False, otf: bool = True, path_root: str
     else:
         # reach_interface.set_reach(PySemanticOTFReachableSet(config, semantic_model, rule_interface))
         # reach_interface.set_reach(CppSemanticOTFReachableSet(config, semantic_model, rule_interface))
-        reach_interface.set_reach(PySemanticSplittingOTFReachableSet(config, semantic_model, rule_interface))
-        # reach_interface.set_reach(CppSemanticSplittingOTFReachableSet(config, semantic_model, rule_interface))
+        # reach_interface.set_reach(PySemanticSplittingOTFReachableSet(config, semantic_model, rule_interface))
+        reach_interface.set_reach(CppSemanticSplittingOTFReachableSet(config, semantic_model, rule_interface))
     reach_interface.compute_reachable_sets()
     overall_time = time.perf_counter() - time_start
-    print(f"Overall time: {overall_time:.3f}s")
-
     benchmark_result = reach_interface._reach.benchmark_result
-    print(benchmark_result)
+    if verbose:
+        print(f"Overall time: {overall_time:.3f}s")
+        print(benchmark_result)
 
-    # ==== construct an interface to interact with Spot
     if not otf:
         time_start = time.perf_counter()
+        # ==== construct an interface to interact with Spot
         spot_interface = SpotInterface(reach_interface, rule_interface)
         spot_interface.translate_ltl_formulas()
         spot_interface.translate_reachability_graph()
         spot_interface.check()
         model_checking_time = time.perf_counter() - time_start
-        print(f"Model checking time: {model_checking_time:.3f}s")
+        if verbose:
+            print(f"Model checking time: {model_checking_time:.3f}s")
 
-    if not draw:
-        return
+    if draw:
+        # ==== plot computation results
+        node_to_group = util_visual.groups_from_states(reach_interface._reach.reachable_set_to_label) if otf \
+            else util_visual.groups_from_propositions(reach_interface._reach.labeler.reachable_set_to_propositions)
+        util_visual.plot_reach_graph(reach_interface, node_to_group=node_to_group)
+        util_visual.plot_scenario_with_regions(semantic_model, "CVLN")
+        util_visual.plot_scenario_with_reachable_sets(reach_interface, save_gif=True)
+        if not otf:
+            util_visual.plot_scenario_with_kripke_nodes(spot_interface, plot_accepting=True, save_gif=True)
 
-    # ==== plot computation results
-    node_to_group = util_visual.groups_from_states(reach_interface._reach.reachable_set_to_label) if otf \
-        else util_visual.groups_from_propositions(reach_interface._reach.labeler.reachable_set_to_propositions)
-    util_visual.plot_reach_graph(reach_interface, node_to_group=node_to_group)
-    util_visual.plot_scenario_with_regions(semantic_model, "CVLN")
-    util_visual.plot_scenario_with_reachable_sets(reach_interface, save_gif=True)
-    if not otf:
-        util_visual.plot_scenario_with_kripke_nodes(spot_interface, plot_accepting=True, save_gif=True)
-
-    # ==== show interactive visualization
-    util_visual.show_interactive_reach_graph(reach_interface, use_images=True, node_to_group=node_to_group)
+        # ==== show interactive visualization
+        util_visual.show_interactive_reach_graph(reach_interface, use_images=True, node_to_group=node_to_group)
 
 
 def filter_scenario(name: str, path_root: str = "/home/lercher/datasets/exiD-commonroad-only6-merge") -> None:
