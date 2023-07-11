@@ -65,8 +65,8 @@ void SemanticLabelingReachableSet::_compute_drivable_area_at_step(int const &ste
 //    vec_propagated_set = labeler->discard_colliding_nodes(vec_propagated_set);
 
     // examine whether the propagated sets satisfy TPL specifications
-//    vec_propagated_set = rule_interface->examine_tpl_specifications(step, vec_propagated_set,
-//                                                                    labeler->reachable_set_to_propositions);
+    vec_propagated_set = rule_interface->examine_tpl_specifications(step, vec_propagated_set,
+                                                                    labeler->reachable_set_to_propositions);
 
     // update traffic propositions of the propagated sets
     vec_propagated_set = labeler->label_traffic_propositions(step, vec_propagated_set);

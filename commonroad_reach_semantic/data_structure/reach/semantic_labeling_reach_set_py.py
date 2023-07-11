@@ -84,8 +84,8 @@ class PySemanticLabelingReachableSet(PySemanticReachableSet):
         # propagated_sets = self.labeler.discard_colliding_nodes(propagated_sets)
 
         # examine whether the propagated sets satisfy TPL specifications
-        # propagated_sets = self.rule_interface.tpl_checker.examine_tpl_specifications(step, propagated_sets,
-        #                                                                              self.labeler.reachable_set_to_propositions)
+        propagated_sets = self.rule_interface.tpl_checker.examine_tpl_specifications(step, propagated_sets,
+                                                                                     self.labeler.reachable_set_to_propositions)
 
         # update traffic propositions of the propagated sets
         propagated_sets = self.labeler.label_traffic_propositions(step, propagated_sets)
