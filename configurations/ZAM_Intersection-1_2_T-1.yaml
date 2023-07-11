@@ -23,7 +23,7 @@ traffic_rules:
 #    - LTL G((Intersection_LeftOf_V38 & !HasRelevantTrafficLight & (F(InStraightSuc) & F(V38_InStraightSuc) & Same_straight_straight_PriorityAs_V38)) -> (!InIntersection | ((F[0..10]InConflictBy_V38 -> !InConflictWith_V38))))
     # R-IN3
 #    - LTL G((true & !false & (F(InStraightSuc) & F(V38_InStraightSuc) & Same_straight_straight_PriorityAs_V38)) -> (!InIntersection | (((CausesBrakingFor_V38 | F[0..10]InConflictBy_V38) -> !InConflictWith_V38))))
-    - LTL G((true & !false & (F(InStraightSuc) & F(V38_InStraightSuc) & Same_straight_straight_PriorityAs_V38)) -> G(!InIntersection | ((InConflictWith_V38 -> (!CausesBrakingFor_V38 & !F[0..10]InConflictBy_V38)) & (InConflictBy_V38 -> !F[0..10] InConflictWith_V38))))
+    - LTL G((true & !false & (F(InStraightSuc) & F(V38_InStraightSuc) & Same_straight_straight_PriorityAs_V38)) -> G(!InIntersection | ((InConflictWith_V38 -> (!CausesBrakingFor_V38 & !F[0..5]InConflictBy_V38)) & (InConflictBy_V38 -> !F[0..2] InConflictWith_V38))))
 #    - LTL G((true & !false & (F(InStraightSuc) & F(V31_InStraightSuc) & Same_straight_straight_PriorityAs_V31)) -> G(!InIntersection | ((InConflictWith_V31 -> (!CausesBrakingFor_V31 & !F[0..10]InConflictBy_V31)) & (InConflictBy_V31 -> !F[0..10] InConflictWith_V31))))
     # simulate no opposite driving in LTL
     - LTL ! F (InLanelet_8 | InLanelet_13 | InLanelet_15)
