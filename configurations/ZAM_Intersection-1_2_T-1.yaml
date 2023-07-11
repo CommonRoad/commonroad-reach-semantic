@@ -47,7 +47,7 @@ traffic_rules:
   activated_rules:
     # rules to be concretized
     - NoBackwardDrivingRule
-#    - NoOppositeDrivingRule
+    - NoOppositeDrivingRule
 #    - LineMarkingRule
 #    - TrafficLightRule
     #    - PriorityRule
