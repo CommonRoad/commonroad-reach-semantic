@@ -1,7 +1,7 @@
 import glob
 import os
 from dataclasses import dataclass
-from typing import Tuple
+from typing import Tuple, Optional
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -25,9 +25,40 @@ class SummaryBenchmarkResult:
     overall: float
     nodes_before_pruning: int
     nodes_after_pruning: int
+    model_checking: Optional[float] = None
 
 
 def main():
+    simple()
+    # exid()
+
+
+def simple():
+    path_root = "/home/lercher/tum/commonroad/commonroad-reach-semantic-addon"
+    benchmark_dir = "benchmark_merge_intersection_no_backward"
+
+    computation_columns = ["propagation", "splitting", "partitioning", "collision_check", "merge", "node_creation", "pruning"]
+
+    otf_scenario_paths = glob.glob(os.path.join(path_root, benchmark_dir, "O_*.yaml"))
+    otf_results = pd.concat((read_otf_results(path) for path in otf_scenario_paths), ignore_index=True, sort=False)
+    otf_results["computation"] = otf_results[computation_columns].sum(axis=1)
+    otf_aggregated_per_scenario = otf_results.groupby("scenario_name").mean()
+
+    labeling_scenario_paths = glob.glob(os.path.join(path_root, benchmark_dir, "L_*.yaml"))
+    labeling_results = pd.concat((read_labeling_results(path) for path in labeling_scenario_paths), ignore_index=True, sort=False)
+    labeling_results["computation"] = labeling_results[computation_columns].sum(axis=1)
+    labeling_aggregated_per_scenario = labeling_results.groupby("scenario_name").mean()
+
+    combined = pd.merge(
+        otf_aggregated_per_scenario[["automaton_creation", "computation", "nodes_before_pruning", "nodes_after_pruning"]],
+        labeling_aggregated_per_scenario[["model_checking", "computation", "nodes_before_pruning", "nodes_after_pruning"]],
+        on="scenario_name", suffixes=("_otf", "_lab")
+    )
+    with pd.option_context("display.max_rows", None, "display.max_columns", None, "display.width", None):
+        print(combined)
+
+
+def exid():
     path_root = "/home/lercher/datasets/exiD-commonroad-only6-merge"
     benchmark_dir = "benchmark_scenarios_starting_in_front"
     scenario_paths = glob.glob(os.path.join(path_root, benchmark_dir, "O_DEU_MerzenichRather-*.yaml"))
@@ -57,6 +88,14 @@ def read_otf_results(path: str) -> pd.DataFrame:
     return pd.DataFrame(bench_results)
 
 
+def read_labeling_results(path: str) -> pd.DataFrame:
+    with open(path) as f:
+        data = yaml.load(f, Loader=yaml.FullLoader)
+    name = data["scenario_name"]
+    bench_results = [to_summary_result(*parse_benchmark_result(result), name, result["model_checking_time"]) for result in data["results"]]
+    return pd.DataFrame(bench_results)
+
+
 def parse_benchmark_result(result: dict) -> Tuple[ReachBenchmarkResults, float]:
     bench_result = ReachBenchmarkResults()
     bench_result.cnt_nodes_before_pruning = result["nodes_before_pruning"]
@@ -76,7 +115,7 @@ def parse_benchmark_result(result: dict) -> Tuple[ReachBenchmarkResults, float]:
     return bench_result, result["overall_time"]
 
 
-def to_summary_result(benchmark_result: ReachBenchmarkResults, overall_time: float, name: str) -> SummaryBenchmarkResult:
+def to_summary_result(benchmark_result: ReachBenchmarkResults, overall_time: float, name: str, model_checking_time: Optional[float] = None) -> SummaryBenchmarkResult:
     return SummaryBenchmarkResult(
         scenario_name=name,
         automaton_creation=benchmark_result.automaton_creation_time,
@@ -91,6 +130,7 @@ def to_summary_result(benchmark_result: ReachBenchmarkResults, overall_time: flo
         overall=overall_time,
         nodes_before_pruning=benchmark_result.cnt_nodes_before_pruning,
         nodes_after_pruning=benchmark_result.cnt_nodes_after_pruning,
+        model_checking=model_checking_time,
     )
 
 
