@@ -46,7 +46,7 @@ class CppSemanticReachableSet(SemanticReachableSet, ABC):
         self.benchmark_result.automaton_creation_time = self._reach.benchmark_result.automaton_creation_time
         self.benchmark_result.cnt_nodes_before_pruning = self._reach.benchmark_result.cnt_nodes_before_pruning
         self.benchmark_result.cnt_nodes_after_pruning = self._reach.benchmark_result.cnt_nodes_after_pruning
-        for step in range(step_start, step_end + 1):
+        for step in self._list_steps_computed:
             self.benchmark_result.computation_times_per_step[step].propagation = \
                 self._reach.benchmark_result.computation_times_per_step[step].propagation
             self.benchmark_result.computation_times_per_step[step].splitting = \

@@ -73,6 +73,7 @@ class ReachBenchmarkResults:
             "nodes_after_pruning": self.cnt_nodes_after_pruning,
             "automaton_creation_time": self.automaton_creation_time,
             "other_initialization_time": self.other_initialization_time,
+            "pruning_time": self.pruning_time,
             "steps": steps,
             "computation_time_keys": computation_time_keys,
             "computation_times": computation_times,
