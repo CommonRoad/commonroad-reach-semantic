@@ -30,12 +30,13 @@ class SummaryBenchmarkResult:
 
 def main():
     simple()
-    # exid()
+    exid()
 
 
 def simple():
     path_root = "/home/lercher/tum/commonroad/commonroad-reach-semantic-addon"
-    benchmark_dir = "benchmark_merge_intersection_no_backward"
+    # benchmark_dir = "benchmark_merge_intersection_no_backward"
+    benchmark_dir = "benchmark_merge_intersection_edmonds_params"
 
     computation_columns = ["propagation", "splitting", "partitioning", "collision_check", "merge", "node_creation", "pruning"]
 
@@ -65,17 +66,19 @@ def exid():
     results = pd.concat((read_otf_results(path) for path in scenario_paths), ignore_index=True, sort=False)
     aggregated_per_scenario = results.groupby("scenario_name").mean()
     overall_mean = aggregated_per_scenario.mean()
-    for_boxplot = results.drop(columns=["other_initialization", "overall", "nodes_before_pruning", "nodes_after_pruning"])
+    for_boxplot = aggregated_per_scenario.drop(columns=["other_initialization", "overall", "nodes_before_pruning", "nodes_after_pruning"])
     for_boxplot["total"] = for_boxplot.sum(axis=1, numeric_only=True)
+    for_boxplot["phase1"] = for_boxplot[["propagation"]].sum(axis=1)
+    for_boxplot["phase2"] = for_boxplot[["splitting"]].sum(axis=1)
+    for_boxplot["phase3"] = for_boxplot[["partitioning", "collision_check", "merge", "node_creation"]].sum(axis=1)
     for_boxplot.boxplot(
         column=[
-            "automaton_creation", "pruning", "propagation",
-            "splitting", "partitioning", "collision_check", "merge",
-            "node_creation", "total",
+            "automaton_creation", "pruning", "phase1", "phase2", "phase3", "total",
         ],
         showfliers=False,
         rot=45,
     )
+    print(for_boxplot["total"].max())
     plt.show()
     print(overall_mean)
 
