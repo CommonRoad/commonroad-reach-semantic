@@ -354,6 +354,22 @@ class Vehicle:
         else:
             return False
 
+    def has_ref_prediction(self, step: int) -> bool:
+        """Returns whether the vehicle has a prediction in the CLCS of the ego vehicle at the given step."""
+        if step in self.dict_step_to_state_lon_ref and step in self.dict_step_to_state_lat_ref:
+            return self.dict_step_to_state_lon_ref[step] is not None and \
+                      self.dict_step_to_state_lat_ref[step] is not None
+        else:
+            return False
+
+    def has_ego_prediction(self, step: int) -> bool:
+        """Returns whether the vehicle has a prediction in its own CLCS at the given step."""
+        if step in self.dict_step_to_state_lon_ego and step in self.dict_step_to_state_lat_ego:
+            return self.dict_step_to_state_lon_ego[step] is not None and \
+                self.dict_step_to_state_lat_ego[step] is not None
+        else:
+            return False
+
     def rear_s_ref(self, step: int) -> float:
         """
         Calculates rear s-coordinate of vehicle

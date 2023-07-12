@@ -1,3 +1,4 @@
+import warnings
 from typing import List, Optional, Set
 
 from commonroad_reach.data_structure.reach.reach_node import ReachNode
@@ -21,7 +22,8 @@ class BehindObstaclePredicate(predicate.Predicate):
             reach_node.intersect_in_position_domain(p_lon_max=vehicle_rear)
             return [reach_node]
         else:
-            raise RuntimeError(f"Vehicle {self.obstacle_id} not found or no prediction for step {step}")
+            warnings.warn(f"No prediction for {self.obstacle_id} at step {step}, cannot restrict reach node.")
+            return [reach_node]
 
     def _restrict_reach_node_forbidden(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel,
                                        _node_lanelet_ids: Optional[Set[int]] = None) -> List[ReachNode]:
@@ -29,12 +31,13 @@ class BehindObstaclePredicate(predicate.Predicate):
             reach_node.intersect_in_position_domain(p_lon_min=vehicle_rear)
             return [reach_node]
         else:
-            raise RuntimeError(f"Vehicle {self.obstacle_id} not found or no prediction for step {step}")
+            warnings.warn(f"No prediction for {self.obstacle_id} at step {step}, cannot restrict reach node.")
+            return [reach_node]
 
     def _get_vehicle_rear(self, step: int, semantic_model: SemanticModel) -> Optional[float]:
         if vehicle := semantic_model.vehicle_model.find_vehicle_by_id(self.obstacle_id):
-            try:
+            if vehicle.has_ref_prediction(step):
                 return vehicle.p_lon_min_ref(step, semantic_model.config.vehicle.ego.length / 2)
-            except KeyError:
+            else:
                 return None
-        return None
+        raise RuntimeError(f"Vehicle {self.obstacle_id} not found or no prediction for step {step}")
