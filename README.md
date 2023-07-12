@@ -2,7 +2,7 @@
 
 ### System Requirements
 
-The software is written in Python 3.10, and was tested on Ubuntu 22.04.
+The software is written in Python 3.10, and was tested on Ubuntu 20.04 & 22.04.
 
 ### Building the Code
 
@@ -54,3 +54,8 @@ Default and scenario-specific configurations are stored in the `./configurations
 The scenarios themselves are located in the `./scenarios/` directory.
 
 > **Note:** You might need to adjust the `path_root` argument of `SemanticConfigurationBuilder.build_configuration` to your setup.
+
+### Possible installation problems
+- `error: 'to_finite' is not a member of 'spot'` during cmake build: this is caused by an old version is used for compiling even you have installed the latest one. The `to_finite` is declared at header `remprop.hh`. You can search for `sudo find / -name remprop.hh 2>/dev/null` and then delete the folders that are not under `/usr/`.
+- `ImportError: /.../commonroad-reach-semantic/commonroad_reach_semantic/pycrreachs.cpython-310-x86_64-linux-gnu.so: undefined symbol: _ZN4spot9to_finiteESt10shared_ptrIKNS_9twa_graphEEPKc`
+ when importing pybind11 bindings: you can use [this tool](https://demangler.com) to decode the information. This might be still some old version of `spot` is used from your conda environment. Try to uninstall `spot` and see whether the error appeared. If yes, delete other spot files in your anaconda folder and reinstall spot.
