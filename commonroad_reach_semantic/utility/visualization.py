@@ -203,9 +203,9 @@ def _plot_reach_node_for_interactive(reach_interface: ReachableSetInterface, rea
     return os.path.join(relative_figure_path, filename)
 
 
-def plot_scenario_with_reachable_sets(reach_interface: ReachableSetInterface, figsize: Tuple = (25, 15),
-                                      step_start: int = 0, step_end: int = 0, steps: List[int] = None,
-                                      plot_limits: List = None, path_output: str = None,
+def plot_scenario_with_reachable_sets(semantic_model: SemanticModel, reach_interface: ReachableSetInterface,
+                                      figsize: Tuple = (25, 15), step_start: int = 0, step_end: int = 0,
+                                      steps: List[int] = None, plot_limits: List = None, path_output: str = None,
                                       save_gif: bool = True, duration: float = None):
     """
     Plots scenario with computed reachable sets.
@@ -216,7 +216,8 @@ def plot_scenario_with_reachable_sets(reach_interface: ReachableSetInterface, fi
     path_output = path_output or config.general.path_output
     Path(path_output).mkdir(parents=True, exist_ok=True)
 
-    plot_limits = plot_limits or reach_visualization.compute_plot_limits_from_reachable_sets(reach_interface)
+    # plot_limits = plot_limits or reach_visualization.compute_plot_limits_from_reachable_sets(reach_interface)
+    plot_limits = plot_limits or compute_plot_limits_from_lanelet_network(semantic_model.lanelet_model.local_lanelet_network)
     draw_params = _create_draw_params(config)
 
     step_start = step_start or reach_interface.step_start
@@ -314,8 +315,8 @@ def plot_scenario_with_regions(semantic_model: SemanticModel, coordinate_system:
     util_logger.print_and_log_info(logger, "\tLanelet regions plotted.")
 
 
-def plot_scenario_with_kripke_nodes(spot_interface: SpotInterface, plot_accepting: bool = True,
-                                    figsize: Tuple = (25, 15),
+def plot_scenario_with_kripke_nodes(semantic_model: SemanticModel, spot_interface: SpotInterface,
+                                    plot_accepting: bool = True, figsize: Tuple = (25, 15),
                                     step_start: int = 0, step_end: int = 0, steps: List[int] = None,
                                     plot_limits: Union[List] = None, path_output: str = None,
                                     save_gif: bool = True, duration: float = None):
@@ -329,7 +330,8 @@ def plot_scenario_with_kripke_nodes(spot_interface: SpotInterface, plot_acceptin
     path_output = path_output or config.general.path_output
     Path(path_output).mkdir(parents=True, exist_ok=True)
 
-    plot_limits = plot_limits or reach_visualization.compute_plot_limits_from_reachable_sets(reach_interface)
+    # plot_limits = plot_limits or reach_visualization.compute_plot_limits_from_reachable_sets(reach_interface)
+    plot_limits = plot_limits or compute_plot_limits_from_lanelet_network(semantic_model.lanelet_model.local_lanelet_network)
     draw_params = _create_draw_params(config)
 
     step_start = step_start or reach_interface.step_start
@@ -561,8 +563,8 @@ def _draw_scenario_elements(config: SemanticConfiguration, renderer: MPRenderer,
     """
     scenario = config.scenario
     scenario.draw(renderer, draw_params)
-    for sign in scenario.lanelet_network.traffic_signs:
-        sign.draw(renderer)
+    # for sign in scenario.lanelet_network.traffic_signs:
+    #     sign.draw(renderer)
 
     if config.debug.draw_planning_problem:
         config.planning_problem.draw(renderer, draw_params)
