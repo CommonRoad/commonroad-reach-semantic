@@ -146,8 +146,8 @@ class VehicleModel:
         # alternatively, one can also check the lanelets a vehicle occupies during the planning horizon
         return {
             vehicle.id_vehicle for vehicle in self.list_vehicles
-            if LaneletType.INTERSECTION in (
-                self.lanelet_model.local_lanelet_network.find_lanelet_by_id(id_lanelet).lanelet_type
+            if any(
+                LaneletType.INTERSECTION in self.lanelet_model.local_lanelet_network.find_lanelet_by_id(id_lanelet).lanelet_type
                 for id_lanelet in vehicle.lane.list_ids_lanelets
             )
         }
