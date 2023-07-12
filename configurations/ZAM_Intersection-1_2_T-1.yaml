@@ -1,14 +1,47 @@
+debug:
+  # visualization settings
+  # draw the planning problem
+  draw_planning_problem: True
+  # visualize dynamic obstacles with icons
+  draw_icons: True
+
 planning:
   dt: 0.2
   steps_computation: 15
   coordinate_system: "CVLN"
 
 reachable_set:
+  mode_computation: 1
   mode_repartition: 3
   size_grid: 0.25
   size_grid_2nd: 0.1
+  rasterize_obstacles: false
   radius_terminal_split: 0.7
   prune_nodes_not_reaching_final_step: true
+
+vehicle:
+  ego:
+    length: 4.5
+    width: 1.8
+    a_lat_max: 2.0
+    a_lat_min: -2.0
+    a_lon_max: 6.0
+    a_lon_min: -6.0
+    v_lat_max: 4.0
+    v_lat_min: -4.0
+    v_lon_max: 20.0
+    v_lon_min: 0.0
+  other:
+    length: 4.5
+    width: 1.8
+    a_lat_max: 2.0
+    a_lat_min: -2.0
+    a_lon_max: 6.0
+    a_lon_min: -6.0
+    v_lat_max: 4.0
+    v_lat_min: -4.0
+    v_lon_max: 20.0
+    v_lon_min: 0.0
 
 traffic_rules:
   activated_rules:
