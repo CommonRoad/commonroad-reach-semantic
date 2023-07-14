@@ -9,13 +9,14 @@ planning:
   dt: 0.2
   steps_computation: 15
   coordinate_system: "CVLN"
+#  reference_point: CENTER
+  reference_point: REAR  # used for figures in Edmond's paper
 
 reachable_set:
   mode_computation: 1
 #  mode_repartition: 3
   size_grid: 0.251
   size_grid_2nd: 0.1
-  rasterize_obstacles: false
   radius_terminal_split: 0.7
   prune_nodes_not_reaching_final_step: true
 
@@ -30,8 +31,8 @@ vehicle:
     v_lat_max: 4.0
     v_lat_min: -4.0
     v_lon_max: 20.0
-    # v_lon_min: 7.0  # used for figures in Edmond's paper
-    v_lon_min: 0.0
+    v_lon_min: 7.0  # used for figures in Edmond's paper
+#    v_lon_min: 0.0
     v_max: 30.0
   other:
     length: 4.5

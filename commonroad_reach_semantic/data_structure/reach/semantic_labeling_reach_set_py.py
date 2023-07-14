@@ -81,7 +81,7 @@ class PySemanticLabelingReachableSet(PySemanticReachableSet):
         ))
 
         # discard the ones colliding with vehicles
-        # propagated_sets = self.labeler.discard_colliding_nodes(propagated_sets)
+        propagated_sets = self.labeler.discard_colliding_nodes(propagated_sets)
 
         # examine whether the propagated sets satisfy TPL specifications
         propagated_sets = self.rule_interface.tpl_checker.examine_tpl_specifications(step, propagated_sets,
