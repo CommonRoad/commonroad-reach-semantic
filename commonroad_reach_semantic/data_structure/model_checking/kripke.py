@@ -311,9 +311,11 @@ class KripkeStructure:
         for step in range(self.step_end + 1):
             dict_proposition_holder_to_list_nodes_kripke = self.dict_step_to_propositions_to_kripke_nodes[step]
 
+            # need to load this here once, otherwise we suffer a massive slowdown when using the C++ implementation
+            reachable_set_to_propositions = self.reach_interface._reach.labeler.reachable_set_to_propositions
             for reach_node in self.reach_interface.reachable_set_at_step(step):
                 # determine relevant propositions of the reach nodes
-                set_propositions_relevant = self.reach_interface._reach.labeler.reachable_set_to_propositions[
+                set_propositions_relevant = reachable_set_to_propositions[
                     reach_node].propositions(include_temporary=False).intersection(self.cls_set_propositions_relevant)
                 set_propositions_relevant.add("true")
                 set_propositions_relevant = frozenset(set_propositions_relevant)
