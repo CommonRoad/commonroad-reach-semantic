@@ -9,8 +9,8 @@ planning:
   dt: 0.2
   steps_computation: 15
   coordinate_system: "CVLN"
-  #  reference_point: CENTER
-  reference_point: REAR  # used for figures in Edmond's paper
+  reference_point: CENTER
+#  reference_point: REAR  # used for figures in Edmond's paper
 
 reachable_set:
   mode_computation: 1
