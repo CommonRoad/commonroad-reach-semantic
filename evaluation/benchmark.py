@@ -26,14 +26,17 @@ from commonroad_reach_semantic.data_structure.rule.traffic_rule_interface import
 
 def main():
     # scenario_names = list(scenarios_from_file("evaluation/real_access_ramp.txt"))
-    # scenario_names = list(scenarios_from_file("evaluation/scenarios_starting_in_front.txt"))
-    scenario_names = ["ZAM_Merge-1_1_T-1", "ZAM_Intersection-1_2_T-1"]
+    scenario_names = list(scenarios_from_file("evaluation/scenarios_starting_in_front_no_errors.txt"))
+    # scenario_names = list(scenarios_from_file("evaluation/driving_right_scenarios.txt"))
+    # scenario_names = ["ZAM_Merge-1_1_T-1", "ZAM_Intersection-1_2_T-1"]
     with alive_bar(len(scenario_names)) as bar:
         for name in scenario_names:
             print(f"Running benchmark for {name}")
             bar.text(name)
             # benchmark_scenario(name, 1, repetitions=5, cpp=True, path_root="/home/lercher/datasets/exiD-commonroad-only6-merge", output_dir="benchmark")
-            benchmark_scenario(name, 0, repetitions=5, cpp=True, path_root="/home/lercher/tum/commonroad/commonroad-reach-semantic-addon", output_dir="benchmark")
+            benchmark_scenario(name, 0, repetitions=5, cpp=True, path_root="/home/lercher/datasets/exiD-commonroad-only6-merge", output_dir="benchmark")
+            # benchmark_scenario(name, 0, repetitions=5, cpp=True, path_root="/home/lercher/tum/commonroad/commonroad-reach-semantic-addon", output_dir="benchmark")
+            # benchmark_scenario(name, 0, repetitions=5, cpp=False, path_root="/home/lercher/tum/commonroad/commonroad-reach-semantic-addon", output_dir="benchmark")
             bar()
 
 
