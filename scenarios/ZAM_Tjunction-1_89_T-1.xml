@@ -196,7 +196,7 @@
     <successor ref="50209"/>
     <successor ref="50211"/>
     <adjacentLeft ref="50197" drivingDir="opposite"/>
-    <laneletType>unknown</laneletType>
+    <laneletType>intersection</laneletType>
     <trafficSignRef ref="50223"/>
   </lanelet>
   <lanelet id="50197">
@@ -391,7 +391,7 @@
     <predecessor ref="50207"/>
     <predecessor ref="50213"/>
     <adjacentLeft ref="50195" drivingDir="opposite"/>
-    <laneletType>unknown</laneletType>
+    <laneletType>intersection</laneletType>
     <trafficSignRef ref="50224"/>
   </lanelet>
   <lanelet id="50199">
@@ -490,7 +490,7 @@
     <predecessor ref="50211"/>
     <predecessor ref="50217"/>
     <adjacentLeft ref="50201" drivingDir="opposite"/>
-    <laneletType>unknown</laneletType>
+    <laneletType>intersection</laneletType>
     <trafficSignRef ref="50225"/>
   </lanelet>
   <lanelet id="50201">
@@ -565,7 +565,7 @@
     <successor ref="50213"/>
     <successor ref="50215"/>
     <adjacentLeft ref="50199" drivingDir="opposite"/>
-    <laneletType>unknown</laneletType>
+    <laneletType>intersection</laneletType>
     <trafficSignRef ref="50226"/>
   </lanelet>
   <lanelet id="50203">
@@ -704,7 +704,7 @@
     <predecessor ref="50209"/>
     <predecessor ref="50215"/>
     <adjacentLeft ref="50205" drivingDir="opposite"/>
-    <laneletType>unknown</laneletType>
+    <laneletType>intersection</laneletType>
     <trafficSignRef ref="50227"/>
   </lanelet>
   <lanelet id="50205">
@@ -843,7 +843,7 @@
     <successor ref="50207"/>
     <successor ref="50217"/>
     <adjacentLeft ref="50203" drivingDir="opposite"/>
-    <laneletType>unknown</laneletType>
+    <laneletType>intersection</laneletType>
     <trafficSignRef ref="50228"/>
   </lanelet>
   <lanelet id="50207">
@@ -1022,7 +1022,7 @@
     <predecessor ref="50205"/>
     <successor ref="50197"/>
     <adjacentLeft ref="50209" drivingDir="opposite"/>
-    <laneletType>unknown</laneletType>
+    <laneletType>intersection</laneletType>
     <trafficSignRef ref="50229"/>
   </lanelet>
   <lanelet id="50209">
@@ -1153,7 +1153,7 @@
     <predecessor ref="50195"/>
     <successor ref="50203"/>
     <adjacentLeft ref="50207" drivingDir="opposite"/>
-    <laneletType>unknown</laneletType>
+    <laneletType>intersection</laneletType>
     <trafficSignRef ref="50218"/>
   </lanelet>
   <lanelet id="50211">
@@ -1212,7 +1212,7 @@
     <predecessor ref="50195"/>
     <successor ref="50199"/>
     <adjacentLeft ref="50213" drivingDir="opposite"/>
-    <laneletType>unknown</laneletType>
+    <laneletType>intersection</laneletType>
     <trafficSignRef ref="50219"/>
   </lanelet>
   <lanelet id="50213">
@@ -1295,7 +1295,7 @@
     <predecessor ref="50201"/>
     <successor ref="50197"/>
     <adjacentLeft ref="50211" drivingDir="opposite"/>
-    <laneletType>unknown</laneletType>
+    <laneletType>intersection</laneletType>
     <trafficSignRef ref="50220"/>
   </lanelet>
   <lanelet id="50215">
@@ -1378,7 +1378,7 @@
     <predecessor ref="50201"/>
     <successor ref="50203"/>
     <adjacentLeft ref="50217" drivingDir="opposite"/>
-    <laneletType>unknown</laneletType>
+    <laneletType>intersection</laneletType>
     <trafficSignRef ref="50221"/>
   </lanelet>
   <lanelet id="50217">
@@ -1549,7 +1549,7 @@
     <predecessor ref="50205"/>
     <successor ref="50199"/>
     <adjacentLeft ref="50215" drivingDir="opposite"/>
-    <laneletType>unknown</laneletType>
+    <laneletType>intersection</laneletType>
     <trafficSignRef ref="50222"/>
   </lanelet>
   <trafficSign id="50218">
