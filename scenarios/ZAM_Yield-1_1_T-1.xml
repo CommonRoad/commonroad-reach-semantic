@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<commonRoad timeStepSize="0.1" commonRoadVersion="2020a" author="Edmond Irani Liu, Florian Lercher" affiliation="Technical University of Munich" source="CommonRoad Scenario Designer" benchmarkID="ZAM_Yield-1_1_T-1" date="2023-07-17">
+<commonRoad timeStepSize="0.1" commonRoadVersion="2020a" author="Edmond Irani Liu, Florian Lercher" affiliation="Technical University of Munich" source="CommonRoad Scenario Designer" benchmarkID="ZAM_Yield-1_1_T-1" date="2023-07-18">
   <location>
     <geoNameId>-999</geoNameId>
     <gpsLatitude>999.0</gpsLatitude>
@@ -45,7 +45,7 @@
         <y>1.75</y>
       </point>
       <point>
-        <x>35.0</x>
+        <x>34.9999</x>
         <y>1.75</y>
       </point>
       <lineMarking>dashed</lineMarking>
@@ -88,8 +88,8 @@
         <y>-1.75</y>
       </point>
       <point>
-        <x>35.0</x>
-        <y>-1.75</y>
+        <x>34.9999</x>
+        <y>-1.7499</y>
       </point>
       <lineMarking>solid</lineMarking>
     </rightBound>
@@ -116,7 +116,7 @@
   <lanelet id="2">
     <leftBound>
       <point>
-        <x>35.0</x>
+        <x>34.9999</x>
         <y>1.75</y>
       </point>
       <point>
@@ -211,7 +211,7 @@
   <lanelet id="3">
     <leftBound>
       <point>
-        <x>35.0</x>
+        <x>34.9999</x>
         <y>1.75</y>
       </point>
       <point>
@@ -247,15 +247,15 @@
         <y>1.75</y>
       </point>
       <point>
-        <x>50.0</x>
-        <y>1.75</y>
+        <x>49.9999</x>
+        <y>1.7499</y>
       </point>
       <lineMarking>no_marking</lineMarking>
     </leftBound>
     <rightBound>
       <point>
-        <x>35.0</x>
-        <y>-1.75</y>
+        <x>34.9999</x>
+        <y>-1.7499</y>
       </point>
       <point>
         <x>36.6666</x>
@@ -290,7 +290,7 @@
         <y>-1.75</y>
       </point>
       <point>
-        <x>50.0</x>
+        <x>49.9999</x>
         <y>-1.75</y>
       </point>
       <lineMarking>no_marking</lineMarking>
@@ -305,8 +305,8 @@
   <lanelet id="4">
     <leftBound>
       <point>
-        <x>50.0</x>
-        <y>1.75</y>
+        <x>49.9999</x>
+        <y>1.7499</y>
       </point>
       <point>
         <x>48.3333</x>
@@ -341,7 +341,7 @@
         <y>1.75</y>
       </point>
       <point>
-        <x>35.0</x>
+        <x>34.9999</x>
         <y>1.75</y>
       </point>
       <lineMarking>no_marking</lineMarking>
@@ -349,7 +349,7 @@
     <rightBound>
       <point>
         <x>50.0</x>
-        <y>5.25</y>
+        <y>5.2499</y>
       </point>
       <point>
         <x>48.3333</x>
@@ -399,7 +399,7 @@
   <lanelet id="5">
     <leftBound>
       <point>
-        <x>35.0</x>
+        <x>34.9999</x>
         <y>1.75</y>
       </point>
       <point>
@@ -482,8 +482,8 @@
     </leftBound>
     <rightBound>
       <point>
-        <x>35.0</x>
-        <y>-1.75</y>
+        <x>34.9999</x>
+        <y>-1.7499</y>
       </point>
       <point>
         <x>35.9083</x>
@@ -649,7 +649,7 @@
         <y>1.7756</y>
       </point>
       <point>
-        <x>35.0</x>
+        <x>34.9999</x>
         <y>1.75</y>
       </point>
       <lineMarking>no_marking</lineMarking>
@@ -747,7 +747,7 @@
     <leftBound>
       <point>
         <x>42.5</x>
-        <y>9.25</y>
+        <y>9.2499</y>
       </point>
       <point>
         <x>42.5</x>
@@ -877,7 +877,7 @@
       </point>
       <point>
         <x>42.5</x>
-        <y>9.25</y>
+        <y>9.2499</y>
       </point>
       <lineMarking>dashed</lineMarking>
     </leftBound>
@@ -947,8 +947,8 @@
   <lanelet id="9">
     <leftBound>
       <point>
-        <x>50.0</x>
-        <y>1.75</y>
+        <x>49.9999</x>
+        <y>1.7499</y>
       </point>
       <point>
         <x>53.8888</x>
@@ -990,7 +990,7 @@
     </leftBound>
     <rightBound>
       <point>
-        <x>50.0</x>
+        <x>49.9999</x>
         <y>-1.75</y>
       </point>
       <point>
@@ -1078,8 +1078,8 @@
         <y>1.75</y>
       </point>
       <point>
-        <x>50.0</x>
-        <y>1.75</y>
+        <x>49.9999</x>
+        <y>1.7499</y>
       </point>
       <lineMarking>dashed</lineMarking>
     </leftBound>
@@ -1122,7 +1122,7 @@
       </point>
       <point>
         <x>50.0</x>
-        <y>5.25</y>
+        <y>5.2499</y>
       </point>
       <lineMarking>solid</lineMarking>
     </rightBound>
@@ -1533,7 +1533,7 @@
       </point>
       <point>
         <x>42.4999</x>
-        <y>-5.75</y>
+        <y>-5.7499</y>
       </point>
       <lineMarking>no_marking</lineMarking>
     </leftBound>
@@ -1590,7 +1590,7 @@
     <leftBound>
       <point>
         <x>42.4999</x>
-        <y>-5.75</y>
+        <y>-5.7499</y>
       </point>
       <point>
         <x>42.4999</x>
@@ -1633,7 +1633,7 @@
     <rightBound>
       <point>
         <x>45.9999</x>
-        <y>-5.75</y>
+        <y>-5.7499</y>
       </point>
       <point>
         <x>45.9999</x>
@@ -1683,7 +1683,7 @@
     <leftBound>
       <point>
         <x>42.4999</x>
-        <y>-5.75</y>
+        <y>-5.7499</y>
       </point>
       <point>
         <x>42.4999</x>
@@ -1813,7 +1813,7 @@
       </point>
       <point>
         <x>42.4999</x>
-        <y>-5.75</y>
+        <y>-5.7499</y>
       </point>
       <lineMarking>dashed</lineMarking>
     </leftBound>
@@ -1856,7 +1856,7 @@
       </point>
       <point>
         <x>45.9999</x>
-        <y>-5.75</y>
+        <y>-5.7499</y>
       </point>
       <lineMarking>solid</lineMarking>
     </rightBound>
@@ -1883,8 +1883,8 @@
   <lanelet id="17">
     <leftBound>
       <point>
-        <x>50.0</x>
-        <y>1.75</y>
+        <x>49.9999</x>
+        <y>1.7499</y>
       </point>
       <point>
         <x>49.3806</x>
@@ -1959,7 +1959,7 @@
         <y>-5.1306</y>
       </point>
       <point>
-        <x>42.5</x>
+        <x>42.4999</x>
         <y>-5.7499</y>
       </point>
       <lineMarking>no_marking</lineMarking>
@@ -1967,7 +1967,7 @@
     <rightBound>
       <point>
         <x>50.0</x>
-        <y>5.25</y>
+        <y>5.2499</y>
       </point>
       <point>
         <x>49.0916</x>
@@ -2042,7 +2042,7 @@
         <y>-4.8416</y>
       </point>
       <point>
-        <x>39.0</x>
+        <x>38.9999</x>
         <y>-5.7499</y>
       </point>
       <lineMarking>no_marking</lineMarking>
@@ -2057,7 +2057,7 @@
   <lanelet id="18">
     <leftBound>
       <point>
-        <x>42.5</x>
+        <x>42.4999</x>
         <y>-5.7499</y>
       </point>
       <point>
@@ -2133,14 +2133,14 @@
         <y>1.7243</y>
       </point>
       <point>
-        <x>50.0</x>
-        <y>1.75</y>
+        <x>49.9999</x>
+        <y>1.7499</y>
       </point>
       <lineMarking>no_marking</lineMarking>
     </leftBound>
     <rightBound>
       <point>
-        <x>46.0</x>
+        <x>45.9999</x>
         <y>-5.7499</y>
       </point>
       <point>
@@ -2216,7 +2216,7 @@
         <y>-1.7636</y>
       </point>
       <point>
-        <x>50.0</x>
+        <x>49.9999</x>
         <y>-1.75</y>
       </point>
       <lineMarking>solid</lineMarking>
@@ -2231,7 +2231,7 @@
     <leftBound>
       <point>
         <x>42.4999</x>
-        <y>-5.75</y>
+        <y>-5.7499</y>
       </point>
       <point>
         <x>42.4743</x>
@@ -2314,7 +2314,7 @@
     <rightBound>
       <point>
         <x>45.9999</x>
-        <y>-5.75</y>
+        <y>-5.7499</y>
       </point>
       <point>
         <x>45.9624</x>
@@ -2480,7 +2480,7 @@
       </point>
       <point>
         <x>42.4999</x>
-        <y>-5.75</y>
+        <y>-5.7499</y>
       </point>
       <lineMarking>no_marking</lineMarking>
     </leftBound>
@@ -2661,6 +2661,9 @@
       </rectangle>
     </shape>
     <initialState>
+      <time>
+        <exact>0</exact>
+      </time>
       <position>
         <point>
           <x>40.75</x>
@@ -2670,15 +2673,18 @@
       <orientation>
         <exact>-1.5707</exact>
       </orientation>
-      <time>
-        <exact>0</exact>
-      </time>
       <velocity>
         <exact>15.7864</exact>
       </velocity>
       <acceleration>
         <exact>-1.1849</exact>
       </acceleration>
+      <yawRate>
+        <exact>0.0</exact>
+      </yawRate>
+      <slipAngle>
+        <exact>0.0</exact>
+      </slipAngle>
     </initialState>
     <initialSignalState>
       <time>
@@ -5014,6 +5020,9 @@
       </rectangle>
     </shape>
     <initialState>
+      <time>
+        <exact>0</exact>
+      </time>
       <position>
         <point>
           <x>15.0</x>
@@ -5023,12 +5032,18 @@
       <orientation>
         <exact>0.0</exact>
       </orientation>
-      <time>
-        <exact>0</exact>
-      </time>
       <velocity>
         <exact>12.0</exact>
       </velocity>
+      <acceleration>
+        <exact>0.0</exact>
+      </acceleration>
+      <yawRate>
+        <exact>0.0</exact>
+      </yawRate>
+      <slipAngle>
+        <exact>0.0</exact>
+      </slipAngle>
     </initialState>
     <trajectory>
       <state>
@@ -6038,6 +6053,9 @@
   </dynamicObstacle>
   <planningProblem id="37">
     <initialState>
+      <time>
+        <exact>0</exact>
+      </time>
       <position>
         <point>
           <x>44.5</x>
@@ -6047,12 +6065,12 @@
       <orientation>
         <exact>1.57</exact>
       </orientation>
-      <time>
-        <exact>0</exact>
-      </time>
       <velocity>
         <exact>7.0</exact>
       </velocity>
+      <acceleration>
+        <exact>0.0</exact>
+      </acceleration>
       <yawRate>
         <exact>0.0</exact>
       </yawRate>
