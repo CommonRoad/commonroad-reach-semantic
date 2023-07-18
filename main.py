@@ -24,8 +24,12 @@ def main():
     # name_scenario = "USA_US101-6_1_T-1"
     # name_scenario = "USA_US101-15_2_T-1"
     # name_scenario = "ZAM_Intersection-1_1_T-1"
-    name_scenario = "ZAM_Intersection-1_2_T-1"
+    # name_scenario = "ZAM_Intersection-1_2_T-1"
+    # name_scenario = "ZAM_Tjunction-1_89_T-1"
+    # name_scenario = "ZAM_Ramp-1_2_T-1"
+    # name_scenario = "ZAM_Ramp-1_1-T-1"
     # name_scenario = "ZAM_Merge-1_1_T-1"
+    name_scenario = "ZAM_Yield-1_1_T-1"
     # name_scenario = "ESP_Monzon-2_2_T-1"
 
     # ==== build configuration
