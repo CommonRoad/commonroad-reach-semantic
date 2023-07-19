@@ -45,7 +45,7 @@ semantic_model:
 traffic_rules:
   activated_rules:
     # rules to be concretized
-    - NoBackwardDrivingRule
+#    - NoBackwardDrivingRule
     # rules to be applied directly
 #    - TPL !InLanelet_3 & !InLanelet_4
     - EnteringVehiclesRule
