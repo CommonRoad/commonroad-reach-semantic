@@ -65,7 +65,7 @@ def scenarios_from_file(path: str) -> Iterator[str]:
 
 def run_scenario(name: str, draw: bool = False, otf: bool = True, verbose: bool = False, path_root: str = "/home/lercher/datasets/exiD-commonroad-only6-merge") -> None:
     # ==== build configuration
-    config = SemanticConfigurationBuilder.build_configuration(name, path_root=path_root)
+    config = SemanticConfigurationBuilder(path_root=path_root).build_configuration(name)
 
     config.update()
     util_logger.initialize_logger(config)

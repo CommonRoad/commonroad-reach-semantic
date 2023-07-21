@@ -48,7 +48,7 @@ def scenarios_from_file(path: str) -> Iterator[str]:
 
 def benchmark_scenario(name: str, mode: int, repetitions: int = 5, cpp: bool = True, path_root: str = "/home/lercher/datasets/exiD-commonroad-only6-merge", output_dir: str = "benchmark"):
     # modes: 0 = both, 1 = OTF, 2 = Labeling
-    config = SemanticConfigurationBuilder.build_configuration(name, path_root=path_root)
+    config = SemanticConfigurationBuilder(path_root=path_root).build_configuration(name)
     config.update()
     util_logger.initialize_logger(config)
 
