@@ -33,8 +33,8 @@ def main():
     # name_scenario = "ESP_Monzon-2_2_T-1"
 
     # ==== build configuration
-    config = SemanticConfigurationBuilder.build_configuration(name_scenario,
-                                                              path_root="/home/lercher/tum/commonroad/commonroad-reach-semantic-addon")
+    path_root = "/home/lercher/tum/commonroad/commonroad-reach-semantic-addon"
+    config = SemanticConfigurationBuilder(path_root=path_root).build_configuration(name_scenario)
     config.update()
     util_logger.initialize_logger(config)
     config.print_configuration_summary()
