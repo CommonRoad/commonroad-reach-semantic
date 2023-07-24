@@ -20,7 +20,7 @@ sys.path.append(os.getcwd())
 @pytest.fixture
 def config() -> SemanticConfiguration:
     path_root = str(pathlib.Path(__file__).parent.resolve())
-    config = SemanticConfigurationBuilder.build_configuration("ZAM_Merge-1_1_T-1", path_root)
+    config = SemanticConfigurationBuilder(path_root=path_root).build_configuration("ZAM_Merge-1_1_T-1")
     config.update()
     return config
 
@@ -40,6 +40,7 @@ def rule_interface(config: SemanticConfiguration, semantic_model: SemanticModel)
 @pytest.fixture
 def reachable_set_labeler(semantic_model: SemanticModel) -> ReachableSetLabeler:
     return ReachableSetLabeler(semantic_model)
+
 
 @pytest.fixture
 def semantic_otf_reachable_set_py(config: SemanticConfiguration, semantic_model: SemanticModel,

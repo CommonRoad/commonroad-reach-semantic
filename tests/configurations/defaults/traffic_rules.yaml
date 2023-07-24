@@ -3,10 +3,17 @@ distance_drives_right_most: 1.5
 distance_braking: 15
 # acceleration beyond which it is considered a hard braking
 acceleration_braking_hard: -4
+# maximal allowed backward velocity before the vehicle is considered to be driving backwards
+backward_driving_v_err: 0
 # mode for handling LTL specifications with Spot
 # 1: concatenate specifications and handle them with a single automaton
 # 2: handle specifications with multiple automata
 mode_spot: 2
+# mode for combining the LTL specifications into a single automaton
+# 0: decide automatically
+# 1: translate individually and then compute the product automaton (faster)
+# 2: form conjunction of the formulas and translate the result (probably smaller automaton)
+mode_automata: 0
 # clauses should be preceded and followed by a whitespace
 # TPL: timed propositional logic
 # CTL: computation tree logic, checked with PyNuSMV (uses TRUE, FALSE, .. in NuSMV 2.5.4)
@@ -20,3 +27,4 @@ activated_rules:
   - PriorityRule
   - RightBeforeLeftRule
   - LeftTurningRule
+  - EnteringVehiclesRule
