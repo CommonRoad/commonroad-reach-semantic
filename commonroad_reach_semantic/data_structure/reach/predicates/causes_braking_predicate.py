@@ -98,11 +98,10 @@ class CausesBrakingPredicate(predicate.Predicate):
 
         :returns: (minimum_position, maximum_position) or None if the vehicle is not present at the given step
         """
-        try:
-            p_lon_ego_max_vehicle = vehicle.p_lon_ego(step) + vehicle.shape.length / 2
-        except KeyError:
+        if not vehicle.has_ego_prediction(step):
             # no prediction for vehicle at step, so we assume it is not present anymore/yet
             return None
+        p_lon_ego_max_vehicle = vehicle.p_lon_ego(step) + vehicle.shape.length / 2
 
         # calculate the minimal stopping distance of the vehicle (without braking harder than allowed)
         v_lon_ego_vehicle = vehicle.v_lon_ego(step)

@@ -1,4 +1,5 @@
 import enum
+import math
 from collections import defaultdict
 from typing import Union, Dict, List, Set, Optional
 
@@ -353,6 +354,22 @@ class Vehicle:
         else:
             return False
 
+    def has_ref_prediction(self, step: int) -> bool:
+        """Returns whether the vehicle has a prediction in the CLCS of the ego vehicle at the given step."""
+        if step in self.dict_step_to_state_lon_ref and step in self.dict_step_to_state_lat_ref:
+            return self.dict_step_to_state_lon_ref[step] is not None and \
+                      self.dict_step_to_state_lat_ref[step] is not None
+        else:
+            return False
+
+    def has_ego_prediction(self, step: int) -> bool:
+        """Returns whether the vehicle has a prediction in its own CLCS at the given step."""
+        if step in self.dict_step_to_state_lon_ego and step in self.dict_step_to_state_lat_ego:
+            return self.dict_step_to_state_lon_ego[step] is not None and \
+                self.dict_step_to_state_lat_ego[step] is not None
+        else:
+            return False
+
     def rear_s_ref(self, step: int) -> float:
         """
         Calculates rear s-coordinate of vehicle
@@ -565,6 +582,9 @@ class Vehicle:
 
         # extract properties for static obstacles
         if isinstance(obstacle, StaticObstacle):
+            attrs = cls.extract_vehicle_attributes_from_static_obstacle(obstacle)
+            if attrs is None:
+                return None
             lane, dict_step_to_state_cr, \
                 dict_step_to_state_lon_ref, dict_step_to_state_lat_ref, \
                 dict_step_to_state_lon_ego, dict_step_to_state_lat_ego, \
@@ -572,10 +592,13 @@ class Vehicle:
                 incoming_element, direction_outgoing, set_ids_lanelets_outgoing_left, \
                 set_ids_lanelets_outgoing_straight, set_ids_lanelets_outgoing_right, set_ids_lanelets_oncoming, \
                 dict_step_to_sonia_prediction_occupancy = \
-                cls.extract_vehicle_attributes_from_static_obstacle(obstacle)
+                attrs
 
         # extract properties for dynamic obstacles
         elif isinstance(obstacle, DynamicObstacle):
+            attrs = cls.extract_vehicle_attributes_from_dynamic_obstacle(obstacle, dict_sonia_prediction)
+            if attrs is None:
+                return None
             lane, dict_step_to_state_cr, \
                 dict_step_to_state_lon_ref, dict_step_to_state_lat_ref, \
                 dict_step_to_state_lon_ego, dict_step_to_state_lat_ego, \
@@ -583,7 +606,7 @@ class Vehicle:
                 incoming_element, direction_outgoing, set_ids_lanelets_outgoing_left, \
                 set_ids_lanelets_outgoing_straight, set_ids_lanelets_outgoing_right, set_ids_lanelets_oncoming, \
                 dict_step_to_sonia_prediction_occupancy = \
-                cls.extract_vehicle_attributes_from_dynamic_obstacle(obstacle, dict_sonia_prediction)
+                attrs
             if use_sonia:
                 dict_step_to_sonia_extrema = \
                     util_vehicle.extract_sonia_extrema(dict_step_to_sonia_prediction_occupancy, cls.config)
@@ -622,6 +645,9 @@ class Vehicle:
         steps_computation = cls.config.planning.steps_computation
 
         lane = util_vehicle.extract_lane_of_vehicle(obstacle, cls.road_network)
+        if lane is None:
+            # If we did not find a lane in the local road network, the obstacle is too far away to be relevant
+            return None
         incoming_element, direction_outgoing = util_vehicle.extract_incoming_from_lane(lane, cls.lanelet_network)
         set_ids_lanelets_outgoing_left, \
             set_ids_lanelets_outgoing_straight, \
@@ -668,6 +694,9 @@ class Vehicle:
         dict_sonia_prediction = dict_sonia_prediction[obstacle.obstacle_id]
 
         lane_vehicle = util_vehicle.extract_lane_of_vehicle(obstacle, cls.road_network)
+        if lane_vehicle is None:
+            # If we did not find a lane in the local road network, the vehicle is too far away to be relevant
+            return None
         # extract intersection-related attributes
         incoming_element, direction_outgoing = util_vehicle.extract_incoming_from_lane(lane_vehicle,
                                                                                        cls.lanelet_network)
@@ -679,10 +708,16 @@ class Vehicle:
 
         state_cr_previous = None
         list_states_obstacle_all = [obstacle.initial_state] + obstacle.prediction.trajectory.state_list
-        # sample states based on specified dt
-        list_states_obstacle_sampled = list_states_obstacle_all[::round(dt * 10)]
+        # we know that planning config dt is a multiple of scenario dt
+        # --> divide planning dt by scenario dt to determine how many scenario time steps are in one planning time step
+        numeric_scaling = 100
+        step_width = round((dt * numeric_scaling) / (cls.config.scenario.dt * numeric_scaling))
+        # sample states based on the computed step width
+        sampled_obstacle_states = [state for state in list_states_obstacle_all if state.time_step % step_width == 0]
 
-        for step, state_cr in enumerate(list_states_obstacle_sampled):
+        for state_cr in sampled_obstacle_states:
+            # divide time step by step width to get step wrt dt from planning config
+            step = state_cr.time_step // step_width
             if not state_cr_previous:
                 state_cr_previous = state_cr
 

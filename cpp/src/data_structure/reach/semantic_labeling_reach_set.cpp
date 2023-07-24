@@ -101,7 +101,7 @@ void SemanticLabelingReachableSet::_compute_reachable_set_at_step(int const &ste
     for (auto const &[proposition_holder, drivable_area]: map_propositions_to_drivable_area) {
         num_drivable_area += drivable_area.size();
     }
-    bool discard_small_node = (num_drivable_area > 1);
+    bool discard_small_node = (num_drivable_area > 1) && config->reachable_set().discard_small_nodes;
 
     // work with the reachable sets partitioned by propositions here, because otherwise it could happen
     // that we merge two reachable sets with different propositions when they intersect with the same drivable area

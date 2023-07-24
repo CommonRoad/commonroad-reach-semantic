@@ -107,6 +107,7 @@ class SemanticConfiguration(Configuration):
         config.reachable_set.size_grid = self.reachable_set.size_grid
         config.reachable_set.size_grid_2nd = self.reachable_set.size_grid_2nd
         config.reachable_set.radius_terminal_split = self.reachable_set.radius_terminal_split
+        config.reachable_set.discard_small_nodes = self.reachable_set.discard_small_nodes
         config.reachable_set.length_edge_node_min = self.reachable_set.length_edge_node_min
         config.reachable_set.num_threads = self.reachable_set.num_threads
         config.reachable_set.prune_nodes = self.reachable_set.prune_nodes_not_reaching_final_step
@@ -134,6 +135,7 @@ class SemanticConfiguration(Configuration):
 class SemanticReachableSetConfiguration(ReachableSetConfiguration):
     def __init__(self, config: Union[ListConfig, DictConfig]):
         super().__init__(config)
+        self.discard_small_nodes = config.reachable_set.discard_small_nodes
         self.length_edge_node_min = config.reachable_set.length_edge_node_min
         self.num_corridors_max = config.reachable_set.num_corridors_max
 

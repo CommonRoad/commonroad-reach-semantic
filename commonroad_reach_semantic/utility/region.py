@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 from shapely.errors import TopologicalError
 from shapely.geometry import Polygon, MultiPolygon
@@ -76,16 +76,21 @@ def construct_regions_from_tuple_ids_lanelets(set_ids_lanelets_in_cluster):
     cardinality_max = max(dict_cardinality_to_list_tuples_ids_lanelets)
 
     # create regions from sets with the most elements to the least elements
+    empty_intersections = []
     for cardinality in range(cardinality_max, 0, -1):
         # iterate through all tuples with the same cardinality
         list_tuples_ids_lanelets = dict_cardinality_to_list_tuples_ids_lanelets[cardinality]
         for tuple_ids_lanelets in list_tuples_ids_lanelets:
+            # if we know that a subset of the lanelets to intersect is already empty, we can skip this tuple
+            if any(empty.issubset(frozenset(tuple_ids_lanelets)) for empty in empty_intersections):
+                continue
             # retrieve polygons of lanelets
             list_polygons_cart_lanelets = \
                 [dict_id_lanelet_to_polygon_cart_lanelet[id_lanelet] for id_lanelet in tuple_ids_lanelets]
             # first try to obtain the intersection of polygons of the given list of lanelets
-            polygon_intersected = obtain_intersection_of_lanelet_polygons(list_polygons_cart_lanelets)
-            if not polygon_intersected or polygon_intersected.is_empty:
+            polygon_intersected, empty_idx = obtain_intersection_of_lanelet_polygons(list_polygons_cart_lanelets)
+            if polygon_intersected.is_empty:
+                empty_intersections.append(frozenset(tuple_ids_lanelets[:empty_idx + 1]))
                 continue
             # then remove parts that also belong to the sets of lanelet ids with higher cardinality
             polygon_own, is_valid_polygon = obtain_own_polygon(polygon_intersected, tuple_ids_lanelets,
@@ -103,17 +108,20 @@ def construct_regions_from_tuple_ids_lanelets(set_ids_lanelets_in_cluster):
     return list_regions_output
 
 
-def obtain_intersection_of_lanelet_polygons(list_polygons_cart_lanelets):
-    """Returns the intersection of the polygons of the given list of lanelets"""
+def obtain_intersection_of_lanelet_polygons(list_polygons_cart_lanelets: List[Polygon]) -> Tuple[Polygon, int]:
+    """Returns the intersection of the polygons of the given list of lanelets.
+
+    Second return value is the index of the first polygon that made the intersection empty or -1 if no such polygon exists.
+    """
     polygon_intersected = list_polygons_cart_lanelets[0]
-    for polygon in list_polygons_cart_lanelets[1:]:
+    for i, polygon in enumerate(list_polygons_cart_lanelets[1:]):
         polygon_intersected: Polygon = polygon_intersected.intersection(polygon)
         # polygon_intersected = polygon_intersected.intersection(polygon).buffer(-0.01)
 
         if polygon_intersected.is_empty:
-            break
+            return polygon_intersected, i + 1
 
-    return polygon_intersected
+    return polygon_intersected, -1
 
 
 def obtain_own_polygon(polygon_intersected, tuple_ids_lanelets,
@@ -161,7 +169,7 @@ def create_regions_from_polygon(tuple_ids_lanelets, polygon_cart):
             list_regions.append(region)
 
     elif isinstance(polygon_cart, MultiPolygon):
-        for p_cart in polygon_cart:
+        for p_cart in polygon_cart.geoms:
             region = create_region_from_polygon(tuple_ids_lanelets, p_cart)
             if region:
                 list_regions.append(region)

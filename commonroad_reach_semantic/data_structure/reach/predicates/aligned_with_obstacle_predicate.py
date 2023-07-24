@@ -1,3 +1,4 @@
+import warnings
 from typing import List, Optional, Tuple, Set
 
 from commonroad_reach.data_structure.reach.reach_node import ReachNode
@@ -23,7 +24,8 @@ class AlignedWithObstaclePredicate(predicate.Predicate):
             reach_node.intersect_in_position_domain(p_lat_min=vehicle_right, p_lat_max=vehicle_left)
             return [reach_node]
         else:
-            raise RuntimeError(f"Vehicle {self.obstacle_id} not found")
+            warnings.warn(f"No prediction for {self.obstacle_id} at step {step}, cannot restrict reach node.")
+            return [reach_node]
 
     def _restrict_reach_node_forbidden(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel,
                                        _node_lanelet_ids: Optional[Set[int]] = None) -> List[ReachNode]:
@@ -35,12 +37,16 @@ class AlignedWithObstaclePredicate(predicate.Predicate):
             left.intersect_in_position_domain(p_lat_min=vehicle_left)
             return [right, left]
         else:
-            raise RuntimeError(f"Vehicle {self.obstacle_id} not found")
+            warnings.warn(f"No prediction for {self.obstacle_id} at step {step}, cannot restrict reach node.")
+            return [reach_node]
 
     def _get_vehicle_left_right(self, step: int, semantic_model: SemanticModel) -> Optional[Tuple[float, float]]:
         if vehicle := semantic_model.vehicle_model.find_vehicle_by_id(self.obstacle_id):
-            vehicle_left = vehicle.p_lat_max_ref(step, semantic_model.config.vehicle.ego.width / 2)
-            vehicle_right = vehicle.p_lat_min_ref(step, semantic_model.config.vehicle.ego.width / 2)
-            return vehicle_left, vehicle_right
+            if vehicle.has_ref_prediction(step):
+                vehicle_left = vehicle.p_lat_max_ref(step, semantic_model.config.vehicle.ego.width / 2)
+                vehicle_right = vehicle.p_lat_min_ref(step, semantic_model.config.vehicle.ego.width / 2)
+                return vehicle_left, vehicle_right
+            else:
+                return None
         else:
-            return None
+            raise RuntimeError(f"Vehicle {self.obstacle_id} not found")

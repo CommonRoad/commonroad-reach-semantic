@@ -10,7 +10,9 @@ namespace semantic_reach {
 
 /// Struct storing reachable set configurations.
 struct SemanticReachableSetConfiguration : reach::ReachableSetConfiguration {
-    // shortest length the edges of a reachable node should possess for it to be kept
+    //whether to discard small nodes (i.e., those with length smaller than length_edge_node_min)
+    bool discard_small_nodes{};
+    // shortest length the edges of a reachable node should possess for it to be kept when discarding small nodes
     double length_edge_node_min{};
 
     SemanticReachableSetConfiguration() = default;
