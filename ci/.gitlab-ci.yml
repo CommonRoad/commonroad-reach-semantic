@@ -1,0 +1,81 @@
+# Authors: Florian Lercher, Gerald Würsching, Tobias Mascetta. Cyber-Physical Systems Group, TUM
+
+
+# --------------- Gitlab Internal Variables ------------------------
+# Predefined internal variables from gitlab ci: see https://docs.gitlab.com/ee/ci/variables/predefined_variables.html
+# CI_REGISTRY: Gitlab Container Registry with Docker container for project
+# CI_JOB_TOKEN: Token, valid as long as the job is running
+# CI_PROJECT_DIR: path where project is cloned to and gitlab job runs from
+
+# -------------- Variables from Docker container ----------------------------
+# CRDC_DIR: Path to the installation of commonroad-drivability-checker in the Docker container
+# CRREACH_DIR: Path to the installation of commonroad-reachable-set in the Docker container
+
+stages:
+  - compile
+  - build-test-python
+  - static-test
+
+image: $CI_REGISTRY/cps/commonroad-reachable-set/deps:ci
+
+variables:
+  CRDC_DIR: /dc
+  CRREACH_DIR: /reach
+  BUILD_JOBS: 4
+
+before_script:
+  - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.lrz.de/".insteadOf "git@gitlab.lrz.de:"
+
+.conda-init: &conda-init
+  - conda init bash
+  - source ~/.bashrc
+
+.python-prepare: &python-prepare
+  - python -m pip install --upgrade pip
+  - pip install -r ./requirements.txt
+  - conda install -c conda-forge spot
+
+### build C++ library ###
+build-standalone:
+  stage: compile
+  script:
+    - *conda-init
+    - conda activate "cr$PYTHON_VER"
+    - *python-prepare
+    - mkdir build-debug && cd build-debug
+    - cmake -DCRDC_DIR="$CRDC_DIR" -DCRREACH_DIR="$CRREACH_DIR" -DPYTHON_VER="$PYTHON_VER" -DCMAKE_BUILD_TYPE=Debug ..
+    - cmake --build . -- -j $BUILD_JOBS
+  parallel:
+    matrix:
+      - PYTHON_VER: [310]
+  artifacts:
+    paths:
+      - pycrreachs.*.so
+    expire_in: 30 minutes
+
+
+### build test python ###
+build-test-python:
+  stage: build-test-python
+  before_script:
+    - *conda-init
+    - conda activate "cr$PYTHON_VER"
+    - *python-prepare
+  script:
+    - cp pycrreachs.*.so commonroad_reach_semantic
+    - cd tests
+    - pytest .
+  parallel:
+    matrix:
+      - PYTHON_VER: [310]
+
+
+### static test ###
+clang-tidy:
+  stage: static-test
+  script:
+    - mkdir build && cd build
+    - cmake -DCRDC_DIR="$CRDC_DIR" -DPYTHON_VER="310" -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ..
+    - cd ..
+    - bash ./ci/clang-tidy.sh
+  needs: []
