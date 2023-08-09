@@ -16,6 +16,9 @@ if(NOT DEFINED CRREACH_DIR) # path to regular commonroad reach
     message(FATAL_ERROR "Please specify the path to regular commonroad reach via -DCRREACH_DIR=")
 endif()
 
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/external) # add path to cmake files for external packages
+include(ExternalEnvironmentModel)
+
 # ========= set variables
 # path to FCL installation in drivability checker
 set(fcl_DIR ${CRDC_DIR}/build/temp.linux-x86_64-cpython-${PYTHON_VER}/dist/lib/cmake/fcl)

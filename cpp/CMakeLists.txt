@@ -55,6 +55,7 @@ target_include_directories(crreachs PUBLIC
 target_link_libraries(crreachs PUBLIC
         ${CRREACH_LIBRARY}
         ${CRDC_LIBRARY}
+        EnvironmentModel::env_model
         fcl
         ccd
         yaml-cpp
