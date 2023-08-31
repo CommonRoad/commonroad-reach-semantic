@@ -60,8 +60,8 @@ def simple():
 
 
 def exid():
-    path_root = "/home/lercher/datasets/exiD-commonroad-only6-merge"
-    benchmark_dir = "benchmark_scenarios_starting_in_front"
+    path_root = "/home/lercher/Documents/Promotion/Guiding_reachability/data"
+    benchmark_dir = "exiD_benchmark"
     scenario_paths = glob.glob(os.path.join(path_root, benchmark_dir, "O_DEU_MerzenichRather-*.yaml"))
     results = pd.concat((read_otf_results(path) for path in scenario_paths), ignore_index=True, sort=False)
     aggregated_per_scenario = results.groupby("scenario_name").mean()
@@ -71,16 +71,31 @@ def exid():
     for_boxplot["phase1"] = for_boxplot[["propagation"]].sum(axis=1)
     for_boxplot["phase2"] = for_boxplot[["splitting"]].sum(axis=1)
     for_boxplot["phase3"] = for_boxplot[["partitioning", "collision_check", "merge", "node_creation"]].sum(axis=1)
-    for_boxplot.boxplot(
-        column=[
-            "automaton_creation", "pruning", "phase1", "phase2", "phase3", "total",
-        ],
+    columns = ["automaton_creation", "pruning", "phase1", "phase2", "phase3", "total"]
+    _, bp = for_boxplot.boxplot(
+        column=columns,
         showfliers=False,
         rot=45,
+        return_type="both",
     )
-    print(for_boxplot["total"].max())
     plt.show()
+    print(for_boxplot["total"].max())
     print(overall_mean)
+    # print boxplot data
+    medians = [median.get_ydata()[0] for median in bp["medians"]]
+    boxes = [(box.get_ydata()[0], box.get_ydata()[-2]) for box in bp["boxes"]]
+    whiskers = [
+        (lo.get_ydata()[-1], hi.get_ydata()[-1]) for lo, hi in zip(bp["whiskers"][0::2], bp["whiskers"][1::2])
+    ]
+    for column, median, box, whisker in zip(columns, medians, boxes, whiskers):
+        print(f"==={column}===")
+        print(f"lower whisker={to_ms(whisker[0])}, lower quartile={to_ms(box[0])},")
+        print(f"median={to_ms(median)},")
+        print(f"upper quartile={to_ms(box[1])}, upper whisker={to_ms(whisker[1])}")
+
+
+def to_ms(seconds: float) -> float:
+    return round(seconds * 1000)
 
 
 def read_otf_results(path: str) -> pd.DataFrame:
