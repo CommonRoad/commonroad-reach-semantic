@@ -69,8 +69,8 @@ def exid():
     for_boxplot = aggregated_per_scenario.drop(columns=["other_initialization", "overall", "nodes_before_pruning", "nodes_after_pruning"])
     for_boxplot["total"] = for_boxplot.sum(axis=1, numeric_only=True)
     for_boxplot["phase1"] = for_boxplot[["propagation"]].sum(axis=1)
-    for_boxplot["phase2"] = for_boxplot[["splitting"]].sum(axis=1)
-    for_boxplot["phase3"] = for_boxplot[["partitioning", "collision_check", "merge", "node_creation"]].sum(axis=1)
+    for_boxplot["phase2"] = for_boxplot[["splitting", "collision_check"]].sum(axis=1)
+    for_boxplot["phase3"] = for_boxplot[["partitioning", "merge", "node_creation"]].sum(axis=1)
     columns = ["automaton_creation", "pruning", "phase1", "phase2", "phase3", "total"]
     _, bp = for_boxplot.boxplot(
         column=columns,
@@ -95,7 +95,7 @@ def exid():
 
 
 def to_ms(seconds: float) -> float:
-    return round(seconds * 1000)
+    return round(seconds * 1000, 5)
 
 
 def read_otf_results(path: str) -> pd.DataFrame:
