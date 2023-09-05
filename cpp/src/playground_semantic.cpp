@@ -9,7 +9,6 @@
 #include "geometry/curvilinear_coordinate_system.h"
 #include "collision/collision_checker.h"
 #include "reach_semantic/data_structure/reach/semantic_labeling_reach_set.hpp"
-#include "reach_semantic/data_structure/reach/semantic_otf_reach_set.hpp"
 #include "reach_semantic/data_structure/reach/semantic_splitting_otf_reach_set.hpp"
 #include "reach_semantic/data_structure/semantic_model.hpp"
 #include "reachset/utility/collision_checker.hpp"
@@ -82,7 +81,6 @@ int main() {
 
     // ======== ReachableSetInterface
 //    auto reach_interface = SemanticLabelingReachableSet(config, collision_checker, semantic_model, traffic_rule_interface);
-//    auto reach_interface = SemanticOTFReachableSet(config, collision_checker, semantic_model, traffic_rule_interface);
     auto reach_interface = SemanticSplittingOTFReachableSet(config, collision_checker, semantic_model, traffic_rule_interface);
     auto start = high_resolution_clock::now();
     reach_interface.compute();
