@@ -18,7 +18,7 @@ from commonroad_reach_semantic.data_structure.rule.traffic_rule_interface import
 logger = logging.getLogger(__name__)
 
 
-class PySemanticSplittingOTFReachableSet(PySemanticReachableSet):
+class PySemanticOTFReachableSet(PySemanticReachableSet):
     """
     Reachable set computation considering temporal constraints on-the-fly with Python backend.
     """

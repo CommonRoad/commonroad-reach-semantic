@@ -8,8 +8,8 @@ from commonroad_reach_semantic.data_structure.environment_model.semantic_model i
 from commonroad_reach_semantic.data_structure.model_checking.spot_interface import SpotInterface
 from commonroad_reach_semantic.data_structure.reach.semantic_labeling_reach_set_py import PySemanticLabelingReachableSet
 from commonroad_reach_semantic.data_structure.reach.semantic_labeling_reach_set_cpp import CppSemanticLabelingReachableSet
-from commonroad_reach_semantic.data_structure.reach.semantic_splitting_otf_reach_set_py import PySemanticSplittingOTFReachableSet
-from commonroad_reach_semantic.data_structure.reach.semantic_splitting_otf_reach_set_cpp import CppSemanticSplittingOTFReachableSet
+from commonroad_reach_semantic.data_structure.reach.semantic_otf_reach_set_py import PySemanticOTFReachableSet
+from commonroad_reach_semantic.data_structure.reach.semantic_otf_reach_set_cpp import CppSemanticOTFReachableSet
 from commonroad_reach_semantic.data_structure.rule.traffic_rule_interface import TrafficRuleInterface
 from commonroad_reach_semantic.utility import visualization as util_visual
 
@@ -48,8 +48,8 @@ def main():
         reach_interface._reach = PySemanticLabelingReachableSet(config, semantic_model, rule_interface)
         # reach_interface._reach = CppSemanticLabelingReachableSet(config, semantic_model, rule_interface)
     else:
-        reach_interface._reach = PySemanticSplittingOTFReachableSet(config, semantic_model, rule_interface)
-        # reach_interface._reach = CppSemanticSplittingOTFReachableSet(config, semantic_model, rule_interface)
+        reach_interface._reach = PySemanticOTFReachableSet(config, semantic_model, rule_interface)
+        # reach_interface._reach = CppSemanticOTFReachableSet(config, semantic_model, rule_interface)
     reach_interface.compute_reachable_sets()
 
     # ==== construct an interface to interact with Spot

@@ -4,7 +4,7 @@
 #include "reach_semantic/data_structure/model_checking/finite_automaton.hpp"
 
 namespace semantic_reach {
-    class SemanticSplittingOTFReachableSet : public SemanticReachableSet {
+    class SemanticOTFReachableSet : public SemanticReachableSet {
     private:
         void _compute_drivable_area_at_step(int const &step) override;
 
@@ -85,12 +85,12 @@ namespace semantic_reach {
         _choose_next_literal(const std::vector<Minterm> &minterms, const std::set<Literal> &ignored_literals);
 
     public:
-        SemanticSplittingOTFReachableSet(SemanticConfigurationPtr config,
+        SemanticOTFReachableSet(SemanticConfigurationPtr config,
                                          collision::CollisionCheckerPtr collision_checker,
                                          SemanticModelPtr semantic_model,
                                          TrafficRuleInterfacePtr traffic_rule_interface);
         std::map<reach::ReachNodePtr, std::set<unsigned int>> reachable_set_to_label{};
     };
 
-    using SemanticSplittingOTFReachableSetPtr = std::shared_ptr<SemanticSplittingOTFReachableSet>;
+    using SemanticOTFReachableSetPtr = std::shared_ptr<SemanticOTFReachableSet>;
 }

@@ -1,6 +1,3 @@
-from commonroad_reach_semantic.data_structure.reach.semantic_splitting_otf_reach_set_py import PySemanticSplittingOTFReachableSet
-
-
 class TestSplittingOTFReachSet:
 
     def test_overall(self, semantic_otf_reachable_set_py):

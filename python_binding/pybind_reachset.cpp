@@ -32,14 +32,14 @@ void export_reachable_set_interface(py::module &m) {
             .def_readonly("map_step_to_propositions_to_drivable_area",
                           &SemanticLabelingReachableSet::map_step_to_propositions_to_drivable_area);
 
-    py::class_<SemanticSplittingOTFReachableSet, shared_ptr<SemanticSplittingOTFReachableSet>, SemanticReachableSet>(m, "SemanticSplittingOTFReachableSet")
+    py::class_<SemanticOTFReachableSet, shared_ptr<SemanticOTFReachableSet>, SemanticReachableSet>(m, "SemanticOTFReachableSet")
             .def(py::init<SemanticConfigurationPtr const &, CollisionCheckerPtr const &,
                          SemanticModelPtr const &, TrafficRuleInterfacePtr const &>(),
                  py::arg("configuration"),
                  py::arg("collision_checker"),
                  py::arg("semantic_model"),
                  py::arg("traffic_rule_interface"))
-             .def_readonly("reachable_set_to_label", &SemanticSplittingOTFReachableSet::reachable_set_to_label);
+             .def_readonly("reachable_set_to_label", &SemanticOTFReachableSet::reachable_set_to_label);
 }
 
 void export_reachable_set_labeler(py::module &m) {

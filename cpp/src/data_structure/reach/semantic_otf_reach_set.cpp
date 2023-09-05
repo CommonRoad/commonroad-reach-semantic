@@ -1,16 +1,16 @@
 #include <utility>
 
 #include "reachset/utility/reach_operation.hpp"
-#include "reach_semantic/data_structure/reach/semantic_splitting_otf_reach_set.hpp"
+#include "reach_semantic/data_structure/reach/semantic_otf_reach_set.hpp"
 #include "reach_semantic/data_structure/reach/predicates/predicate.hpp"
 #include "reach_semantic/utility/reach_operation.hpp"
 
 using namespace semantic_reach;
 
-SemanticSplittingOTFReachableSet::SemanticSplittingOTFReachableSet(semantic_reach::SemanticConfigurationPtr config,
-                                                                   collision::CollisionCheckerPtr collision_checker,
-                                                                   semantic_reach::SemanticModelPtr semantic_model,
-                                                                   semantic_reach::TrafficRuleInterfacePtr traffic_rule_interface)
+SemanticOTFReachableSet::SemanticOTFReachableSet(semantic_reach::SemanticConfigurationPtr config,
+                                                          collision::CollisionCheckerPtr collision_checker,
+                                                          semantic_reach::SemanticModelPtr semantic_model,
+                                                          semantic_reach::TrafficRuleInterfacePtr traffic_rule_interface)
         : SemanticReachableSet(std::move(config), std::move(collision_checker), std::move(semantic_model),
                                std::move(traffic_rule_interface)) {
     _initialize_zero_state_polygons();
@@ -19,12 +19,12 @@ SemanticSplittingOTFReachableSet::SemanticSplittingOTFReachableSet(semantic_reac
     automaton = std::make_unique<FiniteAutomaton>(rule_interface->vec_specifications_ltl, this->config->config_traffic_rule.mode_automata);
 
     // Compute initial reachable set
-    SemanticSplittingOTFReachableSet::_compute_drivable_area_at_step(step_start);
-    SemanticSplittingOTFReachableSet::_compute_reachable_set_at_step(step_start);
+    SemanticOTFReachableSet::_compute_drivable_area_at_step(step_start);
+    SemanticOTFReachableSet::_compute_reachable_set_at_step(step_start);
     _vec_steps_computed.emplace_back(step_start);
 }
 
-void SemanticSplittingOTFReachableSet::_compute_drivable_area_at_step(const int &step) {
+void SemanticOTFReachableSet::_compute_drivable_area_at_step(const int &step) {
     std::vector<ReachNodePtr> propagated_sets;
     if (step != step_start) {
         auto reachable_set_previous = map_step_to_reachable_set[step - 1];
@@ -80,7 +80,7 @@ void SemanticSplittingOTFReachableSet::_compute_drivable_area_at_step(const int 
     map_step_to_propagated_set[step] = propagated_sets_split;
 }
 
-void SemanticSplittingOTFReachableSet::_compute_reachable_set_at_step(const int &step) {
+void SemanticOTFReachableSet::_compute_reachable_set_at_step(const int &step) {
     auto map_states_to_propagated_set = map_step_to_states_to_propagated_set[step];
     auto map_states_to_drivable_area = map_step_to_states_to_drivable_area[step];
 
@@ -135,7 +135,7 @@ void SemanticSplittingOTFReachableSet::_compute_reachable_set_at_step(const int 
 }
 
 std::vector<reach::ReachNodePtr>
-SemanticSplittingOTFReachableSet::_split_reachable_set(int step, const reach::ReachNodePtr &reachable_set) {
+SemanticOTFReachableSet::_split_reachable_set(int step, const reach::ReachNodePtr &reachable_set) {
     auto current_states =
             step == step_start ? std::set<unsigned int>{automaton->initial_state()}
                                : reachable_set_to_label[reachable_set->vec_nodes_source[0]];
@@ -151,7 +151,7 @@ SemanticSplittingOTFReachableSet::_split_reachable_set(int step, const reach::Re
 }
 
 void
-SemanticSplittingOTFReachableSet::_filter_reachable_sets(std::vector<reach::ReachNodePtr> &reachable_sets, int step) {
+SemanticOTFReachableSet::_filter_reachable_sets(std::vector<reach::ReachNodePtr> &reachable_sets, int step) {
     bool is_final_step = (step == step_end);
     reachable_sets.erase(std::remove_if(reachable_sets.begin(), reachable_sets.end(),
                                         [this, is_final_step](const reach::ReachNodePtr &node) {
@@ -160,7 +160,7 @@ SemanticSplittingOTFReachableSet::_filter_reachable_sets(std::vector<reach::Reac
                                         }), reachable_sets.end());
 }
 
-bool SemanticSplittingOTFReachableSet::_has_accepting_state(const reach::ReachNodePtr &reachable_set) {
+bool SemanticOTFReachableSet::_has_accepting_state(const reach::ReachNodePtr &reachable_set) {
     auto states = reachable_set_to_label[reachable_set];
     return std::any_of(states.begin(), states.end(), [this](const int &state) {
         return automaton->is_accepting_state(state);
@@ -168,7 +168,7 @@ bool SemanticSplittingOTFReachableSet::_has_accepting_state(const reach::ReachNo
 }
 
 std::vector<reach::ReachNodePtr>
-SemanticSplittingOTFReachableSet::_deduplicate_reachable_sets(const std::vector<reach::ReachNodePtr> &reachable_sets) {
+SemanticOTFReachableSet::_deduplicate_reachable_sets(const std::vector<reach::ReachNodePtr> &reachable_sets) {
     std::vector<reach::ReachNodePtr> unique_reachable_sets;
     for (const auto &reachable_set: reachable_sets) {
         bool is_duplicate = false;
@@ -190,7 +190,7 @@ SemanticSplittingOTFReachableSet::_deduplicate_reachable_sets(const std::vector<
 }
 
 std::vector<reach::ReachNodePtr>
-SemanticSplittingOTFReachableSet::_split_to_minterms(int step, const std::vector<reach::ReachNodePtr> &reachable_sets,
+SemanticOTFReachableSet::_split_to_minterms(int step, const std::vector<reach::ReachNodePtr> &reachable_sets,
                                                      const std::vector<std::pair<Minterm, unsigned int>> &transitions,
                                                      std::set<Literal> &finished_literals, bool regionized) {
     if (reachable_sets.empty() || transitions.empty()) {
@@ -255,7 +255,7 @@ SemanticSplittingOTFReachableSet::_split_to_minterms(int step, const std::vector
 }
 
 std::pair<std::vector<reach::ReachNodePtr>, bool>
-SemanticSplittingOTFReachableSet::_restrict_to_literal(int step, const std::vector<reach::ReachNodePtr> &reachable_sets,
+SemanticOTFReachableSet::_restrict_to_literal(int step, const std::vector<reach::ReachNodePtr> &reachable_sets,
                                                        const semantic_reach::Literal &literal, bool regionized,
                                                        bool clone) {
     std::vector<reach::ReachNodePtr> to_restrict;
@@ -293,7 +293,7 @@ SemanticSplittingOTFReachableSet::_restrict_to_literal(int step, const std::vect
 }
 
 std::pair<std::vector<std::pair<Minterm, unsigned int>>, std::vector<std::pair<Minterm, unsigned int>>>
-SemanticSplittingOTFReachableSet::_partition_transitions(const semantic_reach::Literal &literal,
+SemanticOTFReachableSet::_partition_transitions(const semantic_reach::Literal &literal,
                                                          const std::vector<std::pair<Minterm, unsigned int>> &transitions) {
     std::vector<std::pair<Minterm, unsigned int>> not_needs_literal{};
     std::vector<std::pair<Minterm, unsigned int>> needs_literal{};
@@ -307,7 +307,7 @@ SemanticSplittingOTFReachableSet::_partition_transitions(const semantic_reach::L
     return {not_needs_literal, needs_literal};
 }
 
-std::optional<Literal> SemanticSplittingOTFReachableSet::_choose_next_literal(const std::vector<Minterm> &minterms,
+std::optional<Literal> SemanticOTFReachableSet::_choose_next_literal(const std::vector<Minterm> &minterms,
                                                                               const std::set<Literal> &ignored_literals) {
     // remove duplicates so that we do not make a minterm more important if it leads to multiple states
     // TODO: does this make sense?

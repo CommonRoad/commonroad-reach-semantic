@@ -9,19 +9,19 @@ from commonroad_reach_semantic.data_structure.rule.traffic_rule_interface import
 logger = logging.getLogger(__name__)
 
 
-class CppSemanticSplittingOTFReachableSet(CppSemanticReachableSet):
+class CppSemanticOTFReachableSet(CppSemanticReachableSet):
     """Reachable set computation considering temporal constraints on-the-fly with C++ backend."""
 
     def __init__(self, config: SemanticConfiguration, semantic_model: SemanticModel,
                  rule_interface: TrafficRuleInterface):
         super().__init__(config, semantic_model, rule_interface)
 
-        self._reach = pycrreachs.SemanticSplittingOTFReachableSet(self.config.convert_to_cpp_configuration(),
-                                                                  self.collision_checker.cpp_collision_checker,
-                                                                  pycrreachs.SemanticModel(semantic_model),
-                                                                  pycrreachs.TrafficRuleInterface(rule_interface))
+        self._reach = pycrreachs.SemanticOTFReachableSet(self.config.convert_to_cpp_configuration(),
+                                                         self.collision_checker.cpp_collision_checker,
+                                                         pycrreachs.SemanticModel(semantic_model),
+                                                         pycrreachs.TrafficRuleInterface(rule_interface))
 
-        logger.info("CppSemanticSplittingOTFReachableSet initialized.")
+        logger.info("CppSemanticOTFReachableSet initialized.")
 
     @property
     def reachable_set_to_label(self):

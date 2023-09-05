@@ -1,10 +1,7 @@
-from commonroad_reach_semantic.data_structure.reach.semantic_labeling_reach_set_py import PySemanticLabelingReachableSet
-
-
 class TestLabelingReachSet:
 
-    def test_overall(self, semantic_otf_reachable_set_py):
+    def test_overall(self, semantic_labeling_reachable_set_py):
         """Checks if any exceptions occur during reachable set computation."""
-        step_start = semantic_otf_reachable_set_py.step_start + 1
-        step_end = semantic_otf_reachable_set_py.step_end
-        semantic_otf_reachable_set_py.compute(step_start, step_end)
+        step_start = semantic_labeling_reachable_set_py.step_start + 1
+        step_end = semantic_labeling_reachable_set_py.step_end
+        semantic_labeling_reachable_set_py.compute(step_start, step_end)
