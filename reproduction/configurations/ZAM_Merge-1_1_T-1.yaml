@@ -1,0 +1,19 @@
+debug:
+  draw_planning_problem: True
+  draw_icons: True
+
+planning:
+  dt: 0.2
+  steps_computation: 15
+  coordinate_system: "CVLN"
+  reference_point: CENTER
+
+reachable_set:
+  size_grid: 0.251
+  size_grid_2nd: 0.1
+  radius_terminal_split: 0.7
+  prune_nodes_not_reaching_final_step: true
+
+traffic_rules:
+  activated_rules:
+    - EnteringVehiclesRule
