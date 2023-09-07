@@ -29,14 +29,15 @@ class SummaryBenchmarkResult:
 
 
 def main():
-    simple()
-    exid()
+    simple(cpp=True)
+    simple(cpp=False)
+    exid(otf=True)
+    exid(otf=False)
 
 
-def simple():
-    path_root = "/home/lercher/tum/commonroad/commonroad-reach-semantic-addon"
-    # benchmark_dir = "benchmark_merge_intersection_no_backward"
-    benchmark_dir = "benchmark_merge_intersection_edmonds_params"
+def simple(cpp: bool = True):
+    path_root = "/home/lercher/Documents/Promotion/Guiding_reachability/data"
+    benchmark_dir = "ZAM_benchmark" if cpp else "ZAM_benchmark_python"
 
     computation_columns = ["propagation", "splitting", "partitioning", "collision_check", "merge", "node_creation", "pruning"]
 
@@ -55,23 +56,40 @@ def simple():
         labeling_aggregated_per_scenario[["model_checking", "computation", "nodes_before_pruning", "nodes_after_pruning"]],
         on="scenario_name", suffixes=("_otf", "_lab")
     )
+    combined["pure_model_checking"] = combined["model_checking"] - combined["automaton_creation"]
     with pd.option_context("display.max_rows", None, "display.max_columns", None, "display.width", None):
         print(combined)
 
 
-def exid():
+def exid(otf: bool = True):
     path_root = "/home/lercher/Documents/Promotion/Guiding_reachability/data"
-    benchmark_dir = "exiD_benchmark"
-    scenario_paths = glob.glob(os.path.join(path_root, benchmark_dir, "O_DEU_MerzenichRather-*.yaml"))
-    results = pd.concat((read_otf_results(path) for path in scenario_paths), ignore_index=True, sort=False)
+    if otf:
+        benchmark_dir = "exiD_benchmark"
+        scenario_paths = glob.glob(os.path.join(path_root, benchmark_dir, "O_DEU_MerzenichRather-*.yaml"))
+        results = pd.concat((read_otf_results(path) for path in scenario_paths), ignore_index=True, sort=False)
+    else:
+        benchmark_dir = "exiD_benchmark_both"
+        scenario_paths = glob.glob(os.path.join(path_root, benchmark_dir, "L_DEU_MerzenichRather-*.yaml"))
+        results = pd.concat((read_labeling_results(path) for path in scenario_paths), ignore_index=True, sort=False)
+
     aggregated_per_scenario = results.groupby("scenario_name").mean()
     overall_mean = aggregated_per_scenario.mean()
     for_boxplot = aggregated_per_scenario.drop(columns=["other_initialization", "overall", "nodes_before_pruning", "nodes_after_pruning"])
-    for_boxplot["total"] = for_boxplot.sum(axis=1, numeric_only=True)
-    for_boxplot["phase1"] = for_boxplot[["propagation"]].sum(axis=1)
-    for_boxplot["phase2"] = for_boxplot[["splitting", "collision_check"]].sum(axis=1)
-    for_boxplot["phase3"] = for_boxplot[["partitioning", "merge", "node_creation"]].sum(axis=1)
-    columns = ["automaton_creation", "pruning", "phase1", "phase2", "phase3", "total"]
+    if otf:
+        for_boxplot["total"] = for_boxplot.sum(axis=1, numeric_only=True)
+        for_boxplot["phase1"] = for_boxplot[["propagation"]].sum(axis=1)
+        for_boxplot["phase2"] = for_boxplot[["splitting", "collision_check"]].sum(axis=1)
+        for_boxplot["phase3"] = for_boxplot[["partitioning", "merge", "node_creation"]].sum(axis=1)
+        columns = ["automaton_creation", "pruning", "phase1", "phase2", "phase3", "total"]
+    else:
+        for_boxplot["total"] = for_boxplot.drop(columns=["model_checking"]).sum(axis=1, numeric_only=True)
+        for_boxplot["phase1"] = for_boxplot[["propagation"]].sum(axis=1)
+        for_boxplot["phase2"] = for_boxplot[["splitting"]].sum(axis=1)
+        for_boxplot["phase3"] = for_boxplot[["collision_check"]].sum(axis=1)
+        for_boxplot["phase4"] = for_boxplot[["partitioning", "merge", "node_creation"]].sum(axis=1)
+        for_boxplot["phase5"] = for_boxplot[["model_checking"]].sum(axis=1)
+        # automaton_creation is part of model_checking
+        columns = ["pruning", "phase1", "phase2", "phase3", "phase4", "phase5", "total"]
     _, bp = for_boxplot.boxplot(
         column=columns,
         showfliers=False,
