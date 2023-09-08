@@ -89,11 +89,14 @@ def reproduce_table_1():
     automaton_creation_interstate = table.loc[interstate_scenarios, "automaton_creation"].mean()
     automaton_creation_intersection = table.loc[intersection_scenarios, "automaton_creation"].mean()
 
-    print("\n".join(latex_lines))
-    print()
-    print(f"Automaton creation interstate scenarios: {round(automaton_creation_interstate * 1000)} ms")
-    print(f"Automaton creation intersection scenarios: {round(automaton_creation_intersection * 1000)} ms")
-    print(f"Average model checking overhead: {round(table['model_checking'].mean() * 1000)} ms")
+    filename = os.path.join(this_dir(), "table_1.tex")
+    with open(filename, "w") as f:
+        f.write("\n".join(latex_lines))
+        f.write("\n")
+        f.write(f"Automaton creation interstate scenarios: {round(automaton_creation_interstate * 1000)} ms\n")
+        f.write(f"Automaton creation intersection scenarios: {round(automaton_creation_intersection * 1000)} ms\n")
+        f.write(f"Average model checking overhead: {round(table['model_checking'].mean() * 1000)} ms\n")
+    print(f"Written Table 1 to {filename}")
 
 
 def reproduce_figure_4():
