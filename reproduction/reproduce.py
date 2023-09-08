@@ -22,23 +22,30 @@ def main(figure_3: bool = True, table_1: bool = True, figure_4: bool = True, exi
 def reproduce_figure_3(regenerate_data: bool = False):
     name = "ZAM_Yield-1_1_T-1"
 
-    output_dir = os.path.join(this_dir(), "output")
+    output_dir = "output"
     otf_output_dir = os.path.join(output_dir, f"{name}.cpp.otf")
     labeling_output_dir = os.path.join(output_dir, f"{name}.cpp.labeling")
 
-    if not regenerate_data and (not os.path.exists(otf_output_dir) or not os.path.exists(labeling_output_dir)):
+    if not regenerate_data and (not os.path.exists(os.path.join(this_dir(), otf_output_dir)) or
+                                not os.path.exists(os.path.join(this_dir(), labeling_output_dir))):
         print(f"No data for Figure 3 found. Regenerating data...")
         regenerate_data = True
 
     if regenerate_data:
+        if not delete_output_dir_if_exists(otf_output_dir):
+            return
+
+        if not delete_output_dir_if_exists(labeling_output_dir):
+            return
+
         run_scenario(name, otf=True, cpp=True, draw=True, path_root=this_dir())
         run_scenario(name, otf=False, cpp=True, draw=True, path_root=this_dir())
 
     step = 9
     figures = [
-        ("fig_3a", os.path.join(otf_output_dir, f"svgreach_{step:05d}.svg")),
-        ("fig_3b", os.path.join(labeling_output_dir, f"svgreach_{step:05d}.svg")),
-        ("fig_3b_hatching", os.path.join(labeling_output_dir, f"svgkripke_{step:05d}.svg")),
+        ("fig_3a", os.path.join(this_dir(), otf_output_dir, f"svgreach_{step:05d}.svg")),
+        ("fig_3b", os.path.join(this_dir(), labeling_output_dir, f"svgreach_{step:05d}.svg")),
+        ("fig_3b_hatching", os.path.join(this_dir(), labeling_output_dir, f"svgkripke_{step:05d}.svg")),
     ]
     for name, path in figures:
         shutil.copy(path, os.path.join(this_dir(), f"{name}.svg"))
@@ -59,6 +66,12 @@ def reproduce_table_1(regenerate_data: bool = False):
         regenerate_data = True
 
     if regenerate_data:
+        if not delete_output_dir_if_exists(cpp_output_dir):
+            return
+
+        if not delete_output_dir_if_exists(python_output_dir):
+            return
+
         benchmark_with_progress(scenario_names, 0, repetitions=5, cpp=True,
                                 path_root=this_dir(),
                                 output_dir=cpp_output_dir)
@@ -133,6 +146,8 @@ def reproduce_figure_4(regenerate_data: bool = False):
         regenerate_data = True
 
     if regenerate_data:
+        if not delete_output_dir_if_exists(output_dir):
+            return
         benchmark_with_progress(scenario_names, 1, repetitions=5, cpp=True,
                                 path_root=this_dir(),
                                 output_dir=output_dir)
@@ -158,6 +173,8 @@ def exid_boxplot_offline(regenerate_data: bool = False):
         regenerate_data = True
 
     if regenerate_data:
+        if not delete_output_dir_if_exists(output_dir):
+            return
         benchmark_with_progress(scenario_names, 2, repetitions=5, cpp=True,
                                 path_root=this_dir(),
                                 output_dir=output_dir)
@@ -208,6 +225,20 @@ def pgfplots_boxplot(name: str, median: float, box: Tuple[float, float], whisker
 def latex_command(command: str, *args) -> str:
     latex_args = "".join("{" + str(arg).replace("_", "\\_") + "}" for arg in args)
     return f"\\{command}{latex_args}"
+
+
+def delete_output_dir_if_exists(output_dir: str) -> bool:
+    if os.path.exists(os.path.join(this_dir(), output_dir)):
+        print(f"WARNING: Output directory {output_dir} already exists.")
+        return interactive_delete(os.path.join(this_dir(), output_dir))
+    return False
+
+def interactive_delete(path: str) -> bool:
+    if os.path.exists(path):
+        if input(f"Delete {path}? [y/N] ").lower() == "y":
+            shutil.rmtree(path)
+            return True
+    return False
 
 
 if __name__ == "__main__":
