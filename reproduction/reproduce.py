@@ -7,44 +7,60 @@ from benchmark import benchmark_with_progress, run_scenario
 
 
 def main():
-    # reproduce_table_1()
-    # otf_labeling_comparison(os.path.join(this_dir(), "data_table_1_cpp"))
-    # otf_labeling_comparison(os.path.join(this_dir(), "data_table_1_python"))
-    reproduce_figure_4()
-    # boxplot_computation_times_otf(os.path.join(this_dir(), "data_figure_4"), show_plot=True)
-    # reproduce_figure_3()
+    reproduce_figure_3(regenerate_data=False)
+    reproduce_table_1(regenerate_data=False)
+    reproduce_figure_4(regenerate_data=False)
 
 
-def reproduce_figure_3():
+def reproduce_figure_3(regenerate_data: bool = False):
     name = "ZAM_Yield-1_1_T-1"
-    run_scenario(name, otf=True, cpp=True, draw=True, path_root=this_dir())
-    run_scenario(name, otf=False, cpp=True, draw=True, path_root=this_dir())
 
     output_dir = os.path.join(this_dir(), "output")
+    otf_output_dir = os.path.join(output_dir, f"{name}.cpp.otf")
+    labeling_output_dir = os.path.join(output_dir, f"{name}.cpp.labeling")
+
+    if not regenerate_data and (not os.path.exists(otf_output_dir) or not os.path.exists(labeling_output_dir)):
+        print(f"No data for Figure 3 found. Regenerating data...")
+        regenerate_data = True
+
+    if regenerate_data:
+        run_scenario(name, otf=True, cpp=True, draw=True, path_root=this_dir())
+        run_scenario(name, otf=False, cpp=True, draw=True, path_root=this_dir())
+
     step = 9
     figures = [
-        ("fig_3a", os.path.join(output_dir, f"{name}.cpp.otf", f"svgreach_{step:05d}.svg")),
-        ("fig_3b", os.path.join(output_dir, f"{name}.cpp.labeling", f"svgreach_{step:05d}.svg")),
-        ("fig_3b_hatching", os.path.join(output_dir, f"{name}.cpp.labeling", f"svgkripke_{step:05d}.svg")),
+        ("fig_3a", os.path.join(otf_output_dir, f"svgreach_{step:05d}.svg")),
+        ("fig_3b", os.path.join(labeling_output_dir, f"svgreach_{step:05d}.svg")),
+        ("fig_3b_hatching", os.path.join(labeling_output_dir, f"svgkripke_{step:05d}.svg")),
     ]
     for name, path in figures:
         shutil.copy(path, os.path.join(this_dir(), f"{name}.svg"))
     print(f"Figure 3 written to {this_dir()}")
 
 
-def reproduce_table_1():
+def reproduce_table_1(regenerate_data: bool = False):
     intersection_scenarios = ["ZAM_Yield-1_1_T-1", "ZAM_Intersection-1_2_T-1"]
     interstate_scenarios = ["ZAM_Merge-1_1_T-1"]
     scenario_names = intersection_scenarios + interstate_scenarios
-    benchmark_with_progress(scenario_names, 0, repetitions=5, cpp=True,
-                            path_root=this_dir(),
-                            output_dir="data_table_1_cpp")
-    benchmark_with_progress(scenario_names, 0, repetitions=5, cpp=False,
-                            path_root=this_dir(),
-                            output_dir="data_table_1_python")
 
-    cpp_comparison = otf_labeling_comparison(os.path.join(this_dir(), "data_table_1_cpp"))
-    python_comparison = otf_labeling_comparison(os.path.join(this_dir(), "data_table_1_python"))
+    cpp_output_dir = "data_table_1_cpp"
+    python_output_dir = "data_table_1_python"
+
+    if not regenerate_data and (not os.path.exists(os.path.join(this_dir(), cpp_output_dir)) or not os.path.exists(
+            os.path.join(this_dir(), python_output_dir))):
+        print(f"No data for Table 3 found. Regenerating data...")
+        regenerate_data = True
+
+    if regenerate_data:
+        benchmark_with_progress(scenario_names, 0, repetitions=5, cpp=True,
+                                path_root=this_dir(),
+                                output_dir=cpp_output_dir)
+        benchmark_with_progress(scenario_names, 0, repetitions=5, cpp=False,
+                                path_root=this_dir(),
+                                output_dir=python_output_dir)
+
+    cpp_comparison = otf_labeling_comparison(os.path.join(this_dir(), cpp_output_dir))
+    python_comparison = otf_labeling_comparison(os.path.join(this_dir(), python_output_dir))
 
     table = cpp_comparison[[
         "automaton_creation",
@@ -79,10 +95,10 @@ def reproduce_table_1():
                       f"{latex_command('qty', round(row['computation_time_otf'] * 1000), latex_command('ms'))} & " +
                       f"{latex_command('qty', round(row['computation_time_labeling'] * 1000), latex_command('ms'))} \\\\"
                       for idx, row in table.rename(index={
-                            "ZAM_Yield-1_1_T-1": "Yield-1_1_T-1",
-                            "ZAM_Intersection-1_2_T-1": "TIV-2_1_T-1",
-                            "ZAM_Merge-1_1_T-1": "TIV-1_1_T-1",
-                        }).iterrows()
+            "ZAM_Yield-1_1_T-1": "Yield-1_1_T-1",
+            "ZAM_Intersection-1_2_T-1": "TIV-2_1_T-1",
+            "ZAM_Merge-1_1_T-1": "TIV-1_1_T-1",
+        }).iterrows()
                   ] + [
                       r"    \bottomrule",
                       r"\end{tabular}",
@@ -97,16 +113,24 @@ def reproduce_table_1():
         f.write(f"Automaton creation interstate scenarios: {round(automaton_creation_interstate * 1000)} ms\n")
         f.write(f"Automaton creation intersection scenarios: {round(automaton_creation_intersection * 1000)} ms\n")
         f.write(f"Average model checking overhead: {round(table['model_checking'].mean() * 1000)} ms\n")
-    print(f"Written Table 1 to {filename}")
+    print(f"Table 1 written to {filename}")
 
 
-def reproduce_figure_4():
+def reproduce_figure_4(regenerate_data: bool = False):
     scenario_names = list(scenarios_from_file("exiD.txt"))
-    benchmark_with_progress(scenario_names, 1, repetitions=5, cpp=True,
-                            path_root=this_dir(),
-                            output_dir="data_figure_4")
 
-    bp = boxplot_computation_times_otf(os.path.join(this_dir(), "data_figure_4"), show_plot=False)
+    output_dir = "data_figure_4"
+
+    if not regenerate_data and not os.path.exists(os.path.join(this_dir(), output_dir)):
+        print(f"No data for Figure 4 found. Regenerating data...")
+        regenerate_data = True
+
+    if regenerate_data:
+        benchmark_with_progress(scenario_names, 1, repetitions=5, cpp=True,
+                                path_root=this_dir(),
+                                output_dir=output_dir)
+
+    bp = boxplot_computation_times_otf(os.path.join(this_dir(), output_dir), show_plot=False)
 
     def to_ms(seconds: float) -> float:
         return round(seconds * 1000, 3)
@@ -120,7 +144,7 @@ def reproduce_figure_4():
     with open(filename, "w") as f:
         f.write(latex_plot)
         f.write("\n")
-    print(f"Written Figure 4 to {filename}")
+    print(f"Figure 4 written to {filename}")
 
 
 def this_dir() -> str:
@@ -143,6 +167,7 @@ def pgfplots_boxplot(name: str, median: float, box: Tuple[float, float], whisker
         r"}] coordinates {};",
     ]
     return "\n".join(lines)
+
 
 def latex_command(command: str, *args) -> str:
     latex_args = "".join("{" + str(arg).replace("_", "\\_") + "}" for arg in args)
