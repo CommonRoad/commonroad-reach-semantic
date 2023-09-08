@@ -1,19 +1,22 @@
+import argparse
 import os
 import shutil
-import argparse
-from typing import Iterator, Tuple
+from typing import Iterator, Tuple, List
 
-from analysis import otf_labeling_comparison, boxplot_computation_times_otf
+from analysis import otf_labeling_comparison, boxplot_computation_times_otf, boxplot_computation_times_labeling
 from benchmark import benchmark_with_progress, run_scenario
 
 
-def main(figure_3: bool = True, table_1: bool = True, figure_4: bool = True, regenerate_data: bool = False):
+def main(figure_3: bool = True, table_1: bool = True, figure_4: bool = True, exid_offline: bool = True,
+         regenerate_data: bool = False):
     if figure_3:
         reproduce_figure_3(regenerate_data=regenerate_data)
     if table_1:
         reproduce_table_1(regenerate_data=regenerate_data)
     if figure_4:
         reproduce_figure_4(regenerate_data=regenerate_data)
+    if exid_offline:
+        exid_boxplot_offline(regenerate_data=regenerate_data)
 
 
 def reproduce_figure_3(regenerate_data: bool = False):
@@ -136,19 +139,38 @@ def reproduce_figure_4(regenerate_data: bool = False):
 
     bp = boxplot_computation_times_otf(os.path.join(this_dir(), output_dir), show_plot=False)
 
-    def to_ms(seconds: float) -> float:
-        return round(seconds * 1000, 3)
-
-    latex_plot = "\n".join(
-        pgfplots_boxplot(column, to_ms(median), (to_ms(lb), to_ms(ub)), (to_ms(lw), to_ms(uw))) + "\n"
-        for column, median, (lb, ub), (lw, uw) in bp
-    )
+    latex = latex_plot(bp)
 
     filename = os.path.join(this_dir(), "figure_4.tex")
     with open(filename, "w") as f:
-        f.write(latex_plot)
+        f.write(latex)
         f.write("\n")
     print(f"Figure 4 written to {filename}")
+
+
+def exid_boxplot_offline(regenerate_data: bool = False):
+    scenario_names = list(scenarios_from_file("exiD.txt"))
+
+    output_dir = "data_exid_boxplot_offline"
+
+    if not regenerate_data and not os.path.exists(os.path.join(this_dir(), output_dir)):
+        print(f"No data for exiD labeling found. Regenerating data...")
+        regenerate_data = True
+
+    if regenerate_data:
+        benchmark_with_progress(scenario_names, 2, repetitions=5, cpp=True,
+                                path_root=this_dir(),
+                                output_dir=output_dir)
+
+    bp = boxplot_computation_times_labeling(os.path.join(this_dir(), output_dir), show_plot=False)
+
+    latex = latex_plot(bp)
+
+    filename = os.path.join(this_dir(), "exid_boxplot_offline.tex")
+    with open(filename, "w") as f:
+        f.write(latex)
+        f.write("\n")
+    print(f"Boxplot exiD offline written to {filename}")
 
 
 def this_dir() -> str:
@@ -159,6 +181,16 @@ def scenarios_from_file(path: str) -> Iterator[str]:
     with open(path) as f:
         for line in f:
             yield line.strip()
+
+
+def latex_plot(boxplot_data: List[Tuple[str, float, Tuple[float, float], Tuple[float, float]]]) -> str:
+    def to_ms(seconds: float) -> float:
+        return round(seconds * 1000, 3)
+
+    return "\n".join(
+        pgfplots_boxplot(column, to_ms(median), (to_ms(lb), to_ms(ub)), (to_ms(lw), to_ms(uw))) + "\n"
+        for column, median, (lb, ub), (lw, uw) in boxplot_data
+    )
 
 
 def pgfplots_boxplot(name: str, median: float, box: Tuple[float, float], whisker: Tuple[float, float]) -> str:
@@ -185,10 +217,12 @@ if __name__ == "__main__":
     parser.add_argument("--figure-3", action="store_true", help="create Figure 3")
     parser.add_argument("--table-1", action="store_true", help="create Table 1")
     parser.add_argument("--figure-4", action="store_true", help="create Figure 4")
+    parser.add_argument("--exid-offline", action="store_true", help="create boxplot for exiD with offline approach")
     parser.add_argument("--regenerate-data", action="store_true", help="force data regeneration")
     args = parser.parse_args()
     # if no switch is given, run all
-    if not args.figure_3 and not args.table_1 and not args.figure_4:
+    if not any((args.figure_3, args.table_1, args.figure_4, args.exid_offline)):
         main(regenerate_data=args.regenerate_data)
     else:
-        main(figure_3=args.figure_3, table_1=args.table_1, figure_4=args.figure_4, regenerate_data=args.regenerate_data)
+        main(figure_3=args.figure_3, table_1=args.table_1, figure_4=args.figure_4, exid_offline=args.exid_offline,
+             regenerate_data=args.regenerate_data)
