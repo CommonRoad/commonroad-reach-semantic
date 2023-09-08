@@ -1,7 +1,7 @@
 import glob
 import os
 from dataclasses import dataclass
-from typing import Tuple, Optional
+from typing import Tuple, Optional, List
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -51,16 +51,23 @@ def otf_labeling_comparison(path_benchmark_dir: str) -> pd.DataFrame:
     return combined
 
 
-def boxplot_computation_times_otf(path_benchmark_dir: str, show_plot: bool = False):
+def boxplot_computation_times_otf(path_benchmark_dir: str, show_plot: bool = False) -> List[
+        Tuple[str, float, Tuple[float, float], Tuple[float, float]]]:
+    """Return values for boxplot of computation times for OTF scenarios.
+
+    :param path_benchmark_dir: Path to directory containing the benchmark results.
+    :param show_plot: Show the plot with matplotlib.
+    :return: Tuple of column name, median, box (lower, upper), whisker (lower, upper).
+    """
     scenario_paths = glob.glob(os.path.join(path_benchmark_dir, "O_*.yaml"))
     results = pd.concat((read_otf_results(path) for path in scenario_paths), ignore_index=True, sort=False)
 
     aggregated_per_scenario = results.groupby("scenario_name").mean()
-    for_boxplot = aggregated_per_scenario[["automaton_creation", "pruning"]]
-    for_boxplot["phase1"] = aggregated_per_scenario[["propagation"]].sum(axis=1)
-    for_boxplot["phase2"] = aggregated_per_scenario[["splitting", "collision_check"]].sum(axis=1)
-    for_boxplot["phase3"] = aggregated_per_scenario[["partitioning", "merge", "node_creation"]].sum(axis=1)
-    columns = ["automaton_creation", "pruning", "phase1", "phase2", "phase3"]
+    for_boxplot = aggregated_per_scenario[["automaton_creation", "pruning"]].copy()
+    for_boxplot["propagation"] = aggregated_per_scenario[["propagation"]].sum(axis=1)
+    for_boxplot["splitting"] = aggregated_per_scenario[["splitting", "collision_check"]].sum(axis=1)
+    for_boxplot["repartitioning"] = aggregated_per_scenario[["partitioning", "merge", "node_creation"]].sum(axis=1)
+    columns = ["automaton_creation", "pruning", "propagation", "splitting", "repartitioning"]
     for_boxplot["total"] = for_boxplot[columns].sum(axis=1, numeric_only=True)
     columns.append("total")
 
@@ -78,15 +85,7 @@ def boxplot_computation_times_otf(path_benchmark_dir: str, show_plot: bool = Fal
     whiskers = [
         (lo.get_ydata()[-1], hi.get_ydata()[-1]) for lo, hi in zip(bp["whiskers"][0::2], bp["whiskers"][1::2])
     ]
-    for column, median, box, whisker in zip(columns, medians, boxes, whiskers):
-        print(f"==={column}===")
-        print(f"lower whisker={to_ms(whisker[0])}, lower quartile={to_ms(box[0])},")
-        print(f"median={to_ms(median)},")
-        print(f"upper quartile={to_ms(box[1])}, upper whisker={to_ms(whisker[1])}")
-
-
-def to_ms(seconds: float) -> float:
-    return round(seconds * 1000, 5)
+    return list(zip(columns, medians, boxes, whiskers))
 
 
 def read_otf_results(path: str) -> pd.DataFrame:

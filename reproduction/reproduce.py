@@ -1,16 +1,16 @@
 import os
 import shutil
-from typing import Iterator
+from typing import Iterator, Tuple
 
 from analysis import otf_labeling_comparison, boxplot_computation_times_otf
 from benchmark import benchmark_with_progress, run_scenario
 
 
 def main():
-    reproduce_table_1()
+    # reproduce_table_1()
     # otf_labeling_comparison(os.path.join(this_dir(), "data_table_1_cpp"))
     # otf_labeling_comparison(os.path.join(this_dir(), "data_table_1_python"))
-    # reproduce_figure_4()
+    reproduce_figure_4()
     # boxplot_computation_times_otf(os.path.join(this_dir(), "data_figure_4"), show_plot=True)
     # reproduce_figure_3()
 
@@ -29,6 +29,7 @@ def reproduce_figure_3():
     ]
     for name, path in figures:
         shutil.copy(path, os.path.join(this_dir(), f"{name}.svg"))
+    print(f"Figure 3 written to {this_dir()}")
 
 
 def reproduce_table_1():
@@ -105,7 +106,21 @@ def reproduce_figure_4():
                             path_root=this_dir(),
                             output_dir="data_figure_4")
 
-    boxplot_computation_times_otf(os.path.join(this_dir(), "data_figure_4"), show_plot=True)
+    bp = boxplot_computation_times_otf(os.path.join(this_dir(), "data_figure_4"), show_plot=False)
+
+    def to_ms(seconds: float) -> float:
+        return round(seconds * 1000, 3)
+
+    latex_plot = "\n".join(
+        pgfplots_boxplot(column, to_ms(median), (to_ms(lb), to_ms(ub)), (to_ms(lw), to_ms(uw))) + "\n"
+        for column, median, (lb, ub), (lw, uw) in bp
+    )
+
+    filename = os.path.join(this_dir(), "figure_4.tex")
+    with open(filename, "w") as f:
+        f.write(latex_plot)
+        f.write("\n")
+    print(f"Written Figure 4 to {filename}")
 
 
 def this_dir() -> str:
@@ -117,6 +132,17 @@ def scenarios_from_file(path: str) -> Iterator[str]:
         for line in f:
             yield line.strip()
 
+
+def pgfplots_boxplot(name: str, median: float, box: Tuple[float, float], whisker: Tuple[float, float]) -> str:
+    lines = [
+        f"% {name}",
+        r"\addplot+[boxplot prepared={",
+        f"    lower whisker={whisker[0]}, lower quartile={box[0]},",
+        f"    median={median},",
+        f"    upper quartile={box[1]}, upper whisker={whisker[1]},",
+        r"}] coordinates {};",
+    ]
+    return "\n".join(lines)
 
 def latex_command(command: str, *args) -> str:
     latex_args = "".join("{" + str(arg).replace("_", "\\_") + "}" for arg in args)
