@@ -1,15 +1,19 @@
 import os
 import shutil
+import argparse
 from typing import Iterator, Tuple
 
 from analysis import otf_labeling_comparison, boxplot_computation_times_otf
 from benchmark import benchmark_with_progress, run_scenario
 
 
-def main():
-    reproduce_figure_3(regenerate_data=False)
-    reproduce_table_1(regenerate_data=False)
-    reproduce_figure_4(regenerate_data=False)
+def main(figure_3: bool = True, table_1: bool = True, figure_4: bool = True, regenerate_data: bool = False):
+    if figure_3:
+        reproduce_figure_3(regenerate_data=regenerate_data)
+    if table_1:
+        reproduce_table_1(regenerate_data=regenerate_data)
+    if figure_4:
+        reproduce_figure_4(regenerate_data=regenerate_data)
 
 
 def reproduce_figure_3(regenerate_data: bool = False):
@@ -175,4 +179,16 @@ def latex_command(command: str, *args) -> str:
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(
+        description="Reproduce results from the paper. If no specific figure or table is given, all are reproduced."
+    )
+    parser.add_argument("--figure-3", action="store_true", help="create Figure 3")
+    parser.add_argument("--table-1", action="store_true", help="create Table 1")
+    parser.add_argument("--figure-4", action="store_true", help="create Figure 4")
+    parser.add_argument("--regenerate-data", action="store_true", help="force data regeneration")
+    args = parser.parse_args()
+    # if no switch is given, run all
+    if not args.figure_3 and not args.table_1 and not args.figure_4:
+        main(regenerate_data=args.regenerate_data)
+    else:
+        main(figure_3=args.figure_3, table_1=args.table_1, figure_4=args.figure_4, regenerate_data=args.regenerate_data)
