@@ -28,7 +28,7 @@ class SummaryBenchmarkResult:
     model_checking: Optional[float] = None
 
 
-def otf_labeling_comparison(path_benchmark_dir: str):
+def otf_labeling_comparison(path_benchmark_dir: str) -> pd.DataFrame:
     computation_columns = ["propagation", "splitting", "partitioning", "collision_check", "merge", "node_creation", "pruning"]
 
     otf_scenario_paths = glob.glob(os.path.join(path_benchmark_dir, "O_*.yaml"))
@@ -47,8 +47,8 @@ def otf_labeling_comparison(path_benchmark_dir: str):
         on="scenario_name", suffixes=("_otf", "_lab")
     )
     combined["pure_model_checking"] = combined["model_checking"] - combined["automaton_creation"]
-    with pd.option_context("display.max_rows", None, "display.max_columns", None, "display.width", None):
-        print(combined)
+
+    return combined
 
 
 def boxplot_computation_times_otf(path_benchmark_dir: str, show_plot: bool = False):
