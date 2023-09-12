@@ -5,6 +5,8 @@ FPS=30
 y_offset=100
 fontsize=48
 
+output_name="animation_yield.mp4"
+
 dirs=(
   otf_no_prune
   otf
@@ -33,4 +35,6 @@ for i in "${!dirs[@]}"; do
 done
 
 # concatenate videos
-ffmpeg -f concat -safe 0 -i <(echo "${sections}") -c copy "video/all.mp4"
+ffmpeg -f concat -safe 0 -i <(echo "${sections}") -c copy "${output_name}"
+
+echo "Video saved as ${output_name}"
