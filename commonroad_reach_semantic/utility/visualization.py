@@ -297,7 +297,7 @@ def plot_scenario_with_regions(semantic_model: SemanticModel, coordinate_system:
 
     # plot traffic signs
     for sign in scenario.lanelet_network.traffic_signs:
-        sign.draw(renderer)
+        sign.draw(renderer, draw_params.traffic_sign)
 
     plt.rc("axes", axisbelow=True)
     ax = plt.gca()
@@ -563,8 +563,8 @@ def _draw_scenario_elements(config: SemanticConfiguration, renderer: MPRenderer,
     """
     scenario = config.scenario
     scenario.draw(renderer, draw_params)
-    # for sign in scenario.lanelet_network.traffic_signs:
-    #     sign.draw(renderer)
+    for sign in scenario.lanelet_network.traffic_signs:
+        sign.draw(renderer, draw_params.traffic_sign)
 
     if config.debug.draw_planning_problem:
         config.planning_problem.draw(renderer, draw_params)
