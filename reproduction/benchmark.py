@@ -141,9 +141,14 @@ def write_labeling_benchmark_results_to_file(scenario_name: str,
     with open(os.path.join(file_path, f"L_{scenario_name}_{now}.yaml"), "w") as f:
         yaml.dump(yaml_dict, f)
 
-def run_scenario(name: str, draw: bool = False, interactive_viz: bool = False, otf: bool = True, cpp: bool = False, path_root: str = "/home/lercher/datasets/exiD-commonroad-only6-merge") -> None:
+
+def run_scenario(name: str, draw: bool = False, interactive_viz: bool = False,
+                 otf: bool = True, cpp: bool = False, prune: bool = True,
+                 path_root: str = "/home/lercher/datasets/exiD-commonroad-only6-merge") -> None:
     # ==== build configuration
     config = SemanticConfigurationBuilder(path_root=path_root).build_configuration(name)
+    if not prune:
+        config.reachable_set.prune_nodes_not_reaching_final_step = False
 
     config.update()
     util_logger.initialize_logger(config)
@@ -181,10 +186,11 @@ def run_scenario(name: str, draw: bool = False, interactive_viz: bool = False, o
 
     if draw:
         # ==== plot computation results
-        suffix_lang = "cpp" if cpp else "py"
-        suffix_mode = "otf" if otf else "labeling"
+        suffix_lang = ".cpp" if cpp else ".py"
+        suffix_mode = ".otf" if otf else ".labeling"
+        suffix_prune = "" if prune else ".no_prune"
         output_path = os.path.join(os.path.dirname(os.path.normpath(config.general.path_output)),
-                                   f"{name}.{suffix_lang}.{suffix_mode}")
+                                   f"{name}{suffix_lang}{suffix_mode}{suffix_prune}")
 
         util_visual.plot_reach_graph(reach_interface, node_to_group=node_to_group, path_output=output_path)
         util_visual.plot_scenario_with_regions(semantic_model, "CVLN", path_output=output_path)

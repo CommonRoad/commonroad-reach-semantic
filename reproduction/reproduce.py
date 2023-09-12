@@ -1,4 +1,5 @@
 import argparse
+import glob
 import os
 import shutil
 from typing import Iterator, Tuple, List
@@ -24,9 +25,11 @@ def reproduce_figure_3(regenerate_data: bool = False):
 
     output_dir = "output"
     otf_output_dir = os.path.join(output_dir, f"{name}.cpp.otf")
+    otf_output_dir_no_prune = os.path.join(output_dir, f"{name}.cpp.otf.no_prune")
     labeling_output_dir = os.path.join(output_dir, f"{name}.cpp.labeling")
 
     if not regenerate_data and (not os.path.exists(os.path.join(this_dir(), otf_output_dir)) or
+                                not os.path.exists(os.path.join(this_dir(), otf_output_dir_no_prune)) or
                                 not os.path.exists(os.path.join(this_dir(), labeling_output_dir))):
         print(f"No data for Figure 3 found. Regenerating data...")
         regenerate_data = True
@@ -35,10 +38,14 @@ def reproduce_figure_3(regenerate_data: bool = False):
         if not delete_output_dir_if_exists(otf_output_dir):
             return
 
+        if not delete_output_dir_if_exists(otf_output_dir_no_prune):
+            return
+
         if not delete_output_dir_if_exists(labeling_output_dir):
             return
 
         run_scenario(name, otf=True, cpp=True, draw=True, path_root=this_dir())
+        run_scenario(name, otf=True, cpp=True, draw=True, prune=False, path_root=this_dir())
         run_scenario(name, otf=False, cpp=True, draw=True, path_root=this_dir())
 
     step = 9
@@ -50,6 +57,26 @@ def reproduce_figure_3(regenerate_data: bool = False):
     for name, path in figures:
         shutil.copy(path, os.path.join(this_dir(), f"{name}.svg"))
     print(f"Figure 3 written to {this_dir()}")
+
+    # copy images for video
+    video_sections = [
+        ("otf_no_prune", otf_output_dir_no_prune, "svgreach_*.svg"),
+        ("otf", otf_output_dir, "svgreach_*.svg"),
+        ("labeling", labeling_output_dir, "svgreach_*.svg"),
+        ("labeling_model_checked", labeling_output_dir, "svgkripke_*.svg"),
+    ]
+    video_dir = os.path.join(this_dir(), "video")
+    if not os.path.exists(video_dir):
+        os.mkdir(video_dir)
+
+    for name, path, pattern in video_sections:
+        section_dir = os.path.join(video_dir, name)
+        if not os.path.exists(section_dir):
+            os.mkdir(section_dir)
+        for frame in glob.glob(os.path.join(path, pattern)):
+            shutil.copy(frame, section_dir)
+    print(f"Video frames written to {video_dir}")
+    print("Run make_video.sh to create the video")
 
 
 def reproduce_table_1(regenerate_data: bool = False):
@@ -233,12 +260,14 @@ def delete_output_dir_if_exists(output_dir: str) -> bool:
         return interactive_delete(os.path.join(this_dir(), output_dir))
     return False
 
+
 def interactive_delete(path: str) -> bool:
     if os.path.exists(path):
         if input(f"Delete {path}? [y/N] ").lower() == "y":
             shutil.rmtree(path)
             return True
-    return False
+        return False
+    return True
 
 
 if __name__ == "__main__":
