@@ -47,12 +47,7 @@ class FiniteAutomaton:
         """The number of the initial state."""
         return self._spot_automaton.get_init_state_number()
 
-    def transitions_from(self, state: int) -> Iterator[Tuple[List[FrozenSet[Tuple[str, bool]]], int]]:
-        """Iterate over all transitions outgoing from the given state."""
-        for edge in self._spot_automaton.out(state):
-            yield self._edge_condition_to_minterms(edge.cond), edge.dst
-
-    def combined_transitions_from(self, states: Iterable[int]) -> Iterator[Tuple[FrozenSet[Tuple[str, bool]], int]]:
+    def transitions_from(self, states: Iterable[int]) -> Iterator[Tuple[FrozenSet[Tuple[str, bool]], int]]:
         """Iterate over all transitions outgoing from the given states.
 
         Tries to minimize the minterms by combining the conditions of the outgoing edges leading to the same destination.

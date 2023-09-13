@@ -164,7 +164,7 @@ class PySemanticOTFReachableSet(PySemanticReachableSet):
         """
         current_states = frozenset({self.automaton.initial_state}) if step == self.step_start else \
             self.reachable_set_to_label[reachable_set.source_propagation]
-        transitions = list(self.automaton.combined_transitions_from(current_states))
+        transitions = list(self.automaton.transitions_from(current_states))
         constrained_reachable_sets = self._split_to_minterms(step, [reachable_set], transitions)
 
         constrained_reachable_sets = self._filter_reachable_sets(constrained_reachable_sets, step)
