@@ -23,6 +23,9 @@ namespace semantic_reach {
         /// It is satisfied iff all its atomic propositions hold.
         std::vector<Minterm> _edge_condition_to_minterms(bdd cond);
 
+        /// Create a configured translator for converting LTLf formulas to automata.
+        static spot::translator _get_translator();
+
     public:
         /// Construct the finite automaton accepting those words that make the given LTLf formula true
         /// @param ltlf_formulas The LTLf formulas to translate.
@@ -30,18 +33,15 @@ namespace semantic_reach {
         ///            0 = decide automatically
         ///            1 = translate individually and then compute the product automaton (faster)
         ///            2 = form conjunction of the formulas and translate the result (probably smaller automaton)
-        FiniteAutomaton(const std::vector<std::string> &ltlf_formulas, int mode = 0);
+        explicit FiniteAutomaton(const std::vector<std::string> &ltlf_formulas, int mode = 0);
 
         /// The number of the initial state.
         unsigned int initial_state();
 
-        /// Find all transitions outgoing from the given state.
-        std::vector<std::pair<std::vector<Minterm>, unsigned int>> transitions_from(unsigned int state);
-
         /// Find all transitions outgoing from the given states.
         /// Tries to minimize the minterms by combining the conditions of the outgoing edges leading to the same destination.
         std::vector<std::pair<Minterm, unsigned int>>
-        combined_transitions_from(const std::set<unsigned int> &states);
+        transitions_from(const std::set<unsigned int> &states);
 
         /// Check whether the given state is an accepting state.
         /// @returns True if and only if the state is accepting.

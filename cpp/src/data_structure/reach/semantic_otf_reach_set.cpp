@@ -139,7 +139,7 @@ SemanticOTFReachableSet::_split_reachable_set(int step, const reach::ReachNodePt
     auto current_states =
             step == step_start ? std::set<unsigned int>{automaton->initial_state()}
                                : reachable_set_to_label[reachable_set->vec_nodes_source[0]];
-    auto transitions = automaton->combined_transitions_from(current_states);
+    auto transitions = automaton->transitions_from(current_states);
     std::set<Literal> finished_literals{};
     auto constrained_reachable_sets = _split_to_minterms(step, {reachable_set}, transitions, finished_literals, false);
 
