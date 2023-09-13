@@ -7,7 +7,7 @@ import spot
 from commonroad_reach.data_structure.reach.reach_interface import ReachableSetInterface
 
 from commonroad_reach_semantic.data_structure.model_checking.automaton_graph import AutomatonGraph
-from commonroad_reach_semantic.data_structure.model_checking.kripke import KripkeStructure
+from commonroad_reach_semantic.data_structure.model_checking.kripke_structure import KripkeStructure
 from commonroad_reach_semantic.data_structure.rule.traffic_rule_interface import TrafficRuleInterface
 
 logger = logging.getLogger(__name__)
