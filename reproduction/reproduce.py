@@ -179,7 +179,9 @@ def reproduce_figure_4(regenerate_data: bool = False):
                                 path_root=this_dir(),
                                 output_dir=output_dir)
 
-    bp = boxplot_computation_times_otf(os.path.join(this_dir(), output_dir), show_plot=False)
+    comp_times, bp = boxplot_computation_times_otf(os.path.join(this_dir(), output_dir), show_plot=False)
+
+    high_total_times = comp_times[comp_times["total"] > 0.1].sort_values("total", ascending=False)
 
     latex = latex_plot(bp)
 
@@ -187,6 +189,9 @@ def reproduce_figure_4(regenerate_data: bool = False):
     with open(filename, "w") as f:
         f.write(latex)
         f.write("\n")
+        for idx, row in high_total_times.iterrows():
+            total = row["total"]
+            f.write(f"{idx}: {round(total * 1000)} ms\n")
     print(f"Figure 4 written to {filename}")
 
 
@@ -206,7 +211,7 @@ def exid_boxplot_offline(regenerate_data: bool = False):
                                 path_root=this_dir(),
                                 output_dir=output_dir)
 
-    bp = boxplot_computation_times_labeling(os.path.join(this_dir(), output_dir), show_plot=False)
+    _, bp = boxplot_computation_times_labeling(os.path.join(this_dir(), output_dir), show_plot=False)
 
     latex = latex_plot(bp)
 

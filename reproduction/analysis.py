@@ -51,19 +51,19 @@ def otf_labeling_comparison(path_benchmark_dir: str) -> pd.DataFrame:
     return combined
 
 
-def boxplot_computation_times_otf(path_benchmark_dir: str, show_plot: bool = False) -> List[
-        Tuple[str, float, Tuple[float, float], Tuple[float, float]]]:
+def boxplot_computation_times_otf(path_benchmark_dir: str, show_plot: bool = False) -> Tuple[pd.DataFrame, List[
+        Tuple[str, float, Tuple[float, float], Tuple[float, float]]]]:
     """Return values for boxplot of computation times for OTF scenarios.
 
     :param path_benchmark_dir: Path to directory containing the benchmark results.
     :param show_plot: Show the plot with matplotlib.
-    :return: Tuple of column name, median, box (lower, upper), whisker (lower, upper).
+    :return: Aggregated computation times + Tuple of column name, median, box (lower, upper), whisker (lower, upper).
     """
     scenario_paths = glob.glob(os.path.join(path_benchmark_dir, "O_*.yaml"))
     results = pd.concat((read_otf_results(path) for path in scenario_paths), ignore_index=True, sort=False)
 
     aggregated_per_scenario = results.groupby("scenario_name").mean()
-    for_boxplot = aggregated_per_scenario[["automaton_creation", "pruning"]].copy()
+    for_boxplot: pd.DataFrame = aggregated_per_scenario[["automaton_creation", "pruning"]].copy()
     for_boxplot["propagation"] = aggregated_per_scenario[["propagation"]].sum(axis=1)
     for_boxplot["splitting"] = aggregated_per_scenario[["splitting", "collision_check"]].sum(axis=1)
     for_boxplot["repartitioning"] = aggregated_per_scenario[["partitioning", "merge", "node_creation"]].sum(axis=1)
@@ -71,16 +71,16 @@ def boxplot_computation_times_otf(path_benchmark_dir: str, show_plot: bool = Fal
     for_boxplot["total"] = for_boxplot[columns].sum(axis=1, numeric_only=True)
     columns.append("total")
 
-    return create_boxplot(for_boxplot, columns, show_plot)
+    return for_boxplot, create_boxplot(for_boxplot, columns, show_plot)
 
 
-def boxplot_computation_times_labeling(path_benchmark_dir: str, show_plot: bool = False) -> List[
-        Tuple[str, float, Tuple[float, float], Tuple[float, float]]]:
+def boxplot_computation_times_labeling(path_benchmark_dir: str, show_plot: bool = False) -> Tuple[pd.DataFrame, List[
+        Tuple[str, float, Tuple[float, float], Tuple[float, float]]]]:
     """Return values for boxplot of computation times for labeling scenarios.
 
     :param path_benchmark_dir: Path to directory containing the benchmark results.
     :param show_plot: Show the plot with matplotlib.
-    :return: Tuple of column name, median, box (lower, upper), whisker (lower, upper).
+    :return: Aggregated computation times + Tuple of column name, median, box (lower, upper), whisker (lower, upper).
     """
     scenario_paths = glob.glob(os.path.join(path_benchmark_dir, "L_*.yaml"))
     results = pd.concat((read_otf_results(path) for path in scenario_paths), ignore_index=True, sort=False)
@@ -96,7 +96,7 @@ def boxplot_computation_times_labeling(path_benchmark_dir: str, show_plot: bool 
     for_boxplot["total"] = for_boxplot[columns].sum(axis=1, numeric_only=True)
     columns.append("total")
 
-    return create_boxplot(for_boxplot, columns, show_plot)
+    return for_boxplot, create_boxplot(for_boxplot, columns, show_plot)
 
 
 def create_boxplot(for_boxplot: pd.DataFrame, columns: List[str], show_plot: bool = False) -> List[
