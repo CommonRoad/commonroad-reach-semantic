@@ -14,7 +14,7 @@
 stages:
   - static-check
   - compile
-  - build-test-python
+  - test
 
 image: $CI_REGISTRY/cps/commonroad/commonroad-reach-semantic/deps:ci
 
@@ -69,7 +69,7 @@ clang-tidy:
 
 
 ### build C++ library ###
-build-standalone:
+compile-cpp:
   stage: compile
   variables:
     GIT_SUBMODULE_STRATEGY: recursive # initialize submodules before starting job
@@ -90,9 +90,9 @@ build-standalone:
   needs: []
 
 
-### build test python ###
-build-test-python:
-  stage: build-test-python
+### test Python ###
+test-python:
+  stage: test
   before_script:
     - *conda-init
     - conda activate "cr$PYTHON_VER"
@@ -105,5 +105,25 @@ build-test-python:
     matrix:
       - PYTHON_VER: *python-versions
   needs:
-    - job: build-standalone
+    - job: compile-cpp
       artifacts: true
+
+### test C++ ###
+test-cpp:
+  stage: test
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive # initialize submodules before starting job
+  script:
+    - *conda-init
+    - conda activate "cr$PYTHON_VER"
+    - *python-prepare
+    - mkdir build-debug && cd build-debug
+    - cmake -DCRDC_DIR="$CRDC_DIR" -DCRREACH_DIR="$CRREACH_DIR" -DPYTHON_VER="$PYTHON_VER" -DCMAKE_BUILD_TYPE=Debug -DADD_TESTS=true ..
+    - cmake --build . --target doctest_runner -- -j $BUILD_JOBS
+    - ./cpp/doctest_runner
+  parallel:
+    matrix:
+      - PYTHON_VER: *python-versions
+  needs:
+    - job: compile-cpp
+      artifacts: false
