@@ -256,8 +256,8 @@ SemanticOTFReachableSet::_split_to_minterms(int step, const std::vector<reach::R
 
 std::pair<std::vector<reach::ReachNodePtr>, bool>
 SemanticOTFReachableSet::_restrict_to_literal(int step, const std::vector<reach::ReachNodePtr> &reachable_sets,
-                                                       const semantic_reach::Literal &literal, bool regionized,
-                                                       bool clone) {
+                                              const semantic_reach::Literal &literal, bool regionized,
+                                              bool clone) {
     std::vector<reach::ReachNodePtr> to_restrict;
     if (clone) {
         to_restrict.reserve(reachable_sets.size());
@@ -274,27 +274,28 @@ SemanticOTFReachableSet::_restrict_to_literal(int step, const std::vector<reach:
         to_restrict = reachable_sets;
     }
 
-    Predicate pred = Predicate::from_proposition(literal.first, literal.second);
-    if (pred.needs_lanelets && !regionized) {
+    auto pred = Predicate::from_proposition(literal.first, literal.second);
+    if (pred->needs_lanelets && !regionized) {
         // if the predicate needs lanelets, we need to split the reachable sets into regions first (if we haven't already)
         to_restrict = labeler->split_wrt_regions(step, to_restrict);
     }
     // restrict the reachable sets to the predicate
     std::vector<reach::ReachNodePtr> restricted_reachable_sets{};
     for (const auto &node: to_restrict) {
-        auto restricted_nodes = pred.needs_lanelets ? pred.restrict_reach_node(step, node, semantic_model,
-                                                                               labeler->reachable_set_to_lanelet_ids[node])
-                                                    : pred.restrict_reach_node(step, node, semantic_model);
+        auto restricted_nodes = pred->needs_lanelets ?
+                                pred->restrict_reach_node(step, node, semantic_model, world, ego_ccs,
+                                                          labeler->reachable_set_to_lanelet_ids[node]) :
+                                pred->restrict_reach_node(step, node, semantic_model, world, ego_ccs);
         restricted_reachable_sets.insert(restricted_reachable_sets.end(),
                                          std::make_move_iterator(restricted_nodes.begin()),
                                          std::make_move_iterator(restricted_nodes.end()));
     }
-    return {restricted_reachable_sets, pred.needs_lanelets};
+    return {restricted_reachable_sets, pred->needs_lanelets};
 }
 
 std::pair<std::vector<std::pair<Minterm, unsigned int>>, std::vector<std::pair<Minterm, unsigned int>>>
 SemanticOTFReachableSet::_partition_transitions(const semantic_reach::Literal &literal,
-                                                         const std::vector<std::pair<Minterm, unsigned int>> &transitions) {
+                                                const std::vector<std::pair<Minterm, unsigned int>> &transitions) {
     std::vector<std::pair<Minterm, unsigned int>> not_needs_literal{};
     std::vector<std::pair<Minterm, unsigned int>> needs_literal{};
 
@@ -308,7 +309,7 @@ SemanticOTFReachableSet::_partition_transitions(const semantic_reach::Literal &l
 }
 
 std::optional<Literal> SemanticOTFReachableSet::_choose_next_literal(const std::vector<Minterm> &minterms,
-                                                                              const std::set<Literal> &ignored_literals) {
+                                                                     const std::set<Literal> &ignored_literals) {
     // remove duplicates so that we do not make a minterm more important if it leads to multiple states
     // TODO: does this make sense?
     std::set<Minterm> unique_minterms{minterms.begin(), minterms.end()};
@@ -337,8 +338,8 @@ std::optional<Literal> SemanticOTFReachableSet::_choose_next_literal(const std::
     // prefer predicates that don't need lanelets, as this avoids splitting to regions
     // TODO: we could choose a different ordering here or make this configurable
     std::sort(candidates.begin(), candidates.end(), [](const Literal &a, const Literal &b) {
-        return !Predicate::from_proposition(a.first, a.second).needs_lanelets &&
-               Predicate::from_proposition(b.first, b.second).needs_lanelets;
+        return !Predicate::from_proposition(a.first, a.second)->needs_lanelets &&
+               Predicate::from_proposition(b.first, b.second)->needs_lanelets;
     });
 
     return candidates.empty() ? std::nullopt : std::optional<Literal>{candidates[0]};

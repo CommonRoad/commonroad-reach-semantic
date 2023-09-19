@@ -2,11 +2,13 @@
 
 #include <commonroad_cpp/obstacle/obstacle.h>
 
-InFrontOfObstaclePredicate::InFrontOfObstaclePredicate(int obstacle_id, bool negated) : obstacle_id(obstacle_id),
-                                                                                        negated(negated) {};
+using namespace semantic_reach;
 
-std::vector<reach::ReachNode>
-InFrontOfObstaclePredicate::_restrict_reach_node_mandatory(int step, reach::ReachNode &reach_node,
+InFrontOfObstaclePredicate::InFrontOfObstaclePredicate(int obstacle_id, bool negated) : Predicate(negated, false),
+                                                                                        obstacle_id(obstacle_id) {}
+
+std::vector<reach::ReachNodePtr>
+InFrontOfObstaclePredicate::_restrict_reach_node_mandatory(int step, const reach::ReachNodePtr &reach_node,
                                                            const std::shared_ptr<World> &world,
                                                            const std::shared_ptr<CurvilinearCoordinateSystem> &ego_ccs) const {
     auto obstacle_front = _get_obstacle_front(step, world, ego_ccs);
@@ -15,13 +17,13 @@ InFrontOfObstaclePredicate::_restrict_reach_node_mandatory(int step, reach::Reac
         return {reach_node};
     }
 
-    reach_node.intersect_in_position_domain(obstacle_front.value());
+    reach_node->intersect_in_position_domain(obstacle_front.value());
 
     return {reach_node};
 }
 
-std::vector<reach::ReachNode>
-InFrontOfObstaclePredicate::_restrict_reach_node_forbidden(int step, reach::ReachNode &reach_node,
+std::vector<reach::ReachNodePtr>
+InFrontOfObstaclePredicate::_restrict_reach_node_forbidden(int step, const reach::ReachNodePtr &reach_node,
                                                            const std::shared_ptr<World> &world,
                                                            const std::shared_ptr<CurvilinearCoordinateSystem> &ego_ccs) const {
     auto obstacle_front = _get_obstacle_front(step, world, ego_ccs);
@@ -30,19 +32,19 @@ InFrontOfObstaclePredicate::_restrict_reach_node_forbidden(int step, reach::Reac
         return {reach_node};
     }
 
-    reach_node.intersect_in_position_domain(-std::numeric_limits<double>::infinity(),
-                                            -std::numeric_limits<double>::infinity(), obstacle_front.value());
+    reach_node->intersect_in_position_domain(-std::numeric_limits<double>::infinity(),
+                                             -std::numeric_limits<double>::infinity(), obstacle_front.value());
 
     return {reach_node};
 }
 
 std::optional<double> InFrontOfObstaclePredicate::_get_obstacle_front(int step, const std::shared_ptr<World> &world,
-                                                       const std::shared_ptr<CurvilinearCoordinateSystem> &ego_ccs) const {
+                                                                      const std::shared_ptr<CurvilinearCoordinateSystem> &ego_ccs) const {
     auto obstacle = world->findObstacle(obstacle_id);
     std::shared_ptr<State> obstacle_state;
     try {
         obstacle_state = obstacle->getStateByTimeStep(step);
-    } catch (std::logic_error& e) {
+    } catch (std::logic_error &e) {
         return std::nullopt;
     }
     if (!ego_ccs->cartesianPointInProjectionDomain(obstacle_state->getXPosition(), obstacle_state->getYPosition())) {
@@ -50,4 +52,10 @@ std::optional<double> InFrontOfObstaclePredicate::_get_obstacle_front(int step, 
     }
 
     return obstacle->frontS(step, ego_ccs);
+}
+
+std::optional<std::unique_ptr<InFrontOfObstaclePredicate>>
+InFrontOfObstaclePredicate::try_from_proposition(const string &proposition, bool is_negated) {
+    // TODO: implement parsing
+    return std::nullopt;
 }

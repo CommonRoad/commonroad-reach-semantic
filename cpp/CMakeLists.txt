@@ -26,7 +26,10 @@ set(REACH_SOURCE
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/semantic_reach_set.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/semantic_labeling_reach_set.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/semantic_otf_reach_set.cpp
+
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/predicates/predicate.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/predicates/py_predicate.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/predicates/in_front_of_obstacle_predicate.cpp
 
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/model_checking/finite_automaton.cpp
 
@@ -40,8 +43,6 @@ set(REACH_SOURCE
 
         ${CMAKE_CURRENT_LIST_DIR}/src/utility/reach_operation.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/utility/spot.cpp
-
-        ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/predicates/in_front_of_obstacle_predicate.cpp
 
         CACHE STRING "" FORCE)
 

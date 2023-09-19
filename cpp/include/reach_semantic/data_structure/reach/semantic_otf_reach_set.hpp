@@ -3,12 +3,17 @@
 #include "reach_semantic/data_structure/reach/semantic_reach_set.hpp"
 #include "reach_semantic/data_structure/model_checking/finite_automaton.hpp"
 
+#include <commonroad_cpp/geometry/curvilinear_coordinate_system.h>
+
 namespace semantic_reach {
     class SemanticOTFReachableSet : public SemanticReachableSet {
     private:
         void _compute_drivable_area_at_step(int const &step) override;
 
         void _compute_reachable_set_at_step(int const &step) override;
+
+        std::shared_ptr<World> world;
+        std::shared_ptr<geometry::CurvilinearCoordinateSystem> ego_ccs;
 
         std::map<int, std::map<std::pair<std::set<unsigned int>, std::set<unsigned int>>, std::vector<reach::ReachPolygonPtr>>> map_step_to_states_to_drivable_area{};
         std::map<int, std::map<std::pair<std::set<unsigned int>, std::set<unsigned int>>, std::vector<reach::ReachNodePtr>>> map_step_to_states_to_propagated_set{};
