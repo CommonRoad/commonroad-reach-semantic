@@ -41,6 +41,8 @@ set(REACH_SOURCE
         ${CMAKE_CURRENT_LIST_DIR}/src/utility/reach_operation.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/utility/spot.cpp
 
+        ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/predicates/in_front_of_obstacle_predicate.cpp
+
         CACHE STRING "" FORCE)
 
 # ========= building library
