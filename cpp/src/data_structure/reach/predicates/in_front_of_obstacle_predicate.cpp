@@ -1,6 +1,7 @@
 #include "reach_semantic/data_structure/reach/predicates/in_front_of_obstacle_predicate.hpp"
 
 #include <commonroad_cpp/obstacle/obstacle.h>
+#include <regex>
 
 using namespace semantic_reach;
 
@@ -56,6 +57,10 @@ std::optional<double> InFrontOfObstaclePredicate::_get_obstacle_front(int step, 
 
 std::optional<std::unique_ptr<InFrontOfObstaclePredicate>>
 InFrontOfObstaclePredicate::try_from_proposition(const string &proposition, bool is_negated) {
-    // TODO: implement parsing
+    std::smatch match;
+    if (std::regex_match(proposition, match, std::regex(R"(InFrontOf_V(\d+))"))) {
+        int obstacle_id{std::stoi(match[1])};
+        return std::make_unique<InFrontOfObstaclePredicate>(obstacle_id, is_negated);
+    }
     return std::nullopt;
 }
