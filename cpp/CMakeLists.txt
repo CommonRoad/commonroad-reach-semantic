@@ -69,15 +69,6 @@ target_link_libraries(crreachs PUBLIC
         bddx)
 target_link_libraries(crreachs PRIVATE pybind11::embed)
 
-# ====
-# 1. create executables which uses the source files set above
-add_executable(playground_semantic
-        ${CMAKE_CURRENT_LIST_DIR}/src/playground_semantic.cpp)
-# 2. link to external libraries
-target_link_libraries(playground_semantic PRIVATE
-        crreachs
-        pybind11::embed)
-
 # ==== unit tests using Doctest
 if(ADD_TESTS)
     # 1. create target
