@@ -1,22 +1,42 @@
-#include <utility>
-
-#include "reachset/utility/reach_operation.hpp"
 #include "reach_semantic/data_structure/reach/semantic_otf_reach_set.hpp"
 #include "reach_semantic/data_structure/reach/predicates/predicate.hpp"
 #include "reach_semantic/utility/reach_operation.hpp"
 
+#include "reachset/utility/reach_operation.hpp"
+
+#include <commonroad_cpp/interfaces/commonroad/input_utils.h>
+
+#include <utility>
+
 using namespace semantic_reach;
 
 SemanticOTFReachableSet::SemanticOTFReachableSet(semantic_reach::SemanticConfigurationPtr config,
-                                                          collision::CollisionCheckerPtr collision_checker,
-                                                          semantic_reach::SemanticModelPtr semantic_model,
-                                                          semantic_reach::TrafficRuleInterfacePtr traffic_rule_interface)
+                                                 collision::CollisionCheckerPtr collision_checker,
+                                                 semantic_reach::SemanticModelPtr semantic_model,
+                                                 semantic_reach::TrafficRuleInterfacePtr traffic_rule_interface)
         : SemanticReachableSet(std::move(config), std::move(collision_checker), std::move(semantic_model),
                                std::move(traffic_rule_interface)) {
     _initialize_zero_state_polygons();
 
     // Construct finite automaton from traffic rules
-    automaton = std::make_unique<FiniteAutomaton>(rule_interface->vec_specifications_ltl, this->config->config_traffic_rule.mode_automata);
+    automaton = std::make_unique<FiniteAutomaton>(rule_interface->vec_specifications_ltl,
+                                                  this->config->config_traffic_rule.mode_automata);
+
+    // Create environment model
+    const auto &[obstacles, roadNetwork, _dt_unused] = InputUtils::getDataFromCommonRoad(
+            this->config->config_general.path_scenarios + this->config->config_general.name_scenario + ".xml");
+    world = std::make_shared<World>(step_start, roadNetwork, std::vector<std::shared_ptr<Obstacle>>{}, obstacles,
+                                    this->config->config_planning.dt);
+
+    auto config_ccs{this->config->config_planning.CLCS};
+    ego_ccs = std::make_shared<geometry::CurvilinearCoordinateSystem>(config_ccs->referencePathOriginal());
+    // FIXME: Use projection domain and epsilons from config_ccs (using defaults for now)
+    // Currently, these have weird values
+    // Maybe this is a consequence of config_ccs being initialized as CCS of drivability checker, while we only link against the environment model
+//    ego_ccs = std::make_shared<geometry::CurvilinearCoordinateSystem>(config_ccs->referencePathOriginal(),
+//                                                                      config_ccs->defaultProjectionDomainLimit(),
+//                                                                      config_ccs->eps(), config_ccs->eps2());
+
 
     // Compute initial reachable set
     SemanticOTFReachableSet::_compute_drivable_area_at_step(step_start);
@@ -191,8 +211,8 @@ SemanticOTFReachableSet::_deduplicate_reachable_sets(const std::vector<reach::Re
 
 std::vector<reach::ReachNodePtr>
 SemanticOTFReachableSet::_split_to_minterms(int step, const std::vector<reach::ReachNodePtr> &reachable_sets,
-                                                     const std::vector<std::pair<Minterm, unsigned int>> &transitions,
-                                                     std::set<Literal> &finished_literals, bool regionized) {
+                                            const std::vector<std::pair<Minterm, unsigned int>> &transitions,
+                                            std::set<Literal> &finished_literals, bool regionized) {
     if (reachable_sets.empty() || transitions.empty()) {
         // if there are no reachable sets or no transitions, there is nothing to split
         return reachable_sets;

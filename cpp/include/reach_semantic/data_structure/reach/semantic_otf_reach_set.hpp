@@ -4,6 +4,7 @@
 #include "reach_semantic/data_structure/model_checking/finite_automaton.hpp"
 
 #include <commonroad_cpp/geometry/curvilinear_coordinate_system.h>
+#include <commonroad_cpp/world.h>
 
 namespace semantic_reach {
     class SemanticOTFReachableSet : public SemanticReachableSet {
