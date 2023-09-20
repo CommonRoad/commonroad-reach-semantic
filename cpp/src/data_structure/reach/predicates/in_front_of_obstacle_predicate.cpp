@@ -44,7 +44,8 @@ std::optional<double> InFrontOfObstaclePredicate::_get_obstacle_front(int step, 
     auto obstacle = world->findObstacle(obstacle_id);
     std::shared_ptr<State> obstacle_state;
     try {
-        obstacle_state = obstacle->getStateByTimeStep(step);
+        // TODO: adjust time step based on dt
+        obstacle_state = obstacle->getStateByTimeStep(step * 2);
     } catch (std::logic_error &e) {
         return std::nullopt;
     }
@@ -52,7 +53,9 @@ std::optional<double> InFrontOfObstaclePredicate::_get_obstacle_front(int step, 
         return std::nullopt;
     }
 
-    return obstacle->frontS(step, ego_ccs);
+    // TODO: get ego length from config
+    // reduce by half the length of the ego vehicle, as we use the center for reference
+    return obstacle->frontS(step * 2, ego_ccs) + 4.5 / 2.0;
 }
 
 std::optional<std::unique_ptr<InFrontOfObstaclePredicate>>
