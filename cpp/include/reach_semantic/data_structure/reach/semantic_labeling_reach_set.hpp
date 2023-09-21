@@ -5,7 +5,7 @@
 #include "reachset/data_structure/reach/reach_node.hpp"
 #include "reach_semantic/data_structure/reach/reachable_set_labeler.hpp"
 #include "reach_semantic/data_structure/semantic_configuration.hpp"
-#include "reach_semantic/data_structure/semantic_model.hpp"
+#include "reach_semantic/data_structure/environment_model/semantic_model.hpp"
 #include "reach_semantic/data_structure/proposition.hpp"
 #include "reach_semantic/data_structure/reach/semantic_reach_set.hpp"
 #include "collision/collision_checker.h"

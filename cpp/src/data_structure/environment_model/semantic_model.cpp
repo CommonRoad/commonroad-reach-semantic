@@ -1,4 +1,4 @@
-#include "reach_semantic/data_structure/semantic_model.hpp"
+#include "reach_semantic/data_structure/environment_model/semantic_model.hpp"
 #include "reachset/utility/shared_using.hpp"
 
 using namespace semantic_reach;

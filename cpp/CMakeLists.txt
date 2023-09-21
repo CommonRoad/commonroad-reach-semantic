@@ -37,9 +37,10 @@ set(REACH_SOURCE
 
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/model_checking/finite_automaton.cpp
 
+        ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/environment_model/semantic_model.cpp
+
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/semantic_configuration.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/proposition_holder.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/semantic_model.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/traffic_rule.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/position_interval.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/region.cpp

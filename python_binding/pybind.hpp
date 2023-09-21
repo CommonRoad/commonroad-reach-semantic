@@ -10,7 +10,7 @@
 #include "reach_semantic/data_structure/reach/reachable_set_labeler.hpp"
 #include "reach_semantic/data_structure/reach/semantic_labeling_reach_set.hpp"
 #include "reach_semantic/data_structure/reach/semantic_otf_reach_set.hpp"
-#include "reach_semantic/data_structure/semantic_model.hpp"
+#include "reach_semantic/data_structure/environment_model/semantic_model.hpp"
 #include "reach_semantic/data_structure/proposition_holder.hpp"
 
 #include "reachset/utility/collision_checker.hpp"

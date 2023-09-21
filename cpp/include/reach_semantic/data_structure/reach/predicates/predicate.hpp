@@ -1,7 +1,7 @@
 #pragma once
 
 #include "reachset/data_structure/reach/reach_node.hpp"
-#include "reach_semantic/data_structure/semantic_model.hpp"
+#include "reach_semantic/data_structure/environment_model/semantic_model.hpp"
 
 #include <commonroad_cpp/world.h>
 #include <commonroad_cpp/geometry/curvilinear_coordinate_system.h>
