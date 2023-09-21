@@ -1,7 +1,12 @@
 # ========= minimum settings
-cmake_minimum_required(VERSION 3.15) # minimum required version of CMake
+cmake_minimum_required(VERSION 3.20..3.25) # minimum required version of CMake
 project(semantic_reach) # project name
 option(ADD_TESTS "unit tests" OFF) # flag to add unit tests
+
+# CMP0135 - URL download timestamp
+if(POLICY CMP0135)
+    cmake_policy(SET CMP0135 NEW)
+endif()
 
 # ========= check for required variables
 if(NOT DEFINED PYTHON_VER)
@@ -16,8 +21,74 @@ if(NOT DEFINED CRREACH_DIR) # path to regular commonroad reach
     message(FATAL_ERROR "Please specify the path to regular commonroad reach via -DCRREACH_DIR=")
 endif()
 
+include(CMakeDependentOption)
+
+option(CRREACHS_SYSTEM_PACKAGES "Try to use system packages for dependencies" ON)
+cmake_dependent_option(CRREACHS_SYSTEM_PACKAGES_FORCE
+        "For CMake<3.24: Force using system packages for all dependencies"
+        OFF
+        "NOT CMAKE_SUPPORTS_TRY_FIND_PACKAGE"
+        OFF
+)
+
+set(CMAKE_SUPPORTS_TRY_FIND_PACKAGE OFF)
+if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.24.0)
+    set(CMAKE_SUPPORTS_TRY_FIND_PACKAGE ON)
+else()
+    message(WARNING "Your CMake version (${CMAKE_VERSION}) does not support "
+            "the FetchContent find_package integration introduced in CMake 3.24. "
+            "As a fallback, we will simply build all dependencies ourselves "
+            "irrespective of whether a suitable system version exists. "
+            "While this does not impair functionality, it might slow down the build "
+            "process a bit.\n"
+            "In case you have all required dependencies installed, you can try "
+            "enabling the option\n"
+            "\tCRREACHS_SYSTEM_PACKAGES_FORCE\n"
+            "which will force using find_package for all dependencies.")
+endif()
+
+option(CRREACHS_SYSTEM_PACKAGES "Try to use system packages for dependencies" ON)
+cmake_dependent_option(CRREACHS_SYSTEM_PACKAGES_FORCE
+        "For CMake<3.24: Force using system packages for all dependencies"
+        OFF
+        "NOT CMAKE_SUPPORTS_TRY_FIND_PACKAGE"
+        OFF
+)
+
+# make FetchContent_Declare_Fallback available
+include(FetchContent)
+FetchContent_Declare(
+        commonroad_cmake
+
+        GIT_REPOSITORY https://gitlab.lrz.de/tum-cps/commonroad-cmake.git
+        GIT_TAG        main
+)
+FetchContent_MakeAvailable(commonroad_cmake)
+list(APPEND CMAKE_MODULE_PATH ${commonroad_cmake_SOURCE_DIR})
+
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/external) # add path to cmake files for external packages
+
 include(ExternalEnvironmentModel)
+
+# Include Eigen3, spdlog, and yaml-cpp
+if(CRREACHS_SYSTEM_PACKAGES_FORCE)
+    # This is the fallback branch in case the CMake version is older than 3.24
+    # and the user requested we try to use system packages
+    # For CMake > 3.24, fallback is automatic through the FetchContent find_package
+    # integration.
+
+    message(WARNING "CRREACHS_SYSTEM_PACKAGES_FORCE is set - trying to satisfy "
+            "all dependencies using installed system packages.\n"
+            "If this fails, consider disabling CRREACHS_SYSTEM_PACKAGES_FORCE and "
+            "trying again.")
+
+    find_package(spdlog 1.8.0 REQUIRED)
+else()
+    # Normal path: We try to use find_package via FetchContent, otherwise we fall
+    # back to normal FetchContent
+
+    include(ExternalSpdlog)
+endif()
 
 # ========= set variables
 # path to FCL installation in drivability checker
