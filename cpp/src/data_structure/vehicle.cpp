@@ -7,12 +7,12 @@ Vehicle::Vehicle(const pybind11::handle &obj_vehicle_py) : obj_vehicle_py(obj_ve
 
     length = obj_vehicle_py.attr("shape").attr("length").cast<double>();
 
-    for (const auto &lanelet_id: obj_vehicle_py.attr("lane").attr("list_ids_lanelets")) {
+    for (const auto &lanelet_id : obj_vehicle_py.attr("lane").attr("list_ids_lanelets")) {
         lane_lanelet_ids.insert(lanelet_id.cast<int>());
     }
 
     pybind11::dict dict_step_to_state_lon_ref = obj_vehicle_py.attr("dict_step_to_state_lon_ref");
-    for (const auto &[step, state_lon_ref]: dict_step_to_state_lon_ref) {
+    for (const auto &[step, state_lon_ref] : dict_step_to_state_lon_ref) {
         if (state_lon_ref.is_none()) {
             continue;
         }
@@ -23,7 +23,7 @@ Vehicle::Vehicle(const pybind11::handle &obj_vehicle_py) : obj_vehicle_py(obj_ve
 std::set<int> Vehicle::lanelet_ids_at_step(int step) {
     auto lanelet_ids_py = obj_vehicle_py.attr("lanelet_ids_at_step")(step);
     std::set<int> lanelet_ids{};
-    for (const auto &lanelet_id: lanelet_ids_py) {
+    for (const auto &lanelet_id : lanelet_ids_py) {
         lanelet_ids.insert(lanelet_id.cast<int>());
     }
     return lanelet_ids;

@@ -2,6 +2,4 @@
 
 using namespace semantic_reach;
 
-
 Predicate::Predicate(bool needs_lanelets) : needs_lanelets(needs_lanelets) {}
-

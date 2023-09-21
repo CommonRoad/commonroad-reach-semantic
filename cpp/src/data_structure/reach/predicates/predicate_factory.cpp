@@ -9,12 +9,13 @@ using namespace semantic_reach;
 
 PredicateFactory::PredicateFactory(std::shared_ptr<PredicateConfiguration> config) : config(std::move(config)) {
     // Check if there is an active Python interpreter, and if so import the module with Python predicates
-    predicates_module = Py_IsInitialized() ? std::optional{
-            pybind11::module::import("commonroad_reach_semantic.data_structure.reach.predicates")} : std::nullopt;
+    predicates_module =
+        Py_IsInitialized()
+            ? std::optional{pybind11::module::import("commonroad_reach_semantic.data_structure.reach.predicates")}
+            : std::nullopt;
 }
 
-unique_ptr<Predicate>
-PredicateFactory::predicate_from_proposition(const std::string &proposition, bool negated) const {
+std::unique_ptr<Predicate> PredicateFactory::predicate_from_proposition(const std::string &proposition, bool negated) const {
     auto in_front_of = InFrontOfObstaclePredicate::try_from_proposition(proposition, config, negated);
     if (in_front_of.has_value()) {
         return std::move(in_front_of.value());
@@ -22,12 +23,9 @@ PredicateFactory::predicate_from_proposition(const std::string &proposition, boo
 
     // Fall back to Python predicates
     if (predicates_module.has_value()) {
-        return std::make_unique<PyPredicate>(
-                predicates_module.value().attr("from_proposition")(proposition, negated));
+        return std::make_unique<PyPredicate>(predicates_module.value().attr("from_proposition")(proposition, negated));
     } else {
         spdlog::warn("Python predicates are not available, cannot parse proposition: {}", proposition);
         throw std::invalid_argument("Unknown proposition: " + proposition);
     }
 }
-
-

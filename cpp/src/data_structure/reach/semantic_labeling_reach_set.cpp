@@ -1,21 +1,21 @@
 #include "reach_semantic/data_structure/reach/semantic_labeling_reach_set.hpp"
 
-#include <utility>
-#include "reachset/utility/shared_using.hpp"
-#include "reachset/utility/reach_operation.hpp"
 #include "reach_semantic/utility/reach_operation.hpp"
+#include "reachset/utility/reach_operation.hpp"
+#include "reachset/utility/shared_using.hpp"
+#include <utility>
 
 using namespace semantic_reach;
 
 SemanticLabelingReachableSet::SemanticLabelingReachableSet(SemanticConfigurationPtr config,
                                                            CollisionCheckerPtr collision_checker,
                                                            SemanticModelPtr semantic_model,
-                                                           TrafficRuleInterfacePtr traffic_rule_interface) :
-        SemanticReachableSet(std::move(config), std::move(collision_checker), std::move(semantic_model),
-                             std::move(traffic_rule_interface)) {
+                                                           TrafficRuleInterfacePtr traffic_rule_interface)
+    : SemanticReachableSet(std::move(config), std::move(collision_checker), std::move(semantic_model),
+                           std::move(traffic_rule_interface)) {
     map_step_to_reachable_set[step_start] = _construct_initial_reachable_sets();
-    map_step_to_drivable_area[step_start] = reach::project_base_sets_to_position_domain(
-            map_step_to_reachable_set[step_start]);
+    map_step_to_drivable_area[step_start] =
+        reach::project_base_sets_to_position_domain(map_step_to_reachable_set[step_start]);
     labeler->label_initial_state(map_step_to_reachable_set[step_start], step_start);
     _initialize_zero_state_polygons();
 
@@ -49,26 +49,26 @@ void SemanticLabelingReachableSet::_compute_drivable_area_at_step(int const &ste
     vec_propagated_set = labeler->discard_colliding_nodes(vec_propagated_set);
 
     // examine whether the propagated sets satisfy TPL specifications
-    vec_propagated_set = rule_interface->examine_tpl_specifications(step, vec_propagated_set,
-                                                                    labeler->reachable_set_to_propositions);
+    vec_propagated_set =
+        rule_interface->examine_tpl_specifications(step, vec_propagated_set, labeler->reachable_set_to_propositions);
 
     // update traffic propositions of the propagated sets
     vec_propagated_set = labeler->label_traffic_propositions(step, vec_propagated_set);
 
     // partition propagated sets by their propositions
     unordered_map<PropositionHolder, vector<reach::ReachNodePtr>, PropositionHolder::HashFunction>
-            dict_propositions_to_propagated_set{};
-    for (auto const &propagated_set: vec_propagated_set) {
+        dict_propositions_to_propagated_set{};
+    for (auto const &propagated_set : vec_propagated_set) {
         dict_propositions_to_propagated_set[labeler->reachable_set_to_propositions[propagated_set]].emplace_back(
-                propagated_set);
+            propagated_set);
     }
 
     // merge, collision check, and repartition propagated sets partitioned by their propositions,
     // because we must not merge sets with different propositions
     unordered_map<PropositionHolder, vector<reach::ReachPolygonPtr>, PropositionHolder::HashFunction>
-            dict_propositions_to_drivable_area{};
+        dict_propositions_to_drivable_area{};
     std::vector<reach::ReachPolygonPtr> vec_drivable_area{};
-    for (const auto &[propositions, propagated_sets_per_proposition]: dict_propositions_to_propagated_set) {
+    for (const auto &[propositions, propagated_sets_per_proposition] : dict_propositions_to_propagated_set) {
         auto vec_rectangles_projected = reach::project_base_sets_to_position_domain(propagated_sets_per_proposition);
         auto drivable_area_at_proposition = _collision_check_and_repartition(vec_rectangles_projected, step);
         dict_propositions_to_drivable_area[propositions] = drivable_area_at_proposition;
@@ -98,7 +98,7 @@ void SemanticLabelingReachableSet::_compute_reachable_set_at_step(int const &ste
 
     // discard drivable area with small area if there are more than one node (this is subject to change)
     unsigned long num_drivable_area = 0;
-    for (auto const &[proposition_holder, drivable_area]: map_propositions_to_drivable_area) {
+    for (auto const &[proposition_holder, drivable_area] : map_propositions_to_drivable_area) {
         num_drivable_area += drivable_area.size();
     }
     bool discard_small_node = (num_drivable_area > 1) && config->reachable_set().discard_small_nodes;
@@ -107,14 +107,14 @@ void SemanticLabelingReachableSet::_compute_reachable_set_at_step(int const &ste
     // that we merge two reachable sets with different propositions when they intersect with the same drivable area
 
     vector<reach::ReachNodePtr> new_reachable_sets{};
-    for (auto const &[proposition_holder, drivable_area]: map_propositions_to_drivable_area) {
+    for (auto const &[proposition_holder, drivable_area] : map_propositions_to_drivable_area) {
         auto propagated_set = map_propositions_to_propagated_set[proposition_holder];
 
         auto vec_nodes = reach::construct_reach_nodes(drivable_area, propagated_set, num_threads);
 
         if (discard_small_node) {
-            vec_nodes = semantic_reach::discard_nodes_with_short_edge(vec_nodes,
-                                                                      config->reachable_set().length_edge_node_min);
+            vec_nodes =
+                semantic_reach::discard_nodes_with_short_edge(vec_nodes, config->reachable_set().length_edge_node_min);
         }
 
         if (!vec_nodes.empty()) {
@@ -122,8 +122,7 @@ void SemanticLabelingReachableSet::_compute_reachable_set_at_step(int const &ste
             // copy propositions for newly constructed nodes. Because all propagated sets are labeled with the same
             // propositions, we simply use the first as reference.
             labeler->copy_labels(propagated_set[0], reachable_sets);
-            new_reachable_sets.insert(new_reachable_sets.end(),
-                                      std::make_move_iterator(reachable_sets.begin()),
+            new_reachable_sets.insert(new_reachable_sets.end(), std::make_move_iterator(reachable_sets.begin()),
                                       std::make_move_iterator(reachable_sets.end()));
         }
     }

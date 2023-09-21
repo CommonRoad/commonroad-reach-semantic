@@ -3,7 +3,8 @@
 
 using namespace semantic_reach;
 
-SemanticReachableSetConfiguration::SemanticReachableSetConfiguration(YAML::Node const& node) : reach::ReachableSetConfiguration(node) {
+SemanticReachableSetConfiguration::SemanticReachableSetConfiguration(YAML::Node const &node)
+    : reach::ReachableSetConfiguration(node) {
     auto node_reachable_set = node["reachable_set"];
 
     discard_small_nodes = node_reachable_set["discard_small_nodes"].as<bool>();
@@ -21,12 +22,12 @@ TrafficRuleConfiguration::TrafficRuleConfiguration(const YAML::Node &node) {
     mode_automata = node_traffic_rule["mode_automata"].as<int>();
 }
 
-SemanticConfiguration::SemanticConfiguration(YAML::Node const& node) : reach::Configuration(node) {
+SemanticConfiguration::SemanticConfiguration(YAML::Node const &node) : reach::Configuration(node) {
     config_reachable_set = SemanticReachableSetConfiguration(node);
     config_traffic_rule = TrafficRuleConfiguration(node);
 }
 
-SemanticConfigurationPtr SemanticConfiguration::load_configuration(string const& file_yaml) {
+SemanticConfigurationPtr SemanticConfiguration::load_configuration(string const &file_yaml) {
     YAML::Node node = YAML::LoadFile(file_yaml);
     auto config = SemanticConfiguration(node);
     return make_shared<SemanticConfiguration>(node);

@@ -61,18 +61,10 @@ TEST_SUITE("Spot utility") {
 
     TEST_CASE("extract_atomic_propositions raises") {
         spot::formula non_literal;
-        SUBCASE("true") {
-            non_literal = spot::parse_formula("true");
-        }
-        SUBCASE("false") {
-            non_literal = spot::parse_formula("false");
-        }
-        SUBCASE("conjunction") {
-            non_literal = spot::parse_formula("a & b");
-        }
-        SUBCASE("disjunction") {
-            non_literal = spot::parse_formula("a | b");
-        }
+        SUBCASE("true") { non_literal = spot::parse_formula("true"); }
+        SUBCASE("false") { non_literal = spot::parse_formula("false"); }
+        SUBCASE("conjunction") { non_literal = spot::parse_formula("a & b"); }
+        SUBCASE("disjunction") { non_literal = spot::parse_formula("a | b"); }
 
         CHECK_THROWS_AS(util_spot::extract_atomic_proposition(non_literal), std::invalid_argument);
     }
@@ -102,19 +94,15 @@ TEST_SUITE("Spot utility") {
         }
         SUBCASE("disjunction") {
             dnf_formula = spot::parse_formula("a | !b");
-            expected = {{{"a", false}},
-                        {{"b", true}}};
+            expected = {{{"a", false}}, {{"b", true}}};
         }
         SUBCASE("DNF") {
             dnf_formula = spot::parse_formula("(a | b) | c");
-            expected = {{{"a", false}},
-                        {{"b", false}},
-                        {{"c", false}}};
+            expected = {{{"a", false}}, {{"b", false}}, {{"c", false}}};
         }
         SUBCASE("DNF with conjunctions") {
             dnf_formula = spot::parse_formula("(a & !b) | (!c & d & e)");
-            expected = {{{"a", false}, {"b", true}},
-                        {{"c", true},  {"d", false}, {"e", false}}};
+            expected = {{{"a", false}, {"b", true}}, {{"c", true}, {"d", false}, {"e", false}}};
         }
 
         auto actual = util_spot::extract_minterms_from_dnf(dnf_formula);
@@ -126,15 +114,9 @@ TEST_SUITE("Spot utility") {
 
     TEST_CASE("extract_minterms_from_dnf raises") {
         spot::formula non_dnf_formula;
-        SUBCASE("conjunction") {
-            non_dnf_formula = spot::parse_formula("(a | b) & c");
-        }
-        SUBCASE("negated conjunction") {
-            non_dnf_formula = spot::parse_formula("a | !(b & c)");
-        }
-        SUBCASE("implication") {
-            non_dnf_formula = spot::parse_formula("a -> b");
-        }
+        SUBCASE("conjunction") { non_dnf_formula = spot::parse_formula("(a | b) & c"); }
+        SUBCASE("negated conjunction") { non_dnf_formula = spot::parse_formula("a | !(b & c)"); }
+        SUBCASE("implication") { non_dnf_formula = spot::parse_formula("a -> b"); }
 
         CHECK_THROWS_AS(util_spot::extract_minterms_from_dnf(non_dnf_formula), std::invalid_argument);
     }
