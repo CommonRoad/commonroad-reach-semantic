@@ -77,17 +77,7 @@ target_link_libraries(crreachs PRIVATE
         pybind11::embed
         spdlog::spdlog)
 
-# ==== unit tests using Doctest
+# ==== unit tests
 if(ADD_TESTS)
-    # 1. create target
-    add_executable(doctest_runner
-            tests/utility/test_spot.cpp
-    )
-    # 2. include directories
-    target_include_directories(doctest_runner PRIVATE
-            ${CMAKE_CURRENT_LIST_DIR}/tests/)
-    # 3. link to external libraries
-    target_link_libraries(doctest_runner crreachs)
-    # 4. tell doctest to use main for implementation
-    target_compile_definitions(doctest_runner PRIVATE DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN)
+    add_subdirectory(tests)
 endif()

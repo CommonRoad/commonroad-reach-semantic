@@ -70,7 +70,6 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/external) # add 
 
 include(ExternalEnvironmentModel)
 
-# Include Eigen3, spdlog, and yaml-cpp
 if(CRREACHS_SYSTEM_PACKAGES_FORCE)
     # This is the fallback branch in case the CMake version is older than 3.24
     # and the user requested we try to use system packages
@@ -83,11 +82,13 @@ if(CRREACHS_SYSTEM_PACKAGES_FORCE)
             "trying again.")
 
     find_package(spdlog 1.8.0 REQUIRED)
+    find_package(GTest)
 else()
     # Normal path: We try to use find_package via FetchContent, otherwise we fall
     # back to normal FetchContent
 
     include(ExternalSpdlog)
+    include(ExternalGoogleTest)
 endif()
 
 # ========= set variables
