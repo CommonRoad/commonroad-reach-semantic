@@ -1,6 +1,7 @@
 #pragma once
 
 #include "reach_semantic/data_structure/reach/predicates/predicate.hpp"
+#include "reach_semantic/data_structure/reach/predicates/predicate_config.hpp"
 
 namespace semantic_reach {
     class CppPredicate : public Predicate {
@@ -17,8 +18,11 @@ namespace semantic_reach {
                                        const std::shared_ptr<World> &world,
                                        const std::shared_ptr<geometry::CurvilinearCoordinateSystem> &ego_ccs) const = 0;
 
+    protected:
+        std::shared_ptr<PredicateConfiguration> config;
+
     public:
-        explicit CppPredicate(bool negated, bool needs_lanelets);
+        explicit CppPredicate(std::shared_ptr<PredicateConfiguration> config, bool negated, bool needs_lanelets);
 
         [[nodiscard]] std::vector<reach::ReachNodePtr>
         restrict_reach_node(int step, const reach::ReachNodePtr &reach_node,

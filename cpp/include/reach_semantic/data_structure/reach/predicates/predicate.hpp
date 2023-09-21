@@ -6,6 +6,8 @@
 #include <commonroad_cpp/world.h>
 #include <commonroad_cpp/geometry/curvilinear_coordinate_system.h>
 
+#include <utility>
+
 namespace semantic_reach {
     class Predicate {
     public:
@@ -14,8 +16,6 @@ namespace semantic_reach {
         explicit Predicate(bool needs_lanelets);
 
         virtual ~Predicate() = default;
-
-        static std::unique_ptr<Predicate> from_proposition(const std::string &proposition, bool is_negated);
 
         [[nodiscard]] virtual std::vector<reach::ReachNodePtr>
         restrict_reach_node(int step, const reach::ReachNodePtr &reach_node,

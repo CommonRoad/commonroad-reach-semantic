@@ -6,8 +6,10 @@
 using namespace semantic_reach;
 using geometry::CurvilinearCoordinateSystem;
 
-InFrontOfObstaclePredicate::InFrontOfObstaclePredicate(int obstacle_id, bool negated) : CppPredicate(negated, false),
-                                                                                        obstacle_id(obstacle_id) {}
+InFrontOfObstaclePredicate::InFrontOfObstaclePredicate(std::shared_ptr<PredicateConfiguration> config, bool negated,
+                                                       int obstacle_id) : CppPredicate(std::move(config), negated,
+                                                                                       false),
+                                                                          obstacle_id(obstacle_id) {}
 
 std::vector<reach::ReachNodePtr>
 InFrontOfObstaclePredicate::_restrict_reach_node_mandatory(int step, const reach::ReachNodePtr &reach_node,
@@ -59,11 +61,12 @@ std::optional<double> InFrontOfObstaclePredicate::_get_obstacle_front(int step, 
 }
 
 std::optional<std::unique_ptr<InFrontOfObstaclePredicate>>
-InFrontOfObstaclePredicate::try_from_proposition(const string &proposition, bool is_negated) {
+InFrontOfObstaclePredicate::try_from_proposition(const std::string &proposition,
+                                                 const std::shared_ptr<PredicateConfiguration> &config, bool negated) {
     std::smatch match;
     if (std::regex_match(proposition, match, std::regex(R"(InFrontOf_V(\d+))"))) {
         int obstacle_id{std::stoi(match[1])};
-        return std::make_unique<InFrontOfObstaclePredicate>(obstacle_id, is_negated);
+        return std::make_unique<InFrontOfObstaclePredicate>(config, negated, obstacle_id);
     }
     return std::nullopt;
 }

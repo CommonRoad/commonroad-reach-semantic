@@ -30,9 +30,10 @@ namespace semantic_reach {
         /**
          * Constructor for in front of obstacle predicate.
          */
-        InFrontOfObstaclePredicate(int obstacle_id, bool negated);
+        InFrontOfObstaclePredicate(std::shared_ptr<PredicateConfiguration> config, bool negated, int obstacle_id);
 
         static std::optional<std::unique_ptr<InFrontOfObstaclePredicate>>
-        try_from_proposition(const std::string &proposition, bool is_negated);
+        try_from_proposition(const std::string &proposition, const std::shared_ptr<PredicateConfiguration> &config,
+                             bool negated);
     };
 }

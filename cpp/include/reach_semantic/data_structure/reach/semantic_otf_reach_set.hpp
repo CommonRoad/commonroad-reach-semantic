@@ -2,6 +2,7 @@
 
 #include "reach_semantic/data_structure/reach/semantic_reach_set.hpp"
 #include "reach_semantic/data_structure/model_checking/finite_automaton.hpp"
+#include "reach_semantic/data_structure/reach/predicates/predicate_factory.hpp"
 
 #include <commonroad_cpp/geometry/curvilinear_coordinate_system.h>
 #include <commonroad_cpp/world.h>
@@ -15,6 +16,8 @@ namespace semantic_reach {
 
         std::shared_ptr<World> world;
         std::shared_ptr<geometry::CurvilinearCoordinateSystem> ego_ccs;
+
+        const PredicateFactory predicate_factory;
 
         std::map<int, std::map<std::pair<std::set<unsigned int>, std::set<unsigned int>>, std::vector<reach::ReachPolygonPtr>>> map_step_to_states_to_drivable_area{};
         std::map<int, std::map<std::pair<std::set<unsigned int>, std::set<unsigned int>>, std::vector<reach::ReachNodePtr>>> map_step_to_states_to_propagated_set{};
@@ -87,7 +90,7 @@ namespace semantic_reach {
         /// @param minterms The list of minterms to consider.
         /// @param ignored_literals These literals will be ignored when choosing the next literal.
         /// @return The literal that occurs most often in minterms.
-        static std::optional<Literal>
+        std::optional<Literal>
         _choose_next_literal(const std::vector<Minterm> &minterms, const std::set<Literal> &ignored_literals);
 
     public:

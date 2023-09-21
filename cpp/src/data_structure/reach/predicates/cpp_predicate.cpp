@@ -3,7 +3,8 @@
 using namespace semantic_reach;
 using geometry::CurvilinearCoordinateSystem;
 
-CppPredicate::CppPredicate(bool negated, bool needs_lanelets) : Predicate(needs_lanelets), negated(negated) {}
+CppPredicate::CppPredicate(std::shared_ptr<PredicateConfiguration> config, bool negated, bool needs_lanelets)
+        : Predicate(needs_lanelets), config(std::move(config)), negated(negated) {}
 
 std::vector<reach::ReachNodePtr>
 CppPredicate::restrict_reach_node(int step, const reach::ReachNodePtr &reach_node,

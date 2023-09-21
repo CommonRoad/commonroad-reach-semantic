@@ -16,7 +16,8 @@ SemanticOTFReachableSet::SemanticOTFReachableSet(semantic_reach::SemanticConfigu
                                                  semantic_reach::SemanticModelPtr semantic_model,
                                                  semantic_reach::TrafficRuleInterfacePtr traffic_rule_interface)
         : SemanticReachableSet(std::move(config), std::move(collision_checker), std::move(semantic_model),
-                               std::move(traffic_rule_interface)) {
+                               std::move(traffic_rule_interface)),
+          predicate_factory(PredicateFactory{std::make_shared<PredicateConfiguration>(*this->config)}) {
     _initialize_zero_state_polygons();
 
     // Construct finite automaton from traffic rules
@@ -296,7 +297,7 @@ SemanticOTFReachableSet::_restrict_to_literal(int step, const std::vector<reach:
         to_restrict = reachable_sets;
     }
 
-    auto pred = Predicate::from_proposition(literal.first, literal.second);
+    auto pred = predicate_factory.predicate_from_proposition(literal.first, literal.second);
     if (pred->needs_lanelets && !regionized) {
         // if the predicate needs lanelets, we need to split the reachable sets into regions first (if we haven't already)
         to_restrict = labeler->split_wrt_regions(step, to_restrict);
@@ -359,9 +360,9 @@ std::optional<Literal> SemanticOTFReachableSet::_choose_next_literal(const std::
 
     // prefer predicates that don't need lanelets, as this avoids splitting to regions
     // TODO: we could choose a different ordering here or make this configurable
-    std::sort(candidates.begin(), candidates.end(), [](const Literal &a, const Literal &b) {
-        return !Predicate::from_proposition(a.first, a.second)->needs_lanelets &&
-               Predicate::from_proposition(b.first, b.second)->needs_lanelets;
+    std::sort(candidates.begin(), candidates.end(), [this](const Literal &a, const Literal &b) {
+        return !predicate_factory.predicate_from_proposition(a.first, a.second)->needs_lanelets &&
+               predicate_factory.predicate_from_proposition(b.first, b.second)->needs_lanelets;
     });
 
     return candidates.empty() ? std::nullopt : std::optional<Literal>{candidates[0]};

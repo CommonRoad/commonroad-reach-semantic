@@ -31,6 +31,8 @@ set(REACH_SOURCE
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/semantic_otf_reach_set.cpp
 
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/predicates/predicate.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/predicates/predicate_config.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/predicates/predicate_factory.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/predicates/cpp_predicate.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/predicates/py_predicate.cpp
 
