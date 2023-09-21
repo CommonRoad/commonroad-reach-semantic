@@ -55,9 +55,8 @@ std::optional<double> InFrontOfObstaclePredicate::_get_obstacle_front(int step, 
         return std::nullopt;
     }
 
-    // TODO: get ego length from config
-    // reduce by half the length of the ego vehicle, as we use the center for reference
-    return obstacle->frontS(step, ego_ccs) + 4.5 / 2.0;
+    // inflate by half the length of the ego vehicle, as we use the center for reference
+    return obstacle->frontS(step, ego_ccs) + config->ego_length / 2.0;
 }
 
 std::optional<std::unique_ptr<InFrontOfObstaclePredicate>>
