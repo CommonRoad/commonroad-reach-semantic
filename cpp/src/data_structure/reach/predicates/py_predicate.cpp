@@ -1,10 +1,11 @@
 #include "reach_semantic/data_structure/reach/predicates/py_predicate.hpp"
 
 using namespace semantic_reach;
+using geometry::CurvilinearCoordinateSystem;
 
-PyPredicate::PyPredicate(bool negated, pybind11::object obj_predicate_py) :
-        Predicate(negated, obj_predicate_py.attr("needs_lanelets").cast<bool>()),
-        obj_predicate_py(obj_predicate_py) {}
+PyPredicate::PyPredicate(pybind11::object obj_predicate_py) :
+        Predicate(obj_predicate_py.attr("needs_lanelets").cast<bool>()),
+        obj_predicate_py(std::move(obj_predicate_py)) {}
 
 std::vector<reach::ReachNodePtr> PyPredicate::restrict_reach_node(int step, const reach::ReachNodePtr &reach_node,
                                                                   const semantic_reach::SemanticModelPtr &semantic_model,
@@ -30,18 +31,4 @@ std::vector<reach::ReachNodePtr> PyPredicate::restrict_reach_node(int step, cons
         vec_reach_nodes.emplace_back(reach_node_py.cast<reach::ReachNodePtr>());
     }
     return vec_reach_nodes;
-}
-
-std::vector<reach::ReachNodePtr>
-PyPredicate::_restrict_reach_node_mandatory(int step, const reach::ReachNodePtr &reach_node,
-                                            const std::shared_ptr<World> &world,
-                                            const std::shared_ptr<CurvilinearCoordinateSystem> &ego_ccs) const {
-    throw std::runtime_error("PyPredicate does not support mandatory restrictions.");
-}
-
-std::vector<reach::ReachNodePtr>
-PyPredicate::_restrict_reach_node_forbidden(int step, const reach::ReachNodePtr &reach_node,
-                                            const std::shared_ptr<World> &world,
-                                            const std::shared_ptr<CurvilinearCoordinateSystem> &ego_ccs) const {
-    throw std::runtime_error("PyPredicate does not support forbidden restrictions.");
 }

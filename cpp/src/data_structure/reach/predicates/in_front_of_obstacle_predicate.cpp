@@ -4,8 +4,9 @@
 #include <regex>
 
 using namespace semantic_reach;
+using geometry::CurvilinearCoordinateSystem;
 
-InFrontOfObstaclePredicate::InFrontOfObstaclePredicate(int obstacle_id, bool negated) : Predicate(negated, false),
+InFrontOfObstaclePredicate::InFrontOfObstaclePredicate(int obstacle_id, bool negated) : CppPredicate(negated, false),
                                                                                         obstacle_id(obstacle_id) {}
 
 std::vector<reach::ReachNodePtr>
