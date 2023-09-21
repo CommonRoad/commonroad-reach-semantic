@@ -33,7 +33,8 @@ set(REACH_SOURCE
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/predicates/predicate.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/predicates/cpp_predicate.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/predicates/py_predicate.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/predicates/in_front_of_obstacle_predicate.cpp
+
+        ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/predicates/position/in_front_of_obstacle_predicate.cpp
 
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/model_checking/finite_automaton.cpp
 

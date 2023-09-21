@@ -1,6 +1,6 @@
 #include "reach_semantic/data_structure/reach/predicates/predicate.hpp"
 #include "reach_semantic/data_structure/reach/predicates/py_predicate.hpp"
-#include "reach_semantic/data_structure/reach/predicates/in_front_of_obstacle_predicate.hpp"
+#include "reach_semantic/data_structure/reach/predicates/position/in_front_of_obstacle_predicate.hpp"
 
 using namespace semantic_reach;
 
