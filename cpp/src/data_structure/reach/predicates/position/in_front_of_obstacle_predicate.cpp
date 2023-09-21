@@ -1,6 +1,7 @@
 #include "reach_semantic/data_structure/reach/predicates/position/in_front_of_obstacle_predicate.hpp"
 
 #include <commonroad_cpp/obstacle/obstacle.h>
+#include <spdlog/spdlog.h>
 #include <regex>
 
 using namespace semantic_reach;
@@ -17,7 +18,7 @@ InFrontOfObstaclePredicate::_restrict_reach_node_mandatory(int step, const reach
                                                            const std::shared_ptr<CurvilinearCoordinateSystem> &ego_ccs) const {
     auto obstacle_front = _get_obstacle_front(step, world, ego_ccs);
     if (!obstacle_front.has_value()) {
-        // TODO: Emit warning
+        spdlog::warn("No prediction for obstacle {} at step {}, cannot restrict reach node.", obstacle_id, step);
         return {reach_node};
     }
 
@@ -32,7 +33,7 @@ InFrontOfObstaclePredicate::_restrict_reach_node_forbidden(int step, const reach
                                                            const std::shared_ptr<CurvilinearCoordinateSystem> &ego_ccs) const {
     auto obstacle_front = _get_obstacle_front(step, world, ego_ccs);
     if (!obstacle_front.has_value()) {
-        // TODO: Emit warning
+        spdlog::warn("No prediction for obstacle {} at step {}, cannot restrict reach node.", obstacle_id, step);
         return {reach_node};
     }
 

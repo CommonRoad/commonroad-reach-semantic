@@ -3,6 +3,8 @@
 
 #include "reach_semantic/data_structure/reach/predicates/position/in_front_of_obstacle_predicate.hpp"
 
+#include <spdlog/spdlog.h>
+
 using namespace semantic_reach;
 
 PredicateFactory::PredicateFactory(std::shared_ptr<PredicateConfiguration> config) : config(std::move(config)) {
@@ -23,7 +25,7 @@ PredicateFactory::predicate_from_proposition(const std::string &proposition, boo
         return std::make_unique<PyPredicate>(
                 predicates_module.value().attr("from_proposition")(proposition, negated));
     } else {
-        // TODO: Log warning that Python predicates are not available
+        spdlog::warn("Python predicates are not available, cannot parse proposition: {}", proposition);
         throw std::invalid_argument("Unknown proposition: " + proposition);
     }
 }

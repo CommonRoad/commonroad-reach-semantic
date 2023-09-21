@@ -73,7 +73,9 @@ target_link_libraries(crreachs PUBLIC
         yaml-cpp
         spot
         bddx)
-target_link_libraries(crreachs PRIVATE pybind11::embed)
+target_link_libraries(crreachs PRIVATE
+        pybind11::embed
+        spdlog::spdlog)
 
 # ==== unit tests using Doctest
 if(ADD_TESTS)
