@@ -1,5 +1,6 @@
 #include "reach_semantic/data_structure/reach/semantic_otf_reach_set.hpp"
 #include "reach_semantic/data_structure/reach/predicates/predicate.hpp"
+#include "reach_semantic/utility/environment_model.hpp"
 #include "reach_semantic/utility/reach_operation.hpp"
 
 #include "reachset/utility/reach_operation.hpp"
@@ -23,8 +24,9 @@ SemanticOTFReachableSet::SemanticOTFReachableSet(semantic_reach::SemanticConfigu
                                                   this->config->config_traffic_rule.mode_automata);
 
     // Create environment model
-    const auto &[obstacles, roadNetwork, _dt_unused] = InputUtils::getDataFromCommonRoad(
+    const auto &[obstacles, roadNetwork, scenario_dt] = InputUtils::getDataFromCommonRoad(
             this->config->config_general.path_scenarios + this->config->config_general.name_scenario + ".xml");
+    resample_obstacle_states(obstacles, scenario_dt, this->config->config_planning.dt);
     world = std::make_shared<World>(step_start, roadNetwork, std::vector<std::shared_ptr<Obstacle>>{}, obstacles,
                                     this->config->config_planning.dt);
 

@@ -46,6 +46,7 @@ set(REACH_SOURCE
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/region.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/vehicle.cpp
 
+        ${CMAKE_CURRENT_LIST_DIR}/src/utility/environment_model.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/utility/reach_operation.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/utility/spot.cpp
 
