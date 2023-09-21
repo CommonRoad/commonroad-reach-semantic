@@ -6,7 +6,9 @@
 #include <spot/tl/formula.hh>
 #include <spot/tl/parse.hh>
 
-class SpotUtilityTestInitialization {
+class SpotUtilityTest : public testing::Test {
+private:
+    void SetUp() override;
 protected:
     spot::formula conjunction;
     spot::formula disjunction;
@@ -17,11 +19,4 @@ protected:
     spot::formula true_formula;
     spot::formula false_formula;
     spot::formula dnf;
-
-    void set_up_formulas();
-};
-
-class SpotUtilityTest : public SpotUtilityTestInitialization, public testing::Test {
-private:
-    void SetUp() override;
 };

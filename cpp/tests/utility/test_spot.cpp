@@ -1,7 +1,7 @@
 #include "test_spot.hpp"
 
 
-void SpotUtilityTestInitialization::set_up_formulas() {
+void SpotUtilityTest::SetUp() {
     conjunction = spot::parse_formula("a & !b & c");
     disjunction = spot::parse_formula("a | !b | c");
     implication = spot::parse_formula("a -> b");
@@ -12,8 +12,6 @@ void SpotUtilityTestInitialization::set_up_formulas() {
     false_formula = spot::parse_formula("false");
     dnf = spot::parse_formula("(a & !b) | (!c & d & e)");
 }
-
-void SpotUtilityTest::SetUp() { set_up_formulas(); }
 
 TEST_F(SpotUtilityTest, Disjuncts) {
     std::vector<spot::formula> expected{conjunction};
