@@ -2,7 +2,6 @@ from collections import defaultdict
 
 import commonroad_reach.utility.logger as util_logger
 
-import commonroad_reach_semantic.data_structure.rule.priorities as priorities
 from commonroad_reach_semantic.data_structure.config.semantic_configuration_builder import SemanticConfigurationBuilder
 from commonroad_reach_semantic.data_structure.environment_model.semantic_model import SemanticModel
 from commonroad_reach_semantic.data_structure.model_checking.spot_interface import SpotInterface
@@ -28,7 +27,6 @@ def main():
 
     # ==== initialize semantic model and traffic rules
     semantic_model = SemanticModel(config)
-    semantic_model.determine_traffic_priorities(priorities.dict_traffic_sign_to_priorities)
     rule_interface = TrafficRuleInterface(config, semantic_model)
     rule_interface.print_summary()
 
