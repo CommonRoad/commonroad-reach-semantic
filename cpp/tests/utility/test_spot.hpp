@@ -7,9 +7,10 @@
 #include <spot/tl/parse.hh>
 
 class SpotUtilityTest : public testing::Test {
-private:
+  private:
     void SetUp() override;
-protected:
+
+  protected:
     spot::formula conjunction;
     spot::formula disjunction;
     spot::formula implication;

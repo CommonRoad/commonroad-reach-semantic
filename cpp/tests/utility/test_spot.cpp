@@ -1,6 +1,5 @@
 #include "test_spot.hpp"
 
-
 void SpotUtilityTest::SetUp() {
     conjunction = spot::parse_formula("a & !b & c");
     disjunction = spot::parse_formula("a | !b | c");
@@ -35,7 +34,8 @@ TEST_F(SpotUtilityTest, ExtractAtomicPropositions) {
 }
 
 TEST_F(SpotUtilityTest, ExtractAtomicPropositionsException) {
-    for (const auto &formula : {conjunction, disjunction, implication, negated_conjunction, true_formula, false_formula}) {
+    for (const auto &formula :
+         {conjunction, disjunction, implication, negated_conjunction, true_formula, false_formula}) {
         EXPECT_THROW(util_spot::extract_atomic_proposition(formula), std::invalid_argument);
     }
 }

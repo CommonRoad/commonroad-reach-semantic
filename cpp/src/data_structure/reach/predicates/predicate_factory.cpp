@@ -15,7 +15,8 @@ PredicateFactory::PredicateFactory(std::shared_ptr<PredicateConfiguration> confi
             : std::nullopt;
 }
 
-std::unique_ptr<Predicate> PredicateFactory::predicate_from_proposition(const std::string &proposition, bool negated) const {
+std::unique_ptr<Predicate> PredicateFactory::predicate_from_proposition(const std::string &proposition,
+                                                                        bool negated) const {
     auto in_front_of = InFrontOfObstaclePredicate::try_from_proposition(proposition, config, negated);
     if (in_front_of.has_value()) {
         return std::move(in_front_of.value());
