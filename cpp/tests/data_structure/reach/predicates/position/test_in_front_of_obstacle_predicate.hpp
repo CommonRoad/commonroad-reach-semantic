@@ -13,8 +13,9 @@ class InFrontOfObstaclePredicateTest : public testing::Test {
   protected:
     static constexpr double tolerance = 1e-6;
 
+    static constexpr double ego_length = 4.5;
+
     TestEnvironments test_envs;
-    TestPredicateConfigs test_configs;
 
     std::unique_ptr<semantic_reach::InFrontOfObstaclePredicate> positive_pred;
     std::unique_ptr<semantic_reach::InFrontOfObstaclePredicate> negative_pred;

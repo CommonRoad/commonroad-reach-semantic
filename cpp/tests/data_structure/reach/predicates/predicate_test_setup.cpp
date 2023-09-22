@@ -27,7 +27,3 @@ void TestEnvironments::set_up_environments() {
     geometry::EigenPolyline ref_path_one{{0, 2}, {10, 2}, {20, 2}, {30, 2}, {40, 2}, {50, 2}};
     ccs_one = std::make_shared<geometry::CurvilinearCoordinateSystem>(ref_path_one);
 }
-
-void TestPredicateConfigs::set_up_configs() {
-    config_default = std::make_shared<semantic_reach::PredicateConfiguration>();
-}

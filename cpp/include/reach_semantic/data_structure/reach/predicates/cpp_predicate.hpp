@@ -16,11 +16,8 @@ class CppPredicate : public Predicate {
     _restrict_reach_node_forbidden(int step, const reach::ReachNodePtr &reach_node, const std::shared_ptr<World> &world,
                                    const std::shared_ptr<geometry::CurvilinearCoordinateSystem> &ego_ccs) const = 0;
 
-  protected:
-    std::shared_ptr<PredicateConfiguration> config;
-
   public:
-    explicit CppPredicate(std::shared_ptr<PredicateConfiguration> config, bool negated, bool needs_lanelets);
+    explicit CppPredicate(bool negated, bool needs_lanelets);
 
     [[nodiscard]] std::vector<reach::ReachNodePtr>
     restrict_reach_node(int step, const reach::ReachNodePtr &reach_node,

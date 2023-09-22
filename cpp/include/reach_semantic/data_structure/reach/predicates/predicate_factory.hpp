@@ -1,5 +1,6 @@
 #pragma once
 
+#include "reach_semantic/data_structure/reach/predicates/position/in_front_of_obstacle_predicate.hpp"
 #include "reach_semantic/data_structure/reach/predicates/predicate.hpp"
 #include "reach_semantic/data_structure/reach/predicates/predicate_config.hpp"
 
@@ -41,5 +42,15 @@ class PredicateFactory {
      */
     [[nodiscard]] std::unique_ptr<Predicate> predicate_from_proposition(const std::string &proposition,
                                                                         bool negated) const;
+
+    /**
+     * Create an in front of obstacle predicate using the factory's configuration.
+     *
+     * @param negated Whether the predicate is negated.
+     * @param obstacle_id ID of the obstacle.
+     * @return The created predicate.
+     */
+    std::unique_ptr<InFrontOfObstaclePredicate> make_in_front_of_obstacle_predicate(bool negated,
+                                                                                    size_t obstacle_id) const;
 };
 } // namespace semantic_reach

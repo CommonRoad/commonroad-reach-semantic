@@ -1,8 +1,8 @@
 #include "reach_semantic/data_structure/reach/predicates/predicate_factory.hpp"
+#include "reach_semantic/data_structure/reach/predicates/position/in_front_of_obstacle_predicate.hpp"
 #include "reach_semantic/data_structure/reach/predicates/py_predicate.hpp"
 
-#include "reach_semantic/data_structure/reach/predicates/position/in_front_of_obstacle_predicate.hpp"
-
+#include <regex>
 #include <spdlog/spdlog.h>
 
 using namespace semantic_reach;
@@ -17,9 +17,10 @@ PredicateFactory::PredicateFactory(std::shared_ptr<PredicateConfiguration> confi
 
 std::unique_ptr<Predicate> PredicateFactory::predicate_from_proposition(const std::string &proposition,
                                                                         bool negated) const {
-    auto in_front_of = InFrontOfObstaclePredicate::try_from_proposition(proposition, config, negated);
-    if (in_front_of.has_value()) {
-        return std::move(in_front_of.value());
+    std::smatch match;
+    if (std::regex_match(proposition, match, std::regex(R"(InFrontOf_V(\d+))"))) {
+        size_t obstacle_id{static_cast<size_t>(std::stoi(match[1]))};
+        return make_in_front_of_obstacle_predicate(negated, obstacle_id);
     }
 
     // Fall back to Python predicates
@@ -29,4 +30,9 @@ std::unique_ptr<Predicate> PredicateFactory::predicate_from_proposition(const st
         spdlog::warn("Python predicates are not available, cannot parse proposition: {}", proposition);
         throw std::invalid_argument("Unknown proposition: " + proposition);
     }
+}
+
+std::unique_ptr<InFrontOfObstaclePredicate>
+PredicateFactory::make_in_front_of_obstacle_predicate(bool negated, size_t obstacle_id) const {
+    return std::make_unique<InFrontOfObstaclePredicate>(negated, obstacle_id, config->ego_length);
 }

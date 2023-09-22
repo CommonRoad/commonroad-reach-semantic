@@ -10,7 +10,8 @@ namespace semantic_reach {
  */
 class InFrontOfObstaclePredicate : public CppPredicate {
   private:
-    int obstacle_id;
+    size_t obstacle_id;
+    double ego_length;
 
     [[nodiscard]] std::optional<double>
     _get_obstacle_front(int step, const std::shared_ptr<World> &world,
@@ -28,10 +29,6 @@ class InFrontOfObstaclePredicate : public CppPredicate {
     /**
      * Constructor for in front of obstacle predicate.
      */
-    InFrontOfObstaclePredicate(std::shared_ptr<PredicateConfiguration> config, bool negated, int obstacle_id);
-
-    static std::optional<std::unique_ptr<InFrontOfObstaclePredicate>>
-    try_from_proposition(const std::string &proposition, const std::shared_ptr<PredicateConfiguration> &config,
-                         bool negated);
+    InFrontOfObstaclePredicate(bool negated, size_t obstacle_id, double ego_length);
 };
 } // namespace semantic_reach
