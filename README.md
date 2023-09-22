@@ -49,6 +49,7 @@ cmake -DCRDC_DIR="/path/to/drivability-checker-root" -DCRREACH_DIR="/path/to/rea
 cmake --build .
 ```
 Make sure to use absolute paths to the root directory of your drivability checker and CommonRoad-Reach installation for `CRDC_DIR` and `CRREACH_DIR`, respectively.
+If you are using Anaconda, activate your environment before running cmake.
 
 * Move the resulting Python bindings to `commonroad_reach_semantic`:
 ```bash
@@ -78,3 +79,7 @@ The scenarios themselves are located in the `./scenarios/` directory.
   There might still be some old version of `spot` is used from your conda environment.
   Try uninstalling `spot` and see whether the error still appears.
   If yes, delete other spot files in your anaconda folder and reinstall spot.
+
+### Development
+
+Check out the [README_FOR_DEVS](./readme/README_FOR_DEVS.md) for information on setting up your development environment.
