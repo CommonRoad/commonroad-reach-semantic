@@ -30,6 +30,8 @@ void SemanticOTFReachableSet::_compute_drivable_area_at_step(const int &step) {
         auto reachable_set_previous = map_step_to_reachable_set[step - 1];
         if (reachable_set_previous.empty()) {
             map_step_to_drivable_area[step] = {};
+            step_to_states_to_drivable_area[step] = {};
+            step_to_states_to_propagated_set[step] = {};
             map_step_to_propagated_set[step] = {};
             return;
         }
@@ -75,16 +77,16 @@ void SemanticOTFReachableSet::_compute_drivable_area_at_step(const int &step) {
     }
 
     map_step_to_drivable_area[step] = vec_drivable_area;
-    map_step_to_states_to_drivable_area[step] = map_states_to_drivable_area;
-    map_step_to_states_to_propagated_set[step] = map_states_to_propagated_set;
+    step_to_states_to_drivable_area[step] = map_states_to_drivable_area;
+    step_to_states_to_propagated_set[step] = map_states_to_propagated_set;
     map_step_to_propagated_set[step] = propagated_sets_split;
 }
 
 void SemanticOTFReachableSet::_compute_reachable_set_at_step(const int &step) {
-    auto map_states_to_propagated_set = map_step_to_states_to_propagated_set[step];
-    auto map_states_to_drivable_area = map_step_to_states_to_drivable_area[step];
+    auto states_to_propagated_set = step_to_states_to_propagated_set[step];
+    auto states_to_drivable_area = step_to_states_to_drivable_area[step];
 
-    if (map_states_to_drivable_area.empty()) {
+    if (states_to_drivable_area.empty()) {
         map_step_to_reachable_set[step] = {};
         return;
     }
@@ -93,7 +95,7 @@ void SemanticOTFReachableSet::_compute_reachable_set_at_step(const int &step) {
 
     // discard drivable area with small area if there are more than one node (this is subject to change)
     unsigned long num_drivable_area = 0;
-    for (auto const &[proposition_holder, drivable_area]: map_states_to_drivable_area) {
+    for (auto const &[proposition_holder, drivable_area]: states_to_drivable_area) {
         num_drivable_area += drivable_area.size();
     }
     bool discard_small_node = (num_drivable_area > 1) && config->reachable_set().discard_small_nodes;
@@ -101,8 +103,8 @@ void SemanticOTFReachableSet::_compute_reachable_set_at_step(const int &step) {
     // work with the reachable sets partitioned by propositions here, because otherwise it could happen
     // that we merge two reachable sets with different propositions when they intersect with the same drivable area
     vector<reach::ReachNodePtr> new_reachable_sets{};
-    for (auto const &[automaton_states, drivable_area]: map_states_to_drivable_area) {
-        auto propagated_sets = map_states_to_propagated_set[automaton_states];
+    for (auto const &[automaton_states, drivable_area]: states_to_drivable_area) {
+        auto propagated_sets = states_to_propagated_set[automaton_states];
 
         auto reachable_sets = reach::construct_reach_nodes(drivable_area, propagated_sets, num_threads);
 
@@ -123,7 +125,7 @@ void SemanticOTFReachableSet::_compute_reachable_set_at_step(const int &step) {
 
 
         // assign label to all newly constructed reach nodes
-        auto [_, target_states] = automaton_states;
+        auto [_unused, target_states] = automaton_states;
         for (const auto &node: reachable_sets) {
             reachable_set_to_label[node] = target_states;
         }

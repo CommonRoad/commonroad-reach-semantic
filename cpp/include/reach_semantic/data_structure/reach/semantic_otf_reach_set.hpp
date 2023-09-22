@@ -10,8 +10,8 @@ namespace semantic_reach {
 
         void _compute_reachable_set_at_step(int const &step) override;
 
-        std::map<int, std::map<std::pair<std::set<unsigned int>, std::set<unsigned int>>, std::vector<reach::ReachPolygonPtr>>> map_step_to_states_to_drivable_area{};
-        std::map<int, std::map<std::pair<std::set<unsigned int>, std::set<unsigned int>>, std::vector<reach::ReachNodePtr>>> map_step_to_states_to_propagated_set{};
+        std::map<int, std::map<std::pair<std::set<unsigned int>, std::set<unsigned int>>, std::vector<reach::ReachPolygonPtr>>> step_to_states_to_drivable_area{};
+        std::map<int, std::map<std::pair<std::set<unsigned int>, std::set<unsigned int>>, std::vector<reach::ReachNodePtr>>> step_to_states_to_propagated_set{};
         std::unique_ptr<FiniteAutomaton> automaton;
 
         /// Split the given reachable set along the transitions of the automaton states of its propagation source.
@@ -57,7 +57,7 @@ namespace semantic_reach {
                            std::set<Literal> &finished_literals, bool regionized);
 
         /// Restrict the reachable sets to the given literal.
-        /// If restricting requires lanelet information, we first split the reachable sets into regions (if we haven't already).
+        /// If restricting requires lanelet information, we first split the reachable sets into regions.
         /// If we clone the reachable sets, we also copy the labels from the original nodes to the clones.
         /// @param step Current step of the reachability analysis.
         /// @param reachable_sets The reachable sets to restrict.

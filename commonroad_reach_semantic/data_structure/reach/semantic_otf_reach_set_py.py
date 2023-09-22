@@ -24,8 +24,8 @@ class PySemanticOTFReachableSet(PySemanticReachableSet):
     """
 
     config: SemanticConfiguration
-    dict_step_to_states_to_drivable_area: Dict[int, Dict[Tuple[FrozenSet[int], FrozenSet[int]], List[ReachPolygon]]]
-    dict_step_to_states_to_propagated_set: Dict[int, Dict[Tuple[FrozenSet[int], FrozenSet[int]], List[ReachNode]]]
+    step_to_states_to_drivable_area: Dict[int, Dict[Tuple[FrozenSet[int], FrozenSet[int]], List[ReachPolygon]]]
+    step_to_states_to_propagated_set: Dict[int, Dict[Tuple[FrozenSet[int], FrozenSet[int]], List[ReachNode]]]
     reachable_set_to_label: Dict[ReachNode, FrozenSet[int]]
     automaton: FiniteAutomaton
 
@@ -33,8 +33,8 @@ class PySemanticOTFReachableSet(PySemanticReachableSet):
                  rule_interface: TrafficRuleInterface):
         super().__init__(config, semantic_model, rule_interface)
 
-        self.dict_step_to_states_to_drivable_area = dict()
-        self.dict_step_to_states_to_propagated_set = dict()
+        self.step_to_states_to_drivable_area = dict()
+        self.step_to_states_to_propagated_set = dict()
 
         self.reachable_set_to_label = dict()
 
@@ -64,8 +64,8 @@ class PySemanticOTFReachableSet(PySemanticReachableSet):
 
             if len(reachable_set_previous) < 1:
                 self.dict_step_to_drivable_area[step] = list()
-                self.dict_step_to_states_to_drivable_area[step] = dict()
-                self.dict_step_to_states_to_propagated_set[step] = dict()
+                self.step_to_states_to_drivable_area[step] = dict()
+                self.step_to_states_to_propagated_set[step] = dict()
                 self.dict_step_to_propagated_set[step] = list()
                 return None
 
@@ -102,8 +102,8 @@ class PySemanticOTFReachableSet(PySemanticReachableSet):
                 list_rectangles_projected, step)
 
         self.dict_step_to_drivable_area[step] = list(more_itertools.flatten(dict_states_to_drivable_area.values()))
-        self.dict_step_to_states_to_drivable_area[step] = dict_states_to_drivable_area
-        self.dict_step_to_states_to_propagated_set[step] = dict_states_to_propagated_set
+        self.step_to_states_to_drivable_area[step] = dict_states_to_drivable_area
+        self.step_to_states_to_propagated_set[step] = dict_states_to_propagated_set
         self.dict_step_to_propagated_set[step] = propagated_sets
 
     def _compute_reachable_set_at_step(self, step):
@@ -114,23 +114,23 @@ class PySemanticOTFReachableSet(PySemanticReachableSet):
             1. construct reach nodes from drivable area and the propagated sets.
             2. update parent-child relationship of the nodes.
         """
-        dict_states_to_propagated_set = self.dict_step_to_states_to_propagated_set[step]
-        dict_states_to_drivable_area = self.dict_step_to_states_to_drivable_area[step]
+        states_to_propagated_set = self.step_to_states_to_propagated_set[step]
+        states_to_drivable_area = self.step_to_states_to_drivable_area[step]
 
-        if not dict_states_to_drivable_area:
+        if not states_to_drivable_area:
             self.dict_step_to_reachable_set[step] = list()
             return None
 
         # discard drivable area with small area if there are more than one node (this is subject to change)
         num_drivable_area = sum(
-            [len(list_drivable) for list_drivable in dict_states_to_drivable_area.values()])
+            [len(list_drivable) for list_drivable in states_to_drivable_area.values()])
         discard_small_node = (num_drivable_area > 1) and self.config.reachable_set.discard_small_nodes
 
         # work with the reachable sets partitioned by automaton states here, because otherwise it could happen
         # that we merge two reachable sets with different states when they intersect with the same drivable area
-        dict_propositions_to_reachable_set = dict()
-        for automaton_states, drivable_area in dict_states_to_drivable_area.items():
-            propagated_sets = dict_states_to_propagated_set[automaton_states]
+        new_reachable_sets = list()
+        for automaton_states, drivable_area in states_to_drivable_area.items():
+            propagated_sets = states_to_propagated_set[automaton_states]
 
             reachable_sets = reach_operation.construct_reach_nodes(drivable_area, propagated_sets)
             if discard_small_node:
@@ -148,10 +148,9 @@ class PySemanticOTFReachableSet(PySemanticReachableSet):
             _, target_states = automaton_states
             for node in reachable_sets:
                 self.reachable_set_to_label[node] = target_states
-            dict_propositions_to_reachable_set[automaton_states] = reachable_sets
+            new_reachable_sets += reachable_sets
 
-        self.dict_step_to_reachable_set[step] = list(
-            more_itertools.flatten(dict_propositions_to_reachable_set.values()))
+        self.dict_step_to_reachable_set[step] = new_reachable_sets
 
     def _split_reachable_set(self, step: int, reachable_set: ReachNode) -> List[ReachNode]:
         """Split the given reachable set along the transitions of the automaton states of its propagation source.
@@ -160,7 +159,8 @@ class PySemanticOTFReachableSet(PySemanticReachableSet):
         We then split and cut the reachable set along the conditions of these transitions.
         :param step: Current step of the reachability analysis.
         :param reachable_set: The reachable set to split.
-        :return: List of reachable sets so that each is a subset of the given reachable set, and satisfies the condition of at least one transition (up to overapproximation).
+        :return: List of reachable sets so that each is a subset of the given reachable set,
+            and satisfies the condition of at least one transition (up to overapproximation).
         """
         current_states = frozenset({self.automaton.initial_state}) if step == self.step_start else \
             self.reachable_set_to_label[reachable_set.source_propagation]
@@ -217,7 +217,8 @@ class PySemanticOTFReachableSet(PySemanticReachableSet):
         Thus, when _split_to_minterms is called, all nodes in reachable_sets satisfy all literals in finished_literals.
         We then recursively split the original reachable sets along the transitions that do not depend on the literal,
         and the restricted reachable sets along the transitions that do depend on the literal.
-        The recursion ends, when there are no more reachable sets, because restricting them along the literal resulted in an empty set.
+        The recursion ends, when there are no more reachable sets, because restricting them along the literal resulted
+        in an empty set.
         The recursion also ends, when we considered all literals.
         In this case, we label the reachable sets with the target states of the transitions that they satisfy.
 
@@ -226,7 +227,8 @@ class PySemanticOTFReachableSet(PySemanticReachableSet):
         :param transitions: Transitions to split along.
         :param finished_literals: Literals that we no longer have to consider.
         :param regionized: Whether the reachable sets are already split into regions.
-        :return: List of reachable sets so that each is a subset of the given reachable sets, and satisfies the condition of at least one transition (up to overapproximation).
+        :return: List of reachable sets so that each is a subset of the given reachable sets, and satisfies the
+            condition of at least one transition (up to overapproximation).
         """
 
         if not reachable_sets or not transitions:
@@ -247,7 +249,8 @@ class PySemanticOTFReachableSet(PySemanticReachableSet):
         # partition the transitions into those whose label needs the literal and those that don't
         not_needs_literal, needs_literal = self._partition_transitions(literal_to_split, transitions)
 
-        # if there are transitions that don't need the current literal we have to clone the reach nodes before restricting
+        # if there are transitions that don't need the current literal,
+        # we have to clone the reach nodes before restricting
         # so that we can keep the original nodes for those transitions
         restricted_reachable_sets, restriction_regionized = self._restrict_to_literal(step, reachable_sets,
                                                                                       literal_to_split, regionized,
@@ -267,7 +270,7 @@ class PySemanticOTFReachableSet(PySemanticReachableSet):
                              regionized: bool, clone: bool = True) -> Tuple[List[ReachNode], bool]:
         """Restrict the reachable sets to the given literal.
 
-        If restricting requires lanelet information, we first split the reachable sets into regions (if we haven't already).
+        If restricting requires lanelet information, we first split the reachable sets into regions.
         If we clone the reachable sets, we also copy the labels from the original nodes to the clones.
         :param step: Current step of the reachability analysis.
         :param reachable_sets: The reachable sets to restrict.
@@ -284,7 +287,8 @@ class PySemanticOTFReachableSet(PySemanticReachableSet):
                 self.labeler.copy_labels(src, dst)
         pred = predicates.from_proposition(*literal)
         if pred.needs_lanelets and not regionized:
-            # if the predicate needs lanelets, we need to split the reachable sets into regions first (if we haven't already)
+            # if the predicate needs lanelets,
+            # we need to split the reachable sets into regions first (if we haven't already)
             to_restrict = list(more_itertools.flatten(
                 self.labeler.split_wrt_regions(step, restricted_reachable_set)
                 for restricted_reachable_set in to_restrict
@@ -305,7 +309,8 @@ class PySemanticOTFReachableSet(PySemanticReachableSet):
 
         :param literal: The literal to partition the transitions along.
         :param transitions: The transitions to partition.
-        :return: A tuple of two dictionaries, the first containing the transitions that don't depend on the literal, the second containing the transitions that do.
+        :return: A tuple of two dictionaries, the first containing the transitions that don't depend on the literal,
+            the second containing the transitions that do.
         """
         not_needs_literal, needs_literal = more_itertools.partition(lambda t: literal in t[0], transitions)
         return list(not_needs_literal), list(needs_literal)
