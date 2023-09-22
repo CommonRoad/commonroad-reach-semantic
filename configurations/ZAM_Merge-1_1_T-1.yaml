@@ -11,8 +11,7 @@ planning:
   coordinate_system: "CVLN"
 
 reachable_set:
-  mode_computation: 1
-  mode_repartition: 3
+  mode_computation: 8
   size_grid: 0.25
   size_grid_2nd: 0.1
   rasterize_obstacles: false
