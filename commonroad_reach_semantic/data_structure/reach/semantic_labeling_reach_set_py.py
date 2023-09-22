@@ -7,6 +7,7 @@ from commonroad_reach.utility import reach_operation
 import commonroad_reach_semantic.utility.reach_operation as semantic_reach_operation
 from commonroad_reach_semantic.data_structure.config.semantic_configuration import SemanticConfiguration
 from commonroad_reach_semantic.data_structure.environment_model.semantic_model import SemanticModel
+from commonroad_reach_semantic.data_structure.reach.reachable_set_labeler import ReachableSetLabeler
 from commonroad_reach_semantic.data_structure.reach.semantic_reach_set_py import PySemanticReachableSet
 from commonroad_reach_semantic.data_structure.rule.traffic_rule_interface import TrafficRuleInterface
 
@@ -23,6 +24,7 @@ class PySemanticLabelingReachableSet(PySemanticReachableSet):
     def __init__(self, config: SemanticConfiguration, semantic_model: SemanticModel,
                  rule_interface: TrafficRuleInterface):
         super().__init__(config, semantic_model, rule_interface)
+        self.labeler = ReachableSetLabeler(semantic_model)
         self.dict_step_to_reachable_set[self.step_start] = self._construct_initial_reachable_sets()
         self.dict_step_to_drivable_area[self.step_start] = reach_operation.project_propagated_sets_to_position_domain(
             self.dict_step_to_reachable_set[self.step_start])

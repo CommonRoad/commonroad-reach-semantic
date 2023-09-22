@@ -7,6 +7,9 @@ import spot
 
 import commonroad_reach_semantic.utility.spot as util_spot
 
+Literal = Tuple[str, bool]
+Minterm = FrozenSet[Literal]
+State = int
 
 class FiniteAutomaton:
     """Represents a finite automaton on words over the powerset of propositions."""
@@ -43,11 +46,11 @@ class FiniteAutomaton:
         self._bdict = self._spot_automaton.get_dict()
 
     @property
-    def initial_state(self) -> int:
+    def initial_state(self) -> State:
         """The number of the initial state."""
         return self._spot_automaton.get_init_state_number()
 
-    def transitions_from(self, states: Iterable[int]) -> Iterator[Tuple[FrozenSet[Tuple[str, bool]], int]]:
+    def transitions_from(self, states: Iterable[State]) -> Iterator[Tuple[Minterm, State]]:
         """Iterate over all transitions outgoing from the given states.
 
         Tries to minimize the minterms by combining the conditions of the outgoing edges leading to the same destination.
@@ -60,14 +63,14 @@ class FiniteAutomaton:
             for minterm in self._edge_condition_to_minterms(functools.reduce(buddy.bdd_or, conditions)):
                 yield frozenset(minterm), dst_state
 
-    def is_accepting_state(self, state: int) -> bool:
+    def is_accepting_state(self, state: State) -> bool:
         """Check whether the given state is an accepting state.
 
         :returns: True if and only if the state is accepting.
         """
         return self._spot_automaton.state_is_accepting(state)
 
-    def _edge_condition_to_minterms(self, cond: buddy.bdd) -> List[FrozenSet[Tuple[str, bool]]]:
+    def _edge_condition_to_minterms(self, cond: buddy.bdd) -> List[Minterm]:
         """Convert a condition on an automaton edge given as a BDD into a list of minterms.
 
         The condition is true iff at least one minterm is satisfied.
