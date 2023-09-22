@@ -27,6 +27,11 @@ struct PredicateConfiguration {
     double ego_width{2.0};
 
     /**
+     * Construct predicate configuration with all default values.
+     */
+    PredicateConfiguration() = default;
+
+    /**
      * Construct predicate configuration from semantic configuration.
      *
      * @param config The semantic configuration.

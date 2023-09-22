@@ -68,13 +68,13 @@ target_link_libraries(crreachs PUBLIC
         ${CRREACH_LIBRARY}
         ${CRDC_LIBRARY}
         EnvironmentModel::env_model
+        pybind11::embed
         fcl
         ccd
         yaml-cpp
         spot
         bddx)
 target_link_libraries(crreachs PRIVATE
-        pybind11::embed
         spdlog::spdlog)
 
 # ==== unit tests
