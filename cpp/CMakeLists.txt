@@ -81,3 +81,35 @@ target_link_libraries(crreachs PRIVATE
 if(ADD_TESTS)
     add_subdirectory(tests)
 endif()
+
+# dummy target for CLion to detect header files
+add_custom_target(crreachs_headers SOURCES
+        ${CMAKE_CURRENT_LIST_DIR}/include/reach_semantic/data_structure/reach/reachable_set_labeler.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/include/reach_semantic/data_structure/reach/semantic_reach_set.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/include/reach_semantic/data_structure/reach/semantic_labeling_reach_set.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/include/reach_semantic/data_structure/reach/semantic_otf_reach_set.hpp
+
+        ${CMAKE_CURRENT_LIST_DIR}/include/reach_semantic/data_structure/reach/predicates/predicate.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/include/reach_semantic/data_structure/reach/predicates/predicate_config.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/include/reach_semantic/data_structure/reach/predicates/predicate_factory.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/include/reach_semantic/data_structure/reach/predicates/cpp_predicate.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/include/reach_semantic/data_structure/reach/predicates/py_predicate.hpp
+
+        ${CMAKE_CURRENT_LIST_DIR}/include/reach_semantic/data_structure/reach/predicates/position/in_front_of_obstacle_predicate.hpp
+
+        ${CMAKE_CURRENT_LIST_DIR}/include/reach_semantic/data_structure/model_checking/finite_automaton.hpp
+
+        ${CMAKE_CURRENT_LIST_DIR}/include/reach_semantic/data_structure/environment_model/semantic_model.hpp
+
+        ${CMAKE_CURRENT_LIST_DIR}/include/reach_semantic/data_structure/semantic_configuration.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/include/reach_semantic/data_structure/proposition_holder.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/include/reach_semantic/data_structure/traffic_rule.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/include/reach_semantic/data_structure/position_interval.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/include/reach_semantic/data_structure/region.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/include/reach_semantic/data_structure/vehicle.hpp
+
+        ${CMAKE_CURRENT_LIST_DIR}/include/reach_semantic/utility/environment_model.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/include/reach_semantic/utility/reach_operation.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/include/reach_semantic/utility/shared_include.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/include/reach_semantic/utility/spot.hpp
+)
