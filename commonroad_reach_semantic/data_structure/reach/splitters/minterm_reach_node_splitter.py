@@ -27,7 +27,7 @@ class MintermReachNodeSplitter:
         self.node_to_lanelet_ids = {}
 
     def split_to_minterms(self, step: int, reachable_set: ReachNode, minterms: Iterable[Minterm]) -> \
-            Dict[Minterm, List[ReachNode]]:
+            List[Tuple[Minterm, List[ReachNode]]]:
         """Split the given reachable set along the given minterms.
 
         :param step: Current step of the reachability analysis.
@@ -38,7 +38,7 @@ class MintermReachNodeSplitter:
             restricted to states that satisfy the minterm.
             A minterm may be omitted if the corresponding restricted set is empty.
         """
-        result = {}
+        result = []
         # remove duplicates
         minterms = frozenset(minterms)
         self._split_to_minterms(step, [reachable_set], minterms, frozenset(), False, result)
@@ -47,7 +47,7 @@ class MintermReachNodeSplitter:
     def _split_to_minterms(self, step: int, reachable_sets: List[ReachNode],
                            minterms: FrozenSet[Minterm],
                            finished_literals: FrozenSet[Literal], regionized: bool,
-                           result: Dict[Minterm, List[ReachNode]]) -> None:
+                           result: List[Tuple[Minterm, List[ReachNode]]]) -> None:
         """Implementation of split_to_minterms.
 
         This is a recursive function that splits the reachable sets along the given minterms.
@@ -86,7 +86,7 @@ class MintermReachNodeSplitter:
             # moreover, the literals in the remaining minterms are all finished.
             assert next(minterms.__iter__()) == finished_literals
             # write the reachable sets to the result
-            result[finished_literals] = reachable_sets
+            result.append((finished_literals, reachable_sets))
             return
 
         # partition the minterms into those that contain the literal and those that don't

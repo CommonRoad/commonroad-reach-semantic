@@ -176,10 +176,12 @@ class PySemanticOTFReachableSet(PySemanticReachableSet):
 
         # split and label the reachable set according to the transitions of the automaton
         minterm_to_constrained_sets = self.splitter.split_to_minterms(step, reachable_set, transitions.keys())
-        for minterm, constrained_sets in minterm_to_constrained_sets.items():
+        for minterm, constrained_sets in minterm_to_constrained_sets:
             for constrained_set in constrained_sets:
                 self.reachable_set_to_label[constrained_set] = transitions[minterm]
-        constrained_reachable_sets = list(more_itertools.flatten(minterm_to_constrained_sets.values()))
+        constrained_reachable_sets = list(
+            more_itertools.flatten(constrained_sets for _, constrained_sets in minterm_to_constrained_sets)
+        )
 
         constrained_reachable_sets = self._filter_reachable_sets(constrained_reachable_sets, step)
 
