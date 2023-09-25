@@ -1,6 +1,6 @@
 import functools
 from collections import defaultdict
-from typing import Iterator, List, Dict, Iterable, Tuple, FrozenSet
+from typing import Iterator, List, Dict, Iterable, Tuple, FrozenSet, Set
 
 import buddy
 import spot
@@ -10,6 +10,7 @@ import commonroad_reach_semantic.utility.spot as util_spot
 Literal = Tuple[str, bool]
 Minterm = FrozenSet[Literal]
 State = int
+
 
 class FiniteAutomaton:
     """Represents a finite automaton on words over the powerset of propositions."""
@@ -53,7 +54,10 @@ class FiniteAutomaton:
     def transitions_from(self, states: Iterable[State]) -> Iterator[Tuple[Minterm, State]]:
         """Iterate over all transitions outgoing from the given states.
 
-        Tries to minimize the minterms by combining the conditions of the outgoing edges leading to the same destination.
+        Tries to minimize the minterms by combining the conditions of outgoing edges leading to the same destination.
+
+        :param states: The source states.
+        :returns: An iterator over pairs of minterms and destination states.
         """
         dst_state_to_conditions: Dict[int, List[buddy.bdd]] = defaultdict(list)
         for state in frozenset(states):
@@ -62,6 +66,20 @@ class FiniteAutomaton:
         for dst_state, conditions in dst_state_to_conditions.items():
             for minterm in self._edge_condition_to_minterms(functools.reduce(buddy.bdd_or, conditions)):
                 yield frozenset(minterm), dst_state
+
+    @functools.lru_cache(maxsize=None)
+    def multi_transitions_from(self, states: FrozenSet[State]) -> Dict[Minterm, FrozenSet[State]]:
+        """Based on the transitions outgoing from the given states get a mapping from minterms to the states they reach.
+
+        We require states to be a frozen set to be able to cache the result.
+
+        :param states: The source states.
+        :returns: A mapping from minterms to the states they reach.
+        """
+        minterm_to_dst_states: Dict[Minterm, Set[State]] = defaultdict(set)
+        for minterm, dst_state in self.transitions_from(states):
+            minterm_to_dst_states[minterm].add(dst_state)
+        return {minterm: frozenset(dst_states) for minterm, dst_states in minterm_to_dst_states.items()}
 
     def is_accepting_state(self, state: State) -> bool:
         """Check whether the given state is an accepting state.
@@ -76,6 +94,9 @@ class FiniteAutomaton:
         The condition is true iff at least one minterm is satisfied.
         A minterm is a list of possibly negated atomic propositions.
         It is satisfied iff all its atomic propositions hold.
+
+        :param cond: The condition on the edge.
+        :returns: A list of minterms so that their disjunction is the condition.
         """
         # will be in DNF --> bbd_to_formula computes an irredundant sum of products
         # https://spot.lre.epita.fr/doxygen/namespacespot.html#aba9b9efe994006c29a6d77da94897df8
@@ -84,7 +105,11 @@ class FiniteAutomaton:
 
     @staticmethod
     def _translate_ltlf_to_buechi(ltlf_formula: spot.formula) -> spot.twa_graph:
-        """Translate the given LTLf formula into a Buechi automaton."""
+        """Translate the given LTLf formula into a Buechi automaton.
+
+        :param ltlf_formula: The LTLf formula to translate.
+        :returns: The Buechi automaton accepting the words that make the formula true.
+        """
         # disable simulation based reductions to speed up translation
         # see https://spot.lre.epita.fr/man/spot-x.7.html
         return ltlf_formula.translate(xargs="simul=0")
