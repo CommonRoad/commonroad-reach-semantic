@@ -56,6 +56,11 @@ pycodestyle-merge-request:
     - merge_requests
   allow_failure: true
 
+clang-format:
+  stage: static-check
+  script: ./ci/clang-format.sh
+  needs: [ ]
+
 clang-tidy:
   stage: static-check
   variables:
@@ -64,8 +69,8 @@ clang-tidy:
     - mkdir build && cd build
     - cmake -DCRDC_DIR="$CRDC_DIR" -DCRREACH_DIR="$CRREACH_DIR" -DPYTHON_VER="310" -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ..
     - cd ..
-    - bash ./ci/clang-tidy.sh
-  allow_failure: true
+    - ./ci/clang-tidy.sh
+  needs: [ ]
 
 
 ### build C++ library ###
@@ -87,7 +92,7 @@ compile-cpp:
     paths:
       - pycrreachs.*.so
     expire_in: 30 minutes
-  needs: []
+  needs: [ ]
 
 
 ### test Python ###
