@@ -3,11 +3,8 @@
 
 using namespace semantic_reach;
 
-MintermReachNodeSplitter::MintermReachNodeSplitter(SemanticModelPtr semantic_model,
-                                                   const SemanticConfigurationPtr &config) : semantic_model(
-        std::move(semantic_model)) {
-    labeler = std::make_shared<ReachableSetLabeler>(this->semantic_model, config);
-}
+MintermReachNodeSplitter::MintermReachNodeSplitter(SemanticModelPtr semantic_model) : semantic_model(
+        std::move(semantic_model)), region_splitter(std::make_unique<RegionReachNodeSplitter>(this->semantic_model)) {}
 
 std::vector<std::pair<Minterm, std::vector<reach::ReachNodePtr>>>
 MintermReachNodeSplitter::split_to_minterms(int step, const reach::ReachNodePtr &reachable_set,
@@ -73,31 +70,49 @@ MintermReachNodeSplitter::_restrict_to_literal(int step, const std::vector<reach
                        [](const reach::ReachNodePtr &node) {
                            return node->clone();
                        });
-        // if we already split to regions, we need to copy labels from the original nodes to the clones
+        // if we already split to regions, we need to copy the lanelet ids from the original nodes to the clones
         for (std::pair it{reachable_sets.begin(), to_restrict.begin()};
              it.first != reachable_sets.end(); ++it.first, ++it.second) {
-            labeler->copy_labels(*it.first, {*it.second});
+            node_to_lanelet_ids[*it.second] = node_to_lanelet_ids[*it.first];
         }
     } else {
         to_restrict = reachable_sets;
     }
 
     Predicate pred = Predicate::from_proposition(literal.first, literal.second);
+
+    // if the predicate needs lanelets, we need to split the reachable sets into regions first (if we haven't already)
     if (pred.needs_lanelets && !regionized) {
-        // if the predicate needs lanelets, we need to split the reachable sets into regions first (if we haven't already)
-        to_restrict = labeler->split_wrt_regions(step, to_restrict);
+        std::vector<reach::ReachNodePtr> regionized_reachable_sets{};
+        for (const auto &node : to_restrict) {
+            for (const auto &[region, restricted_node] : region_splitter->split_wrt_regions(node)) {
+                node_to_lanelet_ids[restricted_node] = region->set_ids_lanelets;
+                regionized_reachable_sets.emplace_back(restricted_node);
+            }
+        }
+        to_restrict = std::move(regionized_reachable_sets);
+        regionized = true;
     }
-    // restrict the reachable sets to the predicate
+
     std::vector<reach::ReachNodePtr> restricted_reachable_sets{};
     for (const auto &node: to_restrict) {
+
+        // restrict the reachable sets to the predicate
         auto restricted_nodes = pred.needs_lanelets ? pred.restrict_reach_node(step, node, semantic_model,
-                                                                               labeler->reachable_set_to_lanelet_ids[node])
+                                                                               node_to_lanelet_ids[node])
                                                     : pred.restrict_reach_node(step, node, semantic_model);
+        // restricting might create clones, so we need to copy the lanelet ids again
+        if (regionized) {
+            for (const auto &restricted_node : restricted_nodes) {
+                node_to_lanelet_ids[restricted_node] = node_to_lanelet_ids.at(node);
+            }
+        }
         restricted_reachable_sets.insert(restricted_reachable_sets.end(),
                                          std::make_move_iterator(restricted_nodes.begin()),
                                          std::make_move_iterator(restricted_nodes.end()));
     }
-    return {restricted_reachable_sets, pred.needs_lanelets};
+
+    return {restricted_reachable_sets, regionized};
 }
 
 std::pair<std::set<Minterm>, std::set<Minterm>>

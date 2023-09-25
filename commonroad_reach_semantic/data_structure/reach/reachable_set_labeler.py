@@ -183,10 +183,6 @@ class ReachableSetLabeler:
     def split_wrt_regions(self, step: int, reachable_set: ReachNode) -> List[ReachNode]:
         """
         Splits a reachable set w.r.t lanelet regions.
-
-        Steps:
-            1. Intersect reachable set in the position domain with lanelet regions
-            2. Over-approximate and restore to axis-aligned rectangles
         """
         split_reachable_sets = self.region_splitter.split_wrt_regions(reachable_set)
         for region, node in split_reachable_sets:

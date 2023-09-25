@@ -1,12 +1,14 @@
 #pragma once
 
-#include <pybind11/embed.h>
-
-#include "reachset/data_structure/reach/reach_polygon.hpp"
-#include "reachset/data_structure/reach/reach_node.hpp"
 #include "reach_semantic/data_structure/region.hpp"
 #include "reach_semantic/data_structure/semantic_model.hpp"
 #include "reach_semantic/data_structure/position_interval.hpp"
+#include "reach_semantic/data_structure/reach/splitters/region_reach_node_splitter.hpp"
+
+#include "reachset/data_structure/reach/reach_polygon.hpp"
+#include "reachset/data_structure/reach/reach_node.hpp"
+
+#include <pybind11/embed.h>
 
 namespace semantic_reach{
     /// Splits reachable sets and labels the parts according to the semantic model.
@@ -14,6 +16,7 @@ namespace semantic_reach{
     private:
         /// Python handle for semantic model
         SemanticModelPtr semantic_model;
+        std::unique_ptr<RegionReachNodeSplitter> region_splitter;
         SemanticConfigurationPtr config;
 
         /// Returns the propositions of the given rectangle.
@@ -57,10 +60,6 @@ namespace semantic_reach{
         std::vector<reach::ReachNodePtr> label_traffic_propositions(int step, std::vector<reach::ReachNodePtr> reachable_sets);
 
         /// Splits a reachable set w.r.t lanelet regions.
-        ///
-        /// Steps:
-        ///   1. Intersect reachable set in the position domain with lanelet regions
-        ///   2. Over-approximate and restore to axis-aligned rectangles
         std::vector<reach::ReachNodePtr> split_wrt_regions(int step, const std::vector<reach::ReachNodePtr> &reachable_sets);
 
         /// Splits the reachable set w.r.t position intervals.

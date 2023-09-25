@@ -17,7 +17,7 @@ SemanticOTFReachableSet::SemanticOTFReachableSet(semantic_reach::SemanticConfigu
                                                   this->config->config_traffic_rule.mode_automata);
 
     // Construct splitter for splitting reachable sets along transitions of the automaton
-    splitter = std::make_unique<MintermReachNodeSplitter>(this->semantic_model, this->config);
+    splitter = std::make_unique<MintermReachNodeSplitter>(this->semantic_model);
 
     // Compute initial reachable set
     SemanticOTFReachableSet::_compute_drivable_area_at_step(step_start);

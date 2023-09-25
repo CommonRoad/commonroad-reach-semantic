@@ -7,6 +7,7 @@ using namespace semantic_reach;
 
 ReachableSetLabeler::ReachableSetLabeler(SemanticModelPtr semantic_model, SemanticConfigurationPtr config)
         : semantic_model(std::move(semantic_model)),
+          region_splitter(std::make_unique<RegionReachNodeSplitter>(this->semantic_model)),
           config(std::move(config)),
           reachable_set_to_propositions(),
           reachable_set_to_lanelet_ids() {}
@@ -151,43 +152,16 @@ ReachableSetLabeler::_label_causes_braking_propositions(int step, std::vector<re
 
 std::vector<reach::ReachNodePtr>
 ReachableSetLabeler::split_wrt_regions(int step, const std::vector<reach::ReachNodePtr> &reachable_sets) {
-    vector<reach::ReachNodePtr> vec_nodes_split = {};
-    // iterate through region and examine propagated sets that are intersecting with the region
+    std::vector<reach::ReachNodePtr> split_reachable_sets{};
     for (const auto &reachable_set: reachable_sets) {
-        for (auto const &region: semantic_model->vec_regions) {
-
-            auto rectangle = reachable_set->position_rectangle();
-            // there is no possibility of intersection
-            if (!region->intersects(rectangle, "CVLN")) {
-                continue;
-            }
-
-            // there is a possibility of intersection
-            auto polygon_intersected = region->polygon_cvln->clone();
-            // compute intersection with the position rectangle
-            // TODO: Find out, why there was a try-catch here
-            polygon_intersected->intersect_halfspace(1, 0, rectangle->p_lon_max());
-            polygon_intersected->intersect_halfspace(-1, 0, -rectangle->p_lon_min());
-            polygon_intersected->intersect_halfspace(0, 1, rectangle->p_lat_max());
-            polygon_intersected->intersect_halfspace(0, -1, -rectangle->p_lat_min());
-
-            if (polygon_intersected->empty()) {
-                continue;
-            }
-
-            // over-approximate by restoring to axis-aligned rectangles
-            auto [p_lon_min, p_lat_min, p_lon_max, p_lat_max] = polygon_intersected->bounding_box();
-
-            // TODO: Find out, why there was a try-catch here
-            // clone the propagated set and split in the position domain, update the propositions
-            auto node_new = reachable_set->clone();
-            reachable_set_to_propositions[node_new] = reachable_set_to_propositions[reachable_set].clone();
-            node_new->intersect_in_position_domain(p_lon_min, p_lat_min, p_lon_max, p_lat_max);
-            vec_nodes_split.emplace_back(_update_propositions_with_region(node_new, region, step));
+        auto region_reachable_sets = region_splitter->split_wrt_regions(reachable_set);
+        for (const auto &[region, node]: region_reachable_sets) {
+            reachable_set_to_propositions[node] = reachable_set_to_propositions[reachable_set].clone();
+            _update_propositions_with_region(node, region, step);
+            split_reachable_sets.emplace_back(node);
         }
     }
-
-    return vec_nodes_split;
+    return split_reachable_sets;
 }
 
 reach::ReachNodePtr

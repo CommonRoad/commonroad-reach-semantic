@@ -2,6 +2,7 @@
 
 #include "reach_semantic/data_structure/semantic_model.hpp"
 #include "reach_semantic/data_structure/reach/reachable_set_labeler.hpp"
+#include "reach_semantic/data_structure/reach/splitters/region_reach_node_splitter.hpp"
 #include "reach_semantic/data_structure/model_checking/finite_automaton.hpp"
 
 #include "reachset/data_structure/reach/reach_node.hpp"
@@ -16,7 +17,8 @@ namespace semantic_reach {
     class MintermReachNodeSplitter {
     private:
         SemanticModelPtr semantic_model;
-        ReachableSetLabelerPtr labeler;
+        std::unique_ptr<RegionReachNodeSplitter> region_splitter;
+        std::map<reach::ReachNodePtr, std::set<int>> node_to_lanelet_ids;
 
         /**
          * Implementation of split_to_minterms.
@@ -93,9 +95,8 @@ namespace semantic_reach {
          * Create a new minterm reach node splitter.
          *
          * @param semantic_model The semantic model to use for splitting.
-         * @param config The configuration to use for splitting.
          */
-        MintermReachNodeSplitter(SemanticModelPtr semantic_model, const SemanticConfigurationPtr &config);
+        explicit MintermReachNodeSplitter(SemanticModelPtr semantic_model);
 
         /**
          * Split the given reachable sets along the given minterms.
