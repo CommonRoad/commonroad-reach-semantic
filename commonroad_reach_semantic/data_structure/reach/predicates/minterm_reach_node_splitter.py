@@ -98,8 +98,9 @@ class MintermReachNodeSplitter:
         # recurse to split along the remaining literals
         # note that only the restricted reachable sets might have been regionized
         self._split_to_minterms(step, reachable_sets, not_has_literal, finished_literals, regionized, result)
-        self._split_to_minterms(step, restricted_reachable_sets, has_literal,
-                                finished_literals.union(literal_to_split),
+        # argument has to be a one-tuple here, otherwise the literal (which is a tuple itself) will be unpacked
+        new_finished_literals = finished_literals.union((literal_to_split,))
+        self._split_to_minterms(step, restricted_reachable_sets, has_literal, new_finished_literals,
                                 regionized or restriction_regionized, result)
 
     def _restrict_to_literal(self, step: int, reachable_sets: List[ReachNode], literal: Literal,
@@ -128,8 +129,8 @@ class MintermReachNodeSplitter:
         # we need to split the reachable sets into regions first (if we haven't already)
         if pred.needs_lanelets and not regionized:
             to_restrict = list(more_itertools.flatten(
-                self.labeler.split_wrt_regions(step, restricted_reachable_set)
-                for restricted_reachable_set in to_restrict
+                self.labeler.split_wrt_regions(step, node)
+                for node in to_restrict
             ))
 
         # restrict the reachable sets to the predicate

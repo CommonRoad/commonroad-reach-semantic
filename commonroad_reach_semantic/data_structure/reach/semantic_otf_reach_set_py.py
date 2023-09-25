@@ -1,6 +1,6 @@
 import logging
 from collections import defaultdict
-from typing import List, Dict, FrozenSet, Tuple, Iterable
+from typing import List, Dict, FrozenSet, Tuple, Iterable, Set
 
 import more_itertools
 from commonroad_reach.data_structure.reach.reach_node import ReachNode
@@ -10,7 +10,9 @@ from commonroad_reach.utility import reach_operation
 import commonroad_reach_semantic.utility.reach_operation as semantic_reach_operation
 from commonroad_reach_semantic.data_structure.config.semantic_configuration import SemanticConfiguration
 from commonroad_reach_semantic.data_structure.environment_model.semantic_model import SemanticModel
-from commonroad_reach_semantic.data_structure.model_checking.finite_automaton import FiniteAutomaton, State
+from commonroad_reach_semantic.data_structure.model_checking.finite_automaton import FiniteAutomaton, State, Minterm
+from commonroad_reach_semantic.data_structure.reach.predicates.minterm_reach_node_splitter import \
+    MintermReachNodeSplitter
 from commonroad_reach_semantic.data_structure.reach.semantic_reach_set_py import PySemanticReachableSet
 from commonroad_reach_semantic.data_structure.rule.traffic_rule_interface import TrafficRuleInterface
 
@@ -23,10 +25,13 @@ class PySemanticOTFReachableSet(PySemanticReachableSet):
     """
 
     config: SemanticConfiguration
+
+    automaton: FiniteAutomaton
+    splitter: MintermReachNodeSplitter
+    reachable_set_to_label: Dict[ReachNode, FrozenSet[State]]
+
     step_to_states_to_drivable_area: Dict[int, Dict[Tuple[FrozenSet[State], FrozenSet[State]], List[ReachPolygon]]]
     step_to_states_to_propagated_set: Dict[int, Dict[Tuple[FrozenSet[State], FrozenSet[State]], List[ReachNode]]]
-    reachable_set_to_label: Dict[ReachNode, FrozenSet[State]]
-    automaton: FiniteAutomaton
 
     def __init__(self, config: SemanticConfiguration, semantic_model: SemanticModel,
                  rule_interface: TrafficRuleInterface):
@@ -39,6 +44,9 @@ class PySemanticOTFReachableSet(PySemanticReachableSet):
 
         # Construct finite automaton from traffic rules
         self.automaton = FiniteAutomaton(self.rule_interface.list_specifications_ltl, config.traffic_rule.mode_automata)
+
+        # Construct splitter for splitting reachable sets along transitions of the automaton
+        self.splitter = MintermReachNodeSplitter(semantic_model)
 
         # Compute initial reachable set
         self.compute_drivable_area_at_step(self.step_start)
@@ -88,9 +96,12 @@ class PySemanticOTFReachableSet(PySemanticReachableSet):
             dict_states_to_propagated_set[key].append(propagated_set)
 
         # merge, collision check, and repartition propagated sets
-        # this is done individually for each group calculated above, because we must not merge sets semantically different base sets
-        # it is necessary to also consider the states of the propagation source for the partitioning, because only if these are equal, the automaton cannot distinguish the base sets
-        # if only the target states were considered, the automaton could possibly distinguish them if the source states reach the target state via different propositions
+        # this is done individually for each group calculated above,
+        # because we must not merge sets semantically different base sets
+        # it is necessary to also consider the states of the propagation source for the partitioning,
+        # because only if these are equal, the automaton cannot distinguish the base sets
+        # if only the target states were considered, the automaton could possibly distinguish them
+        # if the source states reach the target state via different propositions
         dict_states_to_drivable_area = dict()
         for automaton_states, propagated_sets_per_proposition in dict_states_to_propagated_set.items():
             list_rectangles_projected = reach_operation.project_propagated_sets_to_position_domain(
@@ -156,14 +167,19 @@ class PySemanticOTFReachableSet(PySemanticReachableSet):
         We then split and cut the reachable set along the conditions of these transitions.
         :param step: Current step of the reachability analysis.
         :param reachable_set: The reachable set to split.
-        :return: List of reachable sets so that each is a subset of the given reachable set,
+        :returns: List of reachable sets so that each is a subset of the given reachable set,
             and satisfies the condition of at least one transition (up to overapproximation).
         """
         current_states = frozenset({self.automaton.initial_state}) if step == self.step_start else \
             self.reachable_set_to_label[reachable_set.source_propagation]
-        transitions = list(self.automaton.transitions_from(current_states))
-        # TODO: use splitter here and assign labels correctly
-        constrained_reachable_sets = self._split_to_minterms(step, [reachable_set], transitions)
+        transitions = self.automaton.multi_transitions_from(current_states)
+
+        # split and label the reachable set according to the transitions of the automaton
+        minterm_to_constrained_sets = self.splitter.split_to_minterms(step, reachable_set, transitions.keys())
+        for minterm, constrained_sets in minterm_to_constrained_sets.items():
+            for constrained_set in constrained_sets:
+                self.reachable_set_to_label[constrained_set] = transitions[minterm]
+        constrained_reachable_sets = list(more_itertools.flatten(minterm_to_constrained_sets.values()))
 
         constrained_reachable_sets = self._filter_reachable_sets(constrained_reachable_sets, step)
 
@@ -172,7 +188,15 @@ class PySemanticOTFReachableSet(PySemanticReachableSet):
         return constrained_reachable_sets
 
     def _filter_reachable_sets(self, reachable_sets: Iterable[ReachNode], step: int) -> List[ReachNode]:
-        """Filter reachable sets that cannot be part of an accepting run of the automaton."""
+        """Filter reachable sets that cannot be part of an accepting run of the automaton.
+
+        This means they are labeled with at least one state.
+        In the final step, we also require the reachable sets to have at least one accepting state.
+
+        :param reachable_sets: List of reachable sets to filter.
+        :param step: Current step of the reachability analysis.
+        :returns: List of reachable sets that can be part of an accepting run of the automaton.
+        """
         is_final_step = (step == self.step_end)
         return [
             reachable_set for reachable_set in reachable_sets
@@ -181,13 +205,21 @@ class PySemanticOTFReachableSet(PySemanticReachableSet):
         ]
 
     def _has_accepting_state(self, reachable_set: ReachNode) -> bool:
-        """Check if the given reachable set has an accepting state."""
+        """Check if the given reachable set has an accepting state.
+
+        :param reachable_set: The reachable set to check.
+        :returns: True if and only if the reachable set is labeled with at least one accepting state.
+        """
         return any(self.automaton.is_accepting_state(state) for state in self.reachable_set_to_label[reachable_set])
 
-    def _deduplicate_reachable_sets(self, constrained_reachable_sets: List[ReachNode]) -> List[ReachNode]:
-        """Deduplicate reachable sets and merge labels of duplicates."""
+    def _deduplicate_reachable_sets(self, reachable_sets: List[ReachNode]) -> List[ReachNode]:
+        """Deduplicate reachable sets and merge labels of duplicates.
+
+        :param reachable_sets: List of reachable sets with possible duplicates.
+        :returns: List of reachable sets without duplicates.
+        """
         unique_reachable_sets = []
-        for reachable_set in constrained_reachable_sets:
+        for reachable_set in reachable_sets:
             for other in unique_reachable_sets:
                 # Two reachable sets are equal to us, if both their lat and lon polygons are equal
                 equal_lon = reachable_set.polygon_lon.shapely_object.equals(other.polygon_lon.shapely_object)
