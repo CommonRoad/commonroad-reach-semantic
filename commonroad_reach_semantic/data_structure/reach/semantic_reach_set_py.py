@@ -21,6 +21,7 @@ class PySemanticReachableSet(SemanticReachableSet, ABC):
     def __init__(self, config: SemanticConfiguration, semantic_model: SemanticModel,
                  rule_interface: TrafficRuleInterface) -> None:
         super().__init__(config, semantic_model, rule_interface)
+        self._initialize_zero_state_polygons()
 
     def _construct_initial_reachable_sets(self) -> List[ReachNode]:
         tuple_vertices_polygon_lon, tuple_vertices_polygon_lat = \

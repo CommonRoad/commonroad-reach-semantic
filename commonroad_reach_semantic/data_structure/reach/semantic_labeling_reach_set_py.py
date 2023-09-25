@@ -33,7 +33,6 @@ class PySemanticLabelingReachableSet(PySemanticReachableSet):
         self.dict_step_to_propositions_to_propagated_set = dict()
 
         self.labeler.label_initial_state(self.dict_step_to_reachable_set[self.step_start], self.step_start)
-        self._initialize_zero_state_polygons()
 
         logger.debug("PySemanticLabelingReachableSet initialized.")
 

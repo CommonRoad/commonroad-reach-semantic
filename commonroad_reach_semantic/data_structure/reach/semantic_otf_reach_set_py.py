@@ -37,8 +37,6 @@ class PySemanticOTFReachableSet(PySemanticReachableSet):
 
         self.reachable_set_to_label = dict()
 
-        self._initialize_zero_state_polygons()
-
         # Construct finite automaton from traffic rules
         self.automaton = FiniteAutomaton(self.rule_interface.list_specifications_ltl, config.traffic_rule.mode_automata)
 
