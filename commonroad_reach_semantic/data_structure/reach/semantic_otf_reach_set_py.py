@@ -1,6 +1,6 @@
 import logging
 from collections import defaultdict
-from typing import List, Dict, FrozenSet, Tuple, Iterable, Set
+from typing import List, Dict, FrozenSet, Tuple, Iterable
 
 import more_itertools
 from commonroad_reach.data_structure.reach.reach_node import ReachNode
@@ -10,8 +10,8 @@ from commonroad_reach.utility import reach_operation
 import commonroad_reach_semantic.utility.reach_operation as semantic_reach_operation
 from commonroad_reach_semantic.data_structure.config.semantic_configuration import SemanticConfiguration
 from commonroad_reach_semantic.data_structure.environment_model.semantic_model import SemanticModel
-from commonroad_reach_semantic.data_structure.model_checking.finite_automaton import FiniteAutomaton, State, Minterm
-from commonroad_reach_semantic.data_structure.reach.predicates.minterm_reach_node_splitter import \
+from commonroad_reach_semantic.data_structure.model_checking.finite_automaton import FiniteAutomaton, State
+from commonroad_reach_semantic.data_structure.reach.splitters.minterm_reach_node_splitter import \
     MintermReachNodeSplitter
 from commonroad_reach_semantic.data_structure.reach.semantic_reach_set_py import PySemanticReachableSet
 from commonroad_reach_semantic.data_structure.rule.traffic_rule_interface import TrafficRuleInterface
