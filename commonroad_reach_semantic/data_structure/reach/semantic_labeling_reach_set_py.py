@@ -1,10 +1,9 @@
-import more_itertools
 import logging
 from collections import defaultdict
 
+import more_itertools
 from commonroad_reach.utility import reach_operation
 
-import commonroad_reach_semantic.utility.reach_operation as semantic_reach_operation
 from commonroad_reach_semantic.data_structure.config.semantic_configuration import SemanticConfiguration
 from commonroad_reach_semantic.data_structure.environment_model.semantic_model import SemanticModel
 from commonroad_reach_semantic.data_structure.reach.reachable_set_labeler import ReachableSetLabeler
@@ -113,11 +112,6 @@ class PySemanticLabelingReachableSet(PySemanticReachableSet):
             self.dict_step_to_reachable_set[step] = list()
             return None
 
-        # discard drivable area with small area if there are more than one node (this is subject to change)
-        num_drivable_area = sum(
-            [len(list_drivable) for list_drivable in dict_propositions_to_drivable_area.values()])
-        discard_small_node = (num_drivable_area > 1) and self.config.reachable_set.discard_small_nodes
-
         # work with the reachable sets partitioned by propositions here, because otherwise it could happen
         # that we merge two reachable sets with different propositions when they intersect with the same drivable area
         dict_propositions_to_reachable_set = dict()
@@ -125,9 +119,6 @@ class PySemanticLabelingReachableSet(PySemanticReachableSet):
             propagated_sets = dict_propositions_to_propagated_set[proposition_holder]
 
             list_nodes = reach_operation.construct_reach_nodes(drivable_area, propagated_sets)
-            if discard_small_node:
-                list_nodes = semantic_reach_operation.discard_nodes_with_short_edge(list_nodes,
-                                                                                    self.config.reachable_set.length_edge_node_min)
             if list_nodes:
                 reachable_sets = reach_operation.connect_children_to_parents(step, list_nodes)
                 # copy propositions for newly constructed nodes. Because all propagated sets are labeled with the same

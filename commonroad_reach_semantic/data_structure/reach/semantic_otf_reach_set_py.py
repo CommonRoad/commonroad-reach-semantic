@@ -7,7 +7,6 @@ from commonroad_reach.data_structure.reach.reach_node import ReachNode
 from commonroad_reach.data_structure.reach.reach_polygon import ReachPolygon
 from commonroad_reach.utility import reach_operation
 
-import commonroad_reach_semantic.utility.reach_operation as semantic_reach_operation
 from commonroad_reach_semantic.data_structure.config.semantic_configuration import SemanticConfiguration
 from commonroad_reach_semantic.data_structure.environment_model.semantic_model import SemanticModel
 from commonroad_reach_semantic.data_structure.model_checking.finite_automaton import FiniteAutomaton, State
@@ -129,21 +128,13 @@ class PySemanticOTFReachableSet(PySemanticReachableSet):
             self.dict_step_to_reachable_set[step] = list()
             return None
 
-        # discard drivable area with small area if there are more than one node (this is subject to change)
-        num_drivable_area = sum(
-            [len(list_drivable) for list_drivable in states_to_drivable_area.values()])
-        discard_small_node = (num_drivable_area > 1) and self.config.reachable_set.discard_small_nodes
-
         # work with the reachable sets partitioned by automaton states here, because otherwise it could happen
         # that we merge two reachable sets with different states when they intersect with the same drivable area
         new_reachable_sets = list()
         for automaton_states, drivable_area in states_to_drivable_area.items():
             propagated_sets = states_to_propagated_set[automaton_states]
-
             reachable_sets = reach_operation.construct_reach_nodes(drivable_area, propagated_sets)
-            if discard_small_node:
-                reachable_sets = semantic_reach_operation.discard_nodes_with_short_edge(reachable_sets,
-                                                                                    self.config.reachable_set.length_edge_node_min)
+
             if step != self.step_start:
                 # this sets the correct step for the new reach nodes ...
                 reachable_sets = reach_operation.connect_children_to_parents(step, reachable_sets)
