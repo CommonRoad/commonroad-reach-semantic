@@ -28,7 +28,6 @@ def config() -> SemanticConfiguration:
 @pytest.fixture
 def semantic_model(config: SemanticConfiguration) -> SemanticModel:
     semantic_model = SemanticModel(config)
-    semantic_model.determine_traffic_priorities(priorities.dict_traffic_sign_to_priorities)
     return semantic_model
 
 
