@@ -7,7 +7,7 @@
 
 using namespace semantic_reach;
 
-FiniteAutomaton::FiniteAutomaton(const std::vector<std::string> &ltlf_formulas, int mode) {
+FiniteAutomaton::FiniteAutomaton(const std::vector<std::string> &ltlf_formulas, int mode) : _multi_transitions_cache() {
     if (mode == 0) {
         // We always use the product automaton for now
         mode = 1;
@@ -48,20 +48,20 @@ FiniteAutomaton::FiniteAutomaton(const std::vector<std::string> &ltlf_formulas, 
     _bdict = _spot_automaton->get_dict();
 }
 
-unsigned int FiniteAutomaton::initial_state() {
+State FiniteAutomaton::initial_state() {
     return _spot_automaton->get_init_state_number();
 }
 
-std::vector<std::pair<Minterm, unsigned int>>
-FiniteAutomaton::transitions_from(const std::set<unsigned int> &states) {
-    std::map<unsigned int, std::vector<bdd>> map_state_to_conditions{};
+std::vector<std::pair<Minterm, State>>
+FiniteAutomaton::transitions_from(const std::set<State> &states) {
+    std::map<State, std::vector<bdd>> map_state_to_conditions{};
     for (const auto &state: states) {
         for (auto &edge: _spot_automaton->out(state)) {
             map_state_to_conditions[edge.dst].emplace_back(edge.cond);
         }
     }
 
-    std::vector<std::pair<Minterm, unsigned int>> result{};
+    std::vector<std::pair<Minterm, State>> result{};
     for (const auto &[dst_state, conditions]: map_state_to_conditions) {
         bdd combined{bdd_false()};
         for (const auto &condition: conditions) {
@@ -75,7 +75,20 @@ FiniteAutomaton::transitions_from(const std::set<unsigned int> &states) {
     return result;
 }
 
-bool FiniteAutomaton::is_accepting_state(unsigned int state) {
+std::map<Minterm, std::set<State>> FiniteAutomaton::multi_transitions_from(const std::set<State> &states) {
+    if (_multi_transitions_cache.count(states) != 0) {
+        return _multi_transitions_cache.at(states);
+    }
+
+    std::map<Minterm, std::set<State>> minterm_to_dst_states{};
+    for (const auto &[minterm, dst_state]: transitions_from(states)) {
+        minterm_to_dst_states[minterm].emplace(dst_state);
+    }
+    _multi_transitions_cache.insert({states, minterm_to_dst_states});
+    return minterm_to_dst_states;
+}
+
+bool FiniteAutomaton::is_accepting_state(State state) {
     return _spot_automaton->state_is_accepting(state);
 }
 

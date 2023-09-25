@@ -48,7 +48,10 @@ class FiniteAutomaton:
 
     @property
     def initial_state(self) -> State:
-        """The number of the initial state."""
+        """Get the initial state of the automaton.
+
+        :returns: The initial state.
+        """
         return self._spot_automaton.get_init_state_number()
 
     def transitions_from(self, states: Iterable[State]) -> Iterator[Tuple[Minterm, State]]:
