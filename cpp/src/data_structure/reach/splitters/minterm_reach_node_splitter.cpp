@@ -3,8 +3,9 @@
 
 using namespace semantic_reach;
 
-MintermReachNodeSplitter::MintermReachNodeSplitter(SemanticModelPtr semantic_model) : semantic_model(
-        std::move(semantic_model)), region_splitter(std::make_unique<RegionReachNodeSplitter>(this->semantic_model)) {}
+MintermReachNodeSplitter::MintermReachNodeSplitter(SemanticModelPtr semantic_model)
+    : semantic_model(std::move(semantic_model)),
+      region_splitter(std::make_unique<RegionReachNodeSplitter>(this->semantic_model)) {}
 
 std::vector<std::pair<Minterm, std::vector<reach::ReachNodePtr>>>
 MintermReachNodeSplitter::split_to_minterms(int step, const reach::ReachNodePtr &reachable_set,
@@ -15,11 +16,10 @@ MintermReachNodeSplitter::split_to_minterms(int step, const reach::ReachNodePtr 
     return result;
 }
 
-void
-MintermReachNodeSplitter::_split_to_minterms(int step, const std::vector<reach::ReachNodePtr> &reachable_sets,
-                                             const std::set<Minterm> &minterms,
-                                             std::set<Literal> &finished_literals, bool regionized,
-                                             std::vector<std::pair<Minterm, std::vector<reach::ReachNodePtr>>> &result) {
+void MintermReachNodeSplitter::_split_to_minterms(
+    int step, const std::vector<reach::ReachNodePtr> &reachable_sets, const std::set<Minterm> &minterms,
+    std::set<Literal> &finished_literals, bool regionized,
+    std::vector<std::pair<Minterm, std::vector<reach::ReachNodePtr>>> &result) {
     // BASE CASE: if there are no reachable sets or no minterms, we are done
     if (reachable_sets.empty() || minterms.empty()) {
         return;
@@ -45,9 +45,8 @@ MintermReachNodeSplitter::_split_to_minterms(int step, const std::vector<reach::
 
     // if there are minterms that don't contain the current literal, we have to clone the reach nodes before restricting
     // so that we can keep the original nodes for those minterms
-    auto [restricted_reachable_sets, restriction_regionized] = _restrict_to_literal(step, reachable_sets,
-                                                                                    literal_to_split, regionized,
-                                                                                    !not_has_literal.empty());
+    auto [restricted_reachable_sets, restriction_regionized] =
+        _restrict_to_literal(step, reachable_sets, literal_to_split, regionized, !not_has_literal.empty());
 
     // recurse to split along the remaining literals
     // note that only the restricted reachable sets might have been regionized
@@ -61,18 +60,15 @@ MintermReachNodeSplitter::_split_to_minterms(int step, const std::vector<reach::
 
 std::pair<std::vector<reach::ReachNodePtr>, bool>
 MintermReachNodeSplitter::_restrict_to_literal(int step, const std::vector<reach::ReachNodePtr> &reachable_sets,
-                                               const Literal &literal, bool regionized,
-                                               bool clone) {
+                                               const Literal &literal, bool regionized, bool clone) {
     std::vector<reach::ReachNodePtr> to_restrict;
     if (clone) {
         to_restrict.reserve(reachable_sets.size());
         std::transform(reachable_sets.begin(), reachable_sets.end(), std::back_inserter(to_restrict),
-                       [](const reach::ReachNodePtr &node) {
-                           return node->clone();
-                       });
+                       [](const reach::ReachNodePtr &node) { return node->clone(); });
         // if we already split to regions, we need to copy the lanelet ids from the original nodes to the clones
-        for (std::pair it{reachable_sets.begin(), to_restrict.begin()};
-             it.first != reachable_sets.end(); ++it.first, ++it.second) {
+        for (std::pair it{reachable_sets.begin(), to_restrict.begin()}; it.first != reachable_sets.end();
+             ++it.first, ++it.second) {
             node_to_lanelet_ids[*it.second] = node_to_lanelet_ids[*it.first];
         }
     } else {
@@ -95,12 +91,12 @@ MintermReachNodeSplitter::_restrict_to_literal(int step, const std::vector<reach
     }
 
     std::vector<reach::ReachNodePtr> restricted_reachable_sets{};
-    for (const auto &node: to_restrict) {
+    for (const auto &node : to_restrict) {
 
         // restrict the reachable sets to the predicate
-        auto restricted_nodes = pred.needs_lanelets ? pred.restrict_reach_node(step, node, semantic_model,
-                                                                               node_to_lanelet_ids[node])
-                                                    : pred.restrict_reach_node(step, node, semantic_model);
+        auto restricted_nodes = pred.needs_lanelets
+                                    ? pred.restrict_reach_node(step, node, semantic_model, node_to_lanelet_ids[node])
+                                    : pred.restrict_reach_node(step, node, semantic_model);
         // restricting might create clones, so we need to copy the lanelet ids again
         if (regionized) {
             for (const auto &restricted_node : restricted_nodes) {
@@ -116,16 +112,13 @@ MintermReachNodeSplitter::_restrict_to_literal(int step, const std::vector<reach
 }
 
 std::pair<std::set<Minterm>, std::set<Minterm>>
-MintermReachNodeSplitter::_partition_minterms(const Literal &literal,
-                                              const std::set<Minterm> &minterms) {
+MintermReachNodeSplitter::_partition_minterms(const Literal &literal, const std::set<Minterm> &minterms) {
     std::set<Minterm> not_needs_literal{};
     std::set<Minterm> needs_literal{};
 
     std::partition_copy(minterms.begin(), minterms.end(), std::inserter(needs_literal, needs_literal.begin()),
                         std::inserter(not_needs_literal, not_needs_literal.begin()),
-                        [&](const auto &minterm) {
-                            return std::count(minterm.begin(), minterm.end(), literal) > 0;
-                        });
+                        [&](const auto &minterm) { return std::count(minterm.begin(), minterm.end(), literal) > 0; });
 
     return {not_needs_literal, needs_literal};
 }
@@ -133,8 +126,8 @@ MintermReachNodeSplitter::_partition_minterms(const Literal &literal,
 std::optional<Literal> MintermReachNodeSplitter::_choose_next_literal(const std::set<Minterm> &minterms,
                                                                       const std::set<Literal> &ignored_literals) {
     std::map<Literal, int> literal_counts{};
-    for (const auto &minterm: minterms) {
-        for (const auto &literal: minterm) {
+    for (const auto &minterm : minterms) {
+        for (const auto &literal : minterm) {
             if (ignored_literals.find(literal) == ignored_literals.end()) {
                 literal_counts[literal]++;
             }
@@ -145,9 +138,10 @@ std::optional<Literal> MintermReachNodeSplitter::_choose_next_literal(const std:
     int max_cnt = std::max_element(literal_counts.begin(), literal_counts.end(),
                                    [](const std::pair<Literal, int> &a, const std::pair<Literal, int> &b) {
                                        return a.second < b.second;
-                                   })->second;
+                                   })
+                      ->second;
     std::vector<Literal> candidates;
-    for (const auto &[literal, cnt]: literal_counts) {
+    for (const auto &[literal, cnt] : literal_counts) {
         if (cnt == max_cnt) {
             candidates.push_back(literal);
         }

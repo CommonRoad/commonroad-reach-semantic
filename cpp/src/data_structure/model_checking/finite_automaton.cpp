@@ -1,9 +1,9 @@
+#include "reach_semantic/data_structure/model_checking/finite_automaton.hpp"
+#include "reach_semantic/utility/spot.hpp"
 #include <spot/misc/optionmap.hh>
 #include <spot/twa/formula2bdd.hh>
 #include <spot/twaalgos/product.hh>
 #include <utility>
-#include "reach_semantic/data_structure/model_checking/finite_automaton.hpp"
-#include "reach_semantic/utility/spot.hpp"
 
 using namespace semantic_reach;
 
@@ -27,48 +27,45 @@ FiniteAutomaton::FiniteAutomaton(const std::vector<std::string> &ltlf_formulas, 
     auto trans{_get_translator()};
 
     switch (mode) {
-        case 1: {
-            auto true_automaton = trans.run(spot::formula::tt());
-            auto product_automaton = std::accumulate(spot_formulas.begin(), spot_formulas.end(), true_automaton,
-                                                     [&trans](const spot::twa_graph_ptr &acc, const spot::formula &f) {
-                                                         return spot::product(acc, trans.run(f));
-                                                     });
-            _spot_automaton = spot::to_finite(product_automaton);
-            break;
-        }
-        case 2: {
-            auto conjunction = spot::formula::And(std::move(spot_formulas));
-            _spot_automaton = spot::to_finite(trans.run(conjunction));
-            break;
-        }
-        default:
-            throw std::runtime_error("Invalid mode for combining LTLf formulas.");
+    case 1: {
+        auto true_automaton = trans.run(spot::formula::tt());
+        auto product_automaton = std::accumulate(spot_formulas.begin(), spot_formulas.end(), true_automaton,
+                                                 [&trans](const spot::twa_graph_ptr &acc, const spot::formula &f) {
+                                                     return spot::product(acc, trans.run(f));
+                                                 });
+        _spot_automaton = spot::to_finite(product_automaton);
+        break;
+    }
+    case 2: {
+        auto conjunction = spot::formula::And(std::move(spot_formulas));
+        _spot_automaton = spot::to_finite(trans.run(conjunction));
+        break;
+    }
+    default:
+        throw std::runtime_error("Invalid mode for combining LTLf formulas.");
     }
 
     _bdict = _spot_automaton->get_dict();
 }
 
-State FiniteAutomaton::initial_state() {
-    return _spot_automaton->get_init_state_number();
-}
+State FiniteAutomaton::initial_state() { return _spot_automaton->get_init_state_number(); }
 
-std::vector<std::pair<Minterm, State>>
-FiniteAutomaton::transitions_from(const std::set<State> &states) {
+std::vector<std::pair<Minterm, State>> FiniteAutomaton::transitions_from(const std::set<State> &states) {
     std::map<State, std::vector<bdd>> map_state_to_conditions{};
-    for (const auto &state: states) {
-        for (auto &edge: _spot_automaton->out(state)) {
+    for (const auto &state : states) {
+        for (auto &edge : _spot_automaton->out(state)) {
             map_state_to_conditions[edge.dst].emplace_back(edge.cond);
         }
     }
 
     std::vector<std::pair<Minterm, State>> result{};
-    for (const auto &[dst_state, conditions]: map_state_to_conditions) {
+    for (const auto &[dst_state, conditions] : map_state_to_conditions) {
         bdd combined{bdd_false()};
-        for (const auto &condition: conditions) {
+        for (const auto &condition : conditions) {
             combined = bdd_or(combined, condition);
         }
         auto minterms_to_dst = _edge_condition_to_minterms(std::move(combined));
-        for (auto &&minterm: minterms_to_dst) {
+        for (auto &&minterm : minterms_to_dst) {
             result.emplace_back(std::move(minterm), dst_state);
         }
     }
@@ -81,16 +78,14 @@ std::map<Minterm, std::set<State>> FiniteAutomaton::multi_transitions_from(const
     }
 
     std::map<Minterm, std::set<State>> minterm_to_dst_states{};
-    for (const auto &[minterm, dst_state]: transitions_from(states)) {
+    for (const auto &[minterm, dst_state] : transitions_from(states)) {
         minterm_to_dst_states[minterm].emplace(dst_state);
     }
     _multi_transitions_cache.insert({states, minterm_to_dst_states});
     return minterm_to_dst_states;
 }
 
-bool FiniteAutomaton::is_accepting_state(State state) {
-    return _spot_automaton->state_is_accepting(state);
-}
+bool FiniteAutomaton::is_accepting_state(State state) { return _spot_automaton->state_is_accepting(state); }
 
 std::vector<Minterm> FiniteAutomaton::_edge_condition_to_minterms(bdd cond) {
     // will be in DNF --> bbd_to_formula computes an irredundant sum of products

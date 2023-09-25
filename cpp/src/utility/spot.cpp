@@ -3,7 +3,7 @@
 std::vector<spot::formula> util_spot::conjuncts(const spot::formula &formula) {
     if (formula.is(spot::op::And)) {
         std::vector<spot::formula> result{};
-        for (const auto &child: formula) {
+        for (const auto &child : formula) {
             result.emplace_back(child);
         }
         return result;
@@ -15,7 +15,7 @@ std::vector<spot::formula> util_spot::conjuncts(const spot::formula &formula) {
 std::vector<spot::formula> util_spot::disjuncts(const spot::formula &formula) {
     if (formula.is(spot::op::Or)) {
         std::vector<spot::formula> result{};
-        for (const auto &child: formula) {
+        for (const auto &child : formula) {
             result.emplace_back(child);
         }
         return result;
@@ -46,9 +46,9 @@ util_spot::extract_minterms_from_dnf(const spot::formula &formula_dnf) {
     } else {
         try {
             std::vector<std::set<std::pair<std::string, bool>>> minterms{};
-            for (const auto &disjunct: disjuncts(formula_dnf)) {
+            for (const auto &disjunct : disjuncts(formula_dnf)) {
                 std::set<std::pair<std::string, bool>> minterm{};
-                for (const auto &conjunct: conjuncts(disjunct)) {
+                for (const auto &conjunct : conjuncts(disjunct)) {
                     minterm.emplace(extract_atomic_proposition(conjunct));
                 }
                 minterms.emplace_back(minterm);

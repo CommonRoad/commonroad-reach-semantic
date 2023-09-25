@@ -2,14 +2,14 @@
 
 using namespace semantic_reach;
 
-RegionReachNodeSplitter::RegionReachNodeSplitter(semantic_reach::SemanticModelPtr semantic_model) : semantic_model(
-        std::move(semantic_model)) {}
+RegionReachNodeSplitter::RegionReachNodeSplitter(semantic_reach::SemanticModelPtr semantic_model)
+    : semantic_model(std::move(semantic_model)) {}
 
 std::vector<std::pair<RegionPtr, reach::ReachNodePtr>>
 RegionReachNodeSplitter::split_wrt_regions(const reach::ReachNodePtr &reachable_set) {
     std::vector<std::pair<RegionPtr, reach::ReachNodePtr>> vec_nodes_split{};
     // iterate through region and examine propagated sets that are intersecting with the region
-    for (auto const &region: semantic_model->vec_regions) {
+    for (auto const &region : semantic_model->vec_regions) {
 
         auto rectangle = reachable_set->position_rectangle();
         // first compute intersection with bounding box

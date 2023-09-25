@@ -14,11 +14,11 @@ TrafficRuleConfiguration::TrafficRuleConfiguration(const YAML::Node &node) {
     mode_automata = node_traffic_rule["mode_automata"].as<int>();
 }
 
-SemanticConfiguration::SemanticConfiguration(YAML::Node const& node) : reach::Configuration(node) {
+SemanticConfiguration::SemanticConfiguration(YAML::Node const &node) : reach::Configuration(node) {
     config_traffic_rule = TrafficRuleConfiguration(node);
 }
 
-SemanticConfigurationPtr SemanticConfiguration::load_configuration(string const& file_yaml) {
+SemanticConfigurationPtr SemanticConfiguration::load_configuration(string const &file_yaml) {
     YAML::Node node = YAML::LoadFile(file_yaml);
     auto config = SemanticConfiguration(node);
     return make_shared<SemanticConfiguration>(node);

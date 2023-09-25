@@ -1,15 +1,15 @@
 #pragma once
 
-#include "reach_semantic/utility/shared_include.hpp"
-#include "reach_semantic/data_structure/traffic_rule.hpp"
-#include "reach_semantic/data_structure/region.hpp"
-#include "reach_semantic/data_structure/vehicle.hpp"
 #include "reach_semantic/data_structure/position_interval.hpp"
+#include "reach_semantic/data_structure/region.hpp"
+#include "reach_semantic/data_structure/traffic_rule.hpp"
+#include "reach_semantic/data_structure/vehicle.hpp"
+#include "reach_semantic/utility/shared_include.hpp"
 
 namespace semantic_reach {
 /// Class to represent the semantic model of a given CommonRoad scenario.
 class SemanticModel {
-public:
+  public:
     py::handle obj_semantic_model_py;
 
     int step_start{};
@@ -26,8 +26,8 @@ public:
 
     std::vector<VehiclePtr> vec_vehicles;
 
-    explicit SemanticModel(py::handle const& obj_semantic_model_py);
+    explicit SemanticModel(py::handle const &obj_semantic_model_py);
 };
 
 using SemanticModelPtr = shared_ptr<SemanticModel>;
-}
+} // namespace semantic_reach
