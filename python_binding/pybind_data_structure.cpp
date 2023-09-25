@@ -75,11 +75,6 @@ void export_configuration(py::module& m) {
             .def_readwrite("traffic_rule", &SemanticConfiguration::config_traffic_rule)
             .def_readwrite("semantic_model", &SemanticConfiguration::config_semantic_model);
 
-    py::class_<SemanticReachableSetConfiguration, shared_ptr<SemanticReachableSetConfiguration>, reach::ReachableSetConfiguration>(m, "SemanticReachableSetConfiguration")
-            .def(py::init<>())
-            .def_readwrite("discard_small_nodes", &SemanticReachableSetConfiguration::discard_small_nodes)
-            .def_readwrite("length_edge_node_min", &SemanticReachableSetConfiguration::length_edge_node_min);
-
     py::class_<TrafficRuleConfiguration, shared_ptr<TrafficRuleConfiguration>>(m, "TrafficRuleConfiguration")
             .def(py::init<>())
             .def_readwrite("distance_braking", &TrafficRuleConfiguration::distance_braking)

@@ -8,17 +8,6 @@
 
 namespace semantic_reach {
 
-/// Struct storing reachable set configurations.
-struct SemanticReachableSetConfiguration : reach::ReachableSetConfiguration {
-    //whether to discard small nodes (i.e., those with length smaller than length_edge_node_min)
-    bool discard_small_nodes{};
-    // shortest length the edges of a reachable node should possess for it to be kept when discarding small nodes
-    double length_edge_node_min{};
-
-    SemanticReachableSetConfiguration() = default;
-
-    explicit SemanticReachableSetConfiguration(YAML::Node const& node);
-};
 
 /// Struct storing traffic rule configurations.
 struct TrafficRuleConfiguration : reach::ReachableSetConfiguration {
@@ -44,7 +33,6 @@ struct SemanticModelConfiguration {
 
 /// Struct storing all configurations.
 struct SemanticConfiguration : reach::Configuration {
-    SemanticReachableSetConfiguration config_reachable_set{};
     TrafficRuleConfiguration config_traffic_rule{};
     SemanticModelConfiguration config_semantic_model{};
 
@@ -52,7 +40,6 @@ struct SemanticConfiguration : reach::Configuration {
 
     explicit SemanticConfiguration(YAML::Node const& node);
 
-    inline SemanticReachableSetConfiguration& reachable_set() { return config_reachable_set; };
     inline SemanticModelConfiguration& semantic_model() { return config_semantic_model; };
 
     /// Loads configuration from the given yaml file.

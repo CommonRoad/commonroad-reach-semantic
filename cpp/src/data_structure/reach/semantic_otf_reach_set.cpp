@@ -3,7 +3,6 @@
 #include "reachset/utility/reach_operation.hpp"
 #include "reach_semantic/data_structure/reach/semantic_otf_reach_set.hpp"
 #include "reach_semantic/data_structure/reach/predicates/predicate.hpp"
-#include "reach_semantic/utility/reach_operation.hpp"
 
 using namespace semantic_reach;
 
@@ -25,7 +24,7 @@ SemanticOTFReachableSet::SemanticOTFReachableSet(semantic_reach::SemanticConfigu
 }
 
 void SemanticOTFReachableSet::_compute_drivable_area_at_step(const int &step) {
-    std::vector<ReachNodePtr> propagated_sets;
+    std::vector<reach::ReachNodePtr> propagated_sets;
     if (step != step_start) {
         auto reachable_set_previous = map_step_to_reachable_set[step - 1];
         if (reachable_set_previous.empty()) {
@@ -93,13 +92,6 @@ void SemanticOTFReachableSet::_compute_reachable_set_at_step(const int &step) {
 
     auto num_threads = config->reachable_set().num_threads;
 
-    // discard drivable area with small area if there are more than one node (this is subject to change)
-    unsigned long num_drivable_area = 0;
-    for (auto const &[proposition_holder, drivable_area]: states_to_drivable_area) {
-        num_drivable_area += drivable_area.size();
-    }
-    bool discard_small_node = (num_drivable_area > 1) && config->reachable_set().discard_small_nodes;
-
     // work with the reachable sets partitioned by propositions here, because otherwise it could happen
     // that we merge two reachable sets with different propositions when they intersect with the same drivable area
     vector<reach::ReachNodePtr> new_reachable_sets{};
@@ -107,11 +99,6 @@ void SemanticOTFReachableSet::_compute_reachable_set_at_step(const int &step) {
         auto propagated_sets = states_to_propagated_set[automaton_states];
 
         auto reachable_sets = reach::construct_reach_nodes(drivable_area, propagated_sets, num_threads);
-
-        if (discard_small_node) {
-            reachable_sets = semantic_reach::discard_nodes_with_short_edge(reachable_sets,
-                                                                           config->reachable_set().length_edge_node_min);
-        }
 
         if (step != step_start) {
             // this sets the correct step for the new reach nodes ...
