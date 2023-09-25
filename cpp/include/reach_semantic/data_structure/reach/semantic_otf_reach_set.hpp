@@ -30,17 +30,30 @@ namespace semantic_reach {
 
         /**
          * Filter reachable sets that cannot be part of an accepting run of the automaton.
+         *
+         * This means they are labeled with at least one state.
+         * In the final step, we also require the reachable sets to have at least one accepting state.
+         *
+         * @param reachable_sets List of reachable sets to filter.
+         * @param step Current step of the reachability analysis.
+         * @returns List of reachable sets that can be part of an accepting run of the automaton.
          */
         void _filter_reachable_sets(std::vector<reach::ReachNodePtr> &reachable_sets,
                                     int step);
 
         /**
          * Check if the given reachable set has an accepting state.
+         *
+         * @param reachable_set The reachable set to check.
+         * @returns True if and only if the reachable set is labeled with at least one accepting state.
          */
         bool _has_accepting_state(const reach::ReachNodePtr &reachable_set);
 
         /**
          * Deduplicate reachable sets and merge labels of duplicates.
+         *
+         * @param reachable_sets List of reachable sets with possible duplicates.
+         * @returns List of reachable sets without duplicates.
          */
         std::vector<reach::ReachNodePtr>
         _deduplicate_reachable_sets(const std::vector<reach::ReachNodePtr> &reachable_sets);
