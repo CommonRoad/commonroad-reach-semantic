@@ -7,20 +7,24 @@ from commonroad_reach.data_structure.reach.reach_node import ReachNode
 from commonroad_reach_semantic.data_structure.environment_model.semantic_model import SemanticModel
 from commonroad_reach_semantic.data_structure.model_checking.finite_automaton import Minterm, Literal
 from commonroad_reach_semantic.data_structure.reach import predicates
-from commonroad_reach_semantic.data_structure.reach.reachable_set_labeler import ReachableSetLabeler
+from commonroad_reach_semantic.data_structure.reach.splitters.region_reach_node_splitter import RegionReachNodeSplitter
 
 
 class MintermReachNodeSplitter:
     """Splits reach nodes according to given minterms."""
 
-    labeler: ReachableSetLabeler
+    semantic_model: SemanticModel
+    region_splitter: RegionReachNodeSplitter
+    node_to_lanelet_ids: Dict[ReachNode, FrozenSet[int]]
 
     def __init__(self, semantic_model: SemanticModel) -> None:
         """Create a new minterm reach node splitter.
 
         :param semantic_model: The semantic model to use for splitting.
         """
-        self.labeler = ReachableSetLabeler(semantic_model)
+        self.semantic_model = semantic_model
+        self.region_splitter = RegionReachNodeSplitter(semantic_model)
+        self.node_to_lanelet_ids = {}
 
     def split_to_minterms(self, step: int, reachable_set: ReachNode, minterms: Iterable[Minterm]) -> \
             Dict[Minterm, List[ReachNode]]:
@@ -118,30 +122,39 @@ class MintermReachNodeSplitter:
         """
         to_restrict = [node.clone() for node in reachable_sets] if clone else reachable_sets
 
-        # if we already split to regions, we need to copy labels from the original nodes to the clones
+        # if we already split to regions, we need to copy the lanelet ids from the original nodes to the clones
         if clone and regionized:
             for src, dst in zip(reachable_sets, to_restrict):
-                self.labeler.copy_labels(src, dst)
+                self.node_to_lanelet_ids[dst] = self.node_to_lanelet_ids[src]
 
         pred = predicates.from_proposition(*literal)
 
         # if the predicate needs lanelets,
         # we need to split the reachable sets into regions first (if we haven't already)
         if pred.needs_lanelets and not regionized:
-            to_restrict = list(more_itertools.flatten(
-                self.labeler.split_wrt_regions(step, node)
+            regionized_reachable_sets = list(more_itertools.flatten(
+                self.region_splitter.split_wrt_regions(node)
                 for node in to_restrict
             ))
+            for region, node in regionized_reachable_sets:
+                self.node_to_lanelet_ids[node] = frozenset(region.set_ids_lanelets)
+            to_restrict = [node for _, node in regionized_reachable_sets]
+            regionized = True
 
         # restrict the reachable sets to the predicate
-        restricted_reachable_sets = list(more_itertools.flatten(
-            pred.restrict_reach_node(step, node, self.labeler.semantic_model,
-                                     node_lanelet_ids=self.labeler.reachable_set_to_lanelet_ids[
-                                         node] if pred.needs_lanelets else None)
+        restricted_reachable_sets = [
+            pred.restrict_reach_node(step, node, self.semantic_model,
+                                     node_lanelet_ids=self.node_to_lanelet_ids[node] if pred.needs_lanelets else None)
             for node in to_restrict
-        ))
+        ]
 
-        return restricted_reachable_sets, pred.needs_lanelets
+        # restricting might create clones, so we need to copy the lanelet ids again
+        if regionized:
+            for src, dst_nodes in zip(to_restrict, restricted_reachable_sets):
+                for dst in dst_nodes:
+                    self.node_to_lanelet_ids[dst] = self.node_to_lanelet_ids[src]
+
+        return list(more_itertools.flatten(restricted_reachable_sets)), regionized
 
     @staticmethod
     def _partition_minterms(literal: Literal, minterms: Iterable[Minterm]) -> Tuple[
