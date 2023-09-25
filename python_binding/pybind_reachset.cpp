@@ -13,7 +13,6 @@ void export_reachable_set_interface(py::module &m) {
             .def_readonly("step_start", &SemanticReachableSet::step_start)
             .def_readonly("step_end", &SemanticReachableSet::step_end)
             .def_readonly("config", &SemanticReachableSet::config)
-            .def_readonly("labeler", &SemanticReachableSet::labeler)
             .def("compute", &SemanticReachableSet::compute, py::arg("step_start") = 1, py::arg("step_end") = 0)
             .def("drivable_area_at_step", &SemanticReachableSet::drivable_area_at_step, py::arg("step"))
             .def("reachable_set_at_step", &SemanticReachableSet::reachable_set_at_step, py::arg("step"))
@@ -29,6 +28,7 @@ void export_reachable_set_interface(py::module &m) {
                  py::arg("collision_checker"),
                  py::arg("semantic_model"),
                  py::arg("traffic_rule_interface"))
+            .def_readonly("labeler", &SemanticLabelingReachableSet::labeler)
             .def_readonly("map_step_to_propositions_to_drivable_area",
                           &SemanticLabelingReachableSet::map_step_to_propositions_to_drivable_area);
 

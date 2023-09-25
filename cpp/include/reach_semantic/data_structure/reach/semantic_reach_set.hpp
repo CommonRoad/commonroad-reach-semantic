@@ -3,7 +3,6 @@
 #include "collision/collision_checker.h"
 #include "reachset/data_structure/reach/reach_polygon.hpp"
 #include "reachset/data_structure/reach/reach_node.hpp"
-#include "reach_semantic/data_structure/reach/reachable_set_labeler.hpp"
 #include "reach_semantic/data_structure/semantic_configuration.hpp"
 #include "reach_semantic/data_structure/semantic_model.hpp"
 
@@ -35,7 +34,6 @@ namespace semantic_reach {
 
         SemanticConfigurationPtr config;
         collision::CollisionCheckerPtr collision_checker;
-        ReachableSetLabelerPtr labeler;
         SemanticModelPtr semantic_model;
         TrafficRuleInterfacePtr rule_interface;
 

@@ -68,9 +68,7 @@ class MintermReachNodeSplitter:
         :param minterms: Minterms to split along.
         :param finished_literals: Literals that we no longer have to consider.
         :param regionized: Whether the reachable sets are already split into regions.
-        :return: List of reachable sets for each given minterm.
-            The union of the reachable sets associated with a minterm overapproximates the original reachable sets
-            restricted to states that satisfy the minterm.
+        :param result: List to write the result to.
         """
         # BASE CASE: if there are no reachable sets or no minterms, we are done
         if not reachable_sets or not minterms:
@@ -164,7 +162,7 @@ class MintermReachNodeSplitter:
         :param literal: The literal to partition the minterms along.
         :param minterms: The minterms to partition.
         :return: A tuple of two minterm lists, the first containing the minterms don't contain the literal,
-            the second containing the mintrems that do.
+            the second containing the minterms that do.
         """
         not_needs_literal, needs_literal = more_itertools.partition(lambda m: literal in m, minterms)
         return frozenset(not_needs_literal), frozenset(needs_literal)

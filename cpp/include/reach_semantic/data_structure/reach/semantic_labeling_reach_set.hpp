@@ -28,6 +28,8 @@ private:
     void _compute_reachable_set_at_step(int const& step) override;
 
 public:
+    ReachableSetLabelerPtr labeler;
+
     SemanticLabelingReachableSet(SemanticConfigurationPtr config, CollisionCheckerPtr collision_checker,
                  SemanticModelPtr semantic_model, TrafficRuleInterfacePtr traffic_rule_interface);
 
@@ -36,6 +38,4 @@ public:
     std::map<int, std::unordered_map<PropositionHolder, std::vector<reach::ReachPolygonPtr>, PropositionHolder::HashFunction>>
             map_step_to_propositions_to_drivable_area{};
 };
-
-using SemanticLabelingReachableSetPtr = shared_ptr<SemanticLabelingReachableSet>;
 }

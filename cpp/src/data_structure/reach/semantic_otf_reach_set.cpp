@@ -7,15 +7,17 @@
 using namespace semantic_reach;
 
 SemanticOTFReachableSet::SemanticOTFReachableSet(semantic_reach::SemanticConfigurationPtr config,
-                                                          collision::CollisionCheckerPtr collision_checker,
-                                                          semantic_reach::SemanticModelPtr semantic_model,
-                                                          semantic_reach::TrafficRuleInterfacePtr traffic_rule_interface)
+                                                 collision::CollisionCheckerPtr collision_checker,
+                                                 semantic_reach::SemanticModelPtr semantic_model,
+                                                 semantic_reach::TrafficRuleInterfacePtr traffic_rule_interface)
         : SemanticReachableSet(std::move(config), std::move(collision_checker), std::move(semantic_model),
                                std::move(traffic_rule_interface)) {
-    _initialize_zero_state_polygons();
-
     // Construct finite automaton from traffic rules
-    automaton = std::make_unique<FiniteAutomaton>(rule_interface->vec_specifications_ltl, this->config->config_traffic_rule.mode_automata);
+    automaton = std::make_unique<FiniteAutomaton>(rule_interface->vec_specifications_ltl,
+                                                  this->config->config_traffic_rule.mode_automata);
+
+    // Construct splitter for splitting reachable sets along transitions of the automaton
+    splitter = std::make_unique<MintermReachNodeSplitter>(this->semantic_model, this->config);
 
     // Compute initial reachable set
     SemanticOTFReachableSet::_compute_drivable_area_at_step(step_start);
@@ -62,9 +64,12 @@ void SemanticOTFReachableSet::_compute_drivable_area_at_step(const int &step) {
     }
 
     // merge, collision check, and repartition propagated sets
-    // this is done individually for each group calculated above, because we must not merge sets semantically different base sets
-    // it is necessary to also consider the states of the propagation source for the partitioning, because only if these are equal, the automaton cannot distinguish the base sets
-    // if only the target states were considered, the automaton could possibly distinguish them if the source states reach the target state via different propositions
+    // this is done individually for each group calculated above,
+    // because we must not merge sets semantically different base sets
+    // it is necessary to also consider the states of the propagation source for the partitioning,
+    // because only if these are equal, the automaton cannot distinguish the base sets
+    // if only the target states were considered, the automaton could possibly distinguish them
+    // if the source states reach the target state via different propositions
     std::map<std::pair<std::set<unsigned int>, std::set<unsigned int>>, std::vector<reach::ReachPolygonPtr>> map_states_to_drivable_area{};
     std::vector<reach::ReachPolygonPtr> vec_drivable_area{};
     for (const auto &[states, propagated_sets_per_states]: map_states_to_propagated_set) {
@@ -128,9 +133,23 @@ SemanticOTFReachableSet::_split_reachable_set(int step, const reach::ReachNodePt
     auto current_states =
             step == step_start ? std::set<unsigned int>{automaton->initial_state()}
                                : reachable_set_to_label[reachable_set->vec_nodes_source[0]];
-    auto transitions = automaton->transitions_from(current_states);
-    std::set<Literal> finished_literals{};
-    auto constrained_reachable_sets = _split_to_minterms(step, {reachable_set}, transitions, finished_literals, false);
+    auto transitions = automaton->multi_transitions_from(current_states);
+
+    std::set<Minterm> minterms{};
+    std::transform(transitions.begin(), transitions.end(), std::inserter(minterms, minterms.begin()),
+                   [](const auto &transition) {
+                       return transition.first;
+                   });
+
+    // split and label the reachable set according to the transitions of the automaton
+    auto minterm_to_constrained_sets = splitter->split_to_minterms(step, reachable_set, minterms);
+    std::vector<reach::ReachNodePtr> constrained_reachable_sets{};
+    for (const auto &[minterm, constrained_sets]: minterm_to_constrained_sets) {
+        for (const auto &constrained_set: constrained_sets) {
+            reachable_set_to_label[constrained_set] = transitions.at(minterm);
+            constrained_reachable_sets.emplace_back(constrained_set);
+        }
+    }
 
     _filter_reachable_sets(constrained_reachable_sets, step);
 
@@ -176,159 +195,4 @@ SemanticOTFReachableSet::_deduplicate_reachable_sets(const std::vector<reach::Re
         }
     }
     return unique_reachable_sets;
-}
-
-std::vector<reach::ReachNodePtr>
-SemanticOTFReachableSet::_split_to_minterms(int step, const std::vector<reach::ReachNodePtr> &reachable_sets,
-                                                     const std::vector<std::pair<Minterm, unsigned int>> &transitions,
-                                                     std::set<Literal> &finished_literals, bool regionized) {
-    if (reachable_sets.empty() || transitions.empty()) {
-        // if there are no reachable sets or no transitions, there is nothing to split
-        return reachable_sets;
-    }
-
-    // select the next literal to split on
-    std::vector<Minterm> minterms;
-    minterms.reserve(transitions.size());
-    std::transform(transitions.begin(), transitions.end(), std::back_inserter(minterms),
-                   [](const std::pair<Minterm, unsigned int> &transition) {
-                       return transition.first;
-                   });
-    auto literal_to_split_opt = _choose_next_literal(minterms, finished_literals);
-
-    // BASE CASE: if there is no literal to split, we are done
-    if (!literal_to_split_opt) {
-        // all nodes in reachable_sets satisfy the transition condition, so label them with the destination states
-        std::set<unsigned int> state_labels;
-        std::transform(transitions.begin(), transitions.end(), std::inserter(state_labels, state_labels.end()),
-                       [](const std::pair<Minterm, unsigned int> &transition) {
-                           return transition.second;
-                       });
-        for (const auto &reachable_set: reachable_sets) {
-            reachable_set_to_label[reachable_set] = state_labels;
-        }
-        return reachable_sets;
-    }
-    auto literal_to_split = literal_to_split_opt.value();
-
-    // partition the transitions into those whose label needs the literal and those that don't
-    auto [not_needs_literal, needs_literal] = _partition_transitions(literal_to_split, transitions);
-
-    // if there are transitions that don't need the current literal we have to clone the reach nodes before restricting
-    // so that we can keep the original nodes for those transitions
-    auto [restricted_reachable_sets, restriction_regionized] = _restrict_to_literal(step, reachable_sets,
-                                                                                    literal_to_split, regionized,
-                                                                                    !not_needs_literal.empty());
-
-    // recurse to split along the remaining literals
-    if (!not_needs_literal.empty()) {
-        std::set<Literal> finished_literals_restricted{finished_literals};
-        finished_literals_restricted.insert(literal_to_split);
-        // note that only the restricted reachable sets might have been regionized
-        auto restricted_reachable_sets_not_needs_literal = _split_to_minterms(step, reachable_sets, not_needs_literal,
-                                                                              finished_literals, regionized);
-        auto restricted_reachable_sets_needs_literal = _split_to_minterms(step, restricted_reachable_sets,
-                                                                          needs_literal, finished_literals_restricted,
-                                                                          regionized || restriction_regionized);
-        restricted_reachable_sets_not_needs_literal.insert(restricted_reachable_sets_not_needs_literal.end(),
-                                                           std::make_move_iterator(
-                                                                   restricted_reachable_sets_needs_literal.begin()),
-                                                           std::make_move_iterator(
-                                                                   restricted_reachable_sets_needs_literal.end()));
-        return restricted_reachable_sets_not_needs_literal;
-    } else {
-        finished_literals.insert(literal_to_split);
-        return _split_to_minterms(step, restricted_reachable_sets, needs_literal, finished_literals,
-                                  regionized || restriction_regionized);
-    }
-}
-
-std::pair<std::vector<reach::ReachNodePtr>, bool>
-SemanticOTFReachableSet::_restrict_to_literal(int step, const std::vector<reach::ReachNodePtr> &reachable_sets,
-                                                       const semantic_reach::Literal &literal, bool regionized,
-                                                       bool clone) {
-    std::vector<reach::ReachNodePtr> to_restrict;
-    if (clone) {
-        to_restrict.reserve(reachable_sets.size());
-        std::transform(reachable_sets.begin(), reachable_sets.end(), std::back_inserter(to_restrict),
-                       [](const reach::ReachNodePtr &node) {
-                           return node->clone();
-                       });
-        // if we already split to regions, we need to copy labels from the original nodes to the clones
-        for (std::pair it{reachable_sets.begin(), to_restrict.begin()};
-             it.first != reachable_sets.end(); ++it.first, ++it.second) {
-            labeler->copy_labels(*it.first, {*it.second});
-        }
-    } else {
-        to_restrict = reachable_sets;
-    }
-
-    Predicate pred = Predicate::from_proposition(literal.first, literal.second);
-    if (pred.needs_lanelets && !regionized) {
-        // if the predicate needs lanelets, we need to split the reachable sets into regions first (if we haven't already)
-        to_restrict = labeler->split_wrt_regions(step, to_restrict);
-    }
-    // restrict the reachable sets to the predicate
-    std::vector<reach::ReachNodePtr> restricted_reachable_sets{};
-    for (const auto &node: to_restrict) {
-        auto restricted_nodes = pred.needs_lanelets ? pred.restrict_reach_node(step, node, semantic_model,
-                                                                               labeler->reachable_set_to_lanelet_ids[node])
-                                                    : pred.restrict_reach_node(step, node, semantic_model);
-        restricted_reachable_sets.insert(restricted_reachable_sets.end(),
-                                         std::make_move_iterator(restricted_nodes.begin()),
-                                         std::make_move_iterator(restricted_nodes.end()));
-    }
-    return {restricted_reachable_sets, pred.needs_lanelets};
-}
-
-std::pair<std::vector<std::pair<Minterm, unsigned int>>, std::vector<std::pair<Minterm, unsigned int>>>
-SemanticOTFReachableSet::_partition_transitions(const semantic_reach::Literal &literal,
-                                                         const std::vector<std::pair<Minterm, unsigned int>> &transitions) {
-    std::vector<std::pair<Minterm, unsigned int>> not_needs_literal{};
-    std::vector<std::pair<Minterm, unsigned int>> needs_literal{};
-
-    std::partition_copy(transitions.begin(), transitions.end(), std::back_inserter(needs_literal),
-                        std::back_inserter(not_needs_literal),
-                        [&](const auto &transition) {
-                            return std::count(transition.first.begin(), transition.first.end(), literal) > 0;
-                        });
-
-    return {not_needs_literal, needs_literal};
-}
-
-std::optional<Literal> SemanticOTFReachableSet::_choose_next_literal(const std::vector<Minterm> &minterms,
-                                                                              const std::set<Literal> &ignored_literals) {
-    // remove duplicates so that we do not make a minterm more important if it leads to multiple states
-    // TODO: does this make sense?
-    std::set<Minterm> unique_minterms{minterms.begin(), minterms.end()};
-
-    std::map<Literal, int> literal_counts{};
-    for (const auto &minterm: unique_minterms) {
-        for (const auto &literal: minterm) {
-            if (ignored_literals.find(literal) == ignored_literals.end()) {
-                literal_counts[literal]++;
-            }
-        }
-    }
-
-    // the literals that occur most often are candidates for the next literal
-    int max_cnt = std::max_element(literal_counts.begin(), literal_counts.end(),
-                                   [](const std::pair<Literal, int> &a, const std::pair<Literal, int> &b) {
-                                       return a.second < b.second;
-                                   })->second;
-    std::vector<Literal> candidates;
-    for (const auto &[literal, cnt]: literal_counts) {
-        if (cnt == max_cnt) {
-            candidates.push_back(literal);
-        }
-    }
-
-    // prefer predicates that don't need lanelets, as this avoids splitting to regions
-    // TODO: we could choose a different ordering here or make this configurable
-    std::sort(candidates.begin(), candidates.end(), [](const Literal &a, const Literal &b) {
-        return !Predicate::from_proposition(a.first, a.second).needs_lanelets &&
-               Predicate::from_proposition(b.first, b.second).needs_lanelets;
-    });
-
-    return candidates.empty() ? std::nullopt : std::optional<Literal>{candidates[0]};
 }

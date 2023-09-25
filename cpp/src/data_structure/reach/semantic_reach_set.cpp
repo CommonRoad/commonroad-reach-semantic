@@ -11,7 +11,7 @@ SemanticReachableSet::SemanticReachableSet(SemanticConfigurationPtr config, Coll
                                            SemanticModelPtr semantic_model, TrafficRuleInterfacePtr traffic_rule_interface) :
         config(std::move(config)), collision_checker(std::move(collision_checker)),
         semantic_model(std::move(semantic_model)), rule_interface(std::move(traffic_rule_interface)) {
-    labeler = std::make_shared<ReachableSetLabeler>(this->semantic_model, this->config);
+    _initialize_zero_state_polygons();
 
     step_start = this->config->planning().step_start;
     step_end = step_start + this->config->planning().steps_computation;
