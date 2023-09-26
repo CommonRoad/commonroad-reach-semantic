@@ -39,8 +39,6 @@ set(CMAKE_CXX_EXTENSIONS OFF) # turn off compiler extensions
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}") # enable parallel computation
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}") # enable parallel computation
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}") # enable parallel computation
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0") # for profiling
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0") # for profiling
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/../) # output directory of built libraries
 
 set(CMAKE_CXX_VISIBILITY_PRESET hidden) # required by pybind11
