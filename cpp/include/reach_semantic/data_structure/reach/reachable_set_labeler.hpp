@@ -1,12 +1,14 @@
 #pragma once
 
-#include <pybind11/embed.h>
-
 #include "reach_semantic/data_structure/environment_model/semantic_model.hpp"
 #include "reach_semantic/data_structure/position_interval.hpp"
+#include "reach_semantic/data_structure/reach/splitters/region_reach_node_splitter.hpp"
 #include "reach_semantic/data_structure/region.hpp"
+
 #include "reachset/data_structure/reach/reach_node.hpp"
 #include "reachset/data_structure/reach/reach_polygon.hpp"
+
+#include <pybind11/embed.h>
 
 namespace semantic_reach {
 /// Splits reachable sets and labels the parts according to the semantic model.
@@ -14,6 +16,7 @@ class ReachableSetLabeler {
   private:
     /// Python handle for semantic model
     SemanticModelPtr semantic_model;
+    std::unique_ptr<RegionReachNodeSplitter> region_splitter;
     SemanticConfigurationPtr config;
 
     /// Returns the propositions of the given rectangle.
@@ -33,6 +36,21 @@ class ReachableSetLabeler {
     /// A lanelet is examined against a list of lanelets of the lane/route of the other object.
     std::vector<reach::ReachNodePtr>
     _label_in_conflict_area_propositions(int step, std::vector<reach::ReachNodePtr> reachable_sets);
+
+    /**
+     * Labels a reachable set if it is in the conflict area of another vehicle.
+     *
+     * @param reachable_sets The reachable sets to label.
+     */
+    void _label_in_conflict_with(const std::vector<reach::ReachNodePtr> &reachable_sets);
+
+    /**
+     * Labels a reachable set if another vehicle is in its conflict area.
+     *
+     * @param step Current step of the reachability analysis.
+     * @param reachable_sets The reachable sets to label.
+     */
+    void _label_in_conflict_by(int step, const std::vector<reach::ReachNodePtr> &reachable_sets);
 
     /// Labels propagated sets with propositions related to causes braking to other vehicles.
     std::vector<reach::ReachNodePtr>
@@ -66,10 +84,6 @@ class ReachableSetLabeler {
                                                                 std::vector<reach::ReachNodePtr> reachable_sets);
 
     /// Splits a reachable set w.r.t lanelet regions.
-    ///
-    /// Steps:
-    ///   1. Intersect reachable set in the position domain with lanelet regions
-    ///   2. Over-approximate and restore to axis-aligned rectangles
     std::vector<reach::ReachNodePtr> split_wrt_regions(int step,
                                                        const std::vector<reach::ReachNodePtr> &reachable_sets);
 

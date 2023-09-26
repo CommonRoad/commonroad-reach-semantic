@@ -9,7 +9,6 @@ from commonroad_reach.utility import reach_operation
 
 from commonroad_reach_semantic.data_structure.config.semantic_configuration import SemanticConfiguration
 from commonroad_reach_semantic.data_structure.environment_model.semantic_model import SemanticModel
-from commonroad_reach_semantic.data_structure.reach.reachable_set_labeler import ReachableSetLabeler
 from commonroad_reach_semantic.data_structure.reach.semantic_reach_set import SemanticReachableSet
 from commonroad_reach_semantic.data_structure.rule.traffic_rule_interface import TrafficRuleInterface
 
@@ -22,7 +21,7 @@ class PySemanticReachableSet(SemanticReachableSet, ABC):
     def __init__(self, config: SemanticConfiguration, semantic_model: SemanticModel,
                  rule_interface: TrafficRuleInterface) -> None:
         super().__init__(config, semantic_model, rule_interface)
-        self.labeler = ReachableSetLabeler(semantic_model)
+        self._initialize_zero_state_polygons()
 
     def _construct_initial_reachable_sets(self) -> List[ReachNode]:
         tuple_vertices_polygon_lon, tuple_vertices_polygon_lat = \

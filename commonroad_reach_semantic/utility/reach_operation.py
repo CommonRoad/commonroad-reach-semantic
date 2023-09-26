@@ -55,16 +55,6 @@ def split_reach_node_to_interval(node: ReachNode, interval: PositionInterval, di
         return None
 
 
-def discard_nodes_with_short_edge(list_nodes: List[ReachNode], length: float):
-    """
-    Discards nodes with an edge shorter than the specified length.
-    """
-    return [
-        node for node in list_nodes
-        if node.p_lon_max - node.p_lon_min >= length and node.p_lat_max - node.p_lat_min >= length
-    ]
-
-
 def determine_connected_components(list_nodes_reach):
     """
     Determines and returns the connected reachable sets in the position domain.

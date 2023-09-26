@@ -1,8 +1,8 @@
 #include "reach_semantic/data_structure/reach/semantic_labeling_reach_set.hpp"
 
-#include "reach_semantic/utility/reach_operation.hpp"
 #include "reachset/utility/reach_operation.hpp"
 #include "reachset/utility/shared_using.hpp"
+
 #include <utility>
 
 using namespace semantic_reach;
@@ -13,11 +13,13 @@ SemanticLabelingReachableSet::SemanticLabelingReachableSet(SemanticConfiguration
                                                            TrafficRuleInterfacePtr traffic_rule_interface)
     : SemanticReachableSet(std::move(config), std::move(collision_checker), std::move(semantic_model),
                            std::move(traffic_rule_interface)) {
+    labeler = std::make_shared<ReachableSetLabeler>(this->semantic_model, this->config);
+
     map_step_to_reachable_set[step_start] = _construct_initial_reachable_sets();
     map_step_to_drivable_area[step_start] =
         reach::project_base_sets_to_position_domain(map_step_to_reachable_set[step_start]);
+
     labeler->label_initial_state(map_step_to_reachable_set[step_start], step_start);
-    _initialize_zero_state_polygons();
 
     _vec_steps_computed.emplace_back(step_start);
 }
@@ -96,13 +98,6 @@ void SemanticLabelingReachableSet::_compute_reachable_set_at_step(int const &ste
 
     auto num_threads = config->reachable_set().num_threads;
 
-    // discard drivable area with small area if there are more than one node (this is subject to change)
-    unsigned long num_drivable_area = 0;
-    for (auto const &[proposition_holder, drivable_area] : map_propositions_to_drivable_area) {
-        num_drivable_area += drivable_area.size();
-    }
-    bool discard_small_node = (num_drivable_area > 1) && config->reachable_set().discard_small_nodes;
-
     // work with the reachable sets partitioned by propositions here, because otherwise it could happen
     // that we merge two reachable sets with different propositions when they intersect with the same drivable area
 
@@ -111,11 +106,6 @@ void SemanticLabelingReachableSet::_compute_reachable_set_at_step(int const &ste
         auto propagated_set = map_propositions_to_propagated_set[proposition_holder];
 
         auto vec_nodes = reach::construct_reach_nodes(drivable_area, propagated_set, num_threads);
-
-        if (discard_small_node) {
-            vec_nodes =
-                semantic_reach::discard_nodes_with_short_edge(vec_nodes, config->reachable_set().length_edge_node_min);
-        }
 
         if (!vec_nodes.empty()) {
             auto reachable_sets = reach::connect_children_to_parents(step, vec_nodes, num_threads);

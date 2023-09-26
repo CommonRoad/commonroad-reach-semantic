@@ -7,7 +7,7 @@ exit_flag=false
 
 clang_tidy="clang-tidy"
 
-target_branch="development"
+target_branch="main"
 
 # get target branch
 git fetch origin ${target_branch}

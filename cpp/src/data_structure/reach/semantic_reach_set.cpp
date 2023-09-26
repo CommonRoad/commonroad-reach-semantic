@@ -1,8 +1,10 @@
 #include "reach_semantic/data_structure/reach/semantic_reach_set.hpp"
 
 #include "reach_semantic/utility/reach_operation.hpp"
+
 #include "reachset/utility/reach_operation.hpp"
 #include "reachset/utility/shared_using.hpp"
+
 #include <utility>
 
 using namespace semantic_reach;
@@ -12,7 +14,7 @@ SemanticReachableSet::SemanticReachableSet(SemanticConfigurationPtr config, Coll
                                            TrafficRuleInterfacePtr traffic_rule_interface)
     : config(std::move(config)), collision_checker(std::move(collision_checker)),
       semantic_model(std::move(semantic_model)), rule_interface(std::move(traffic_rule_interface)) {
-    labeler = std::make_shared<ReachableSetLabeler>(this->semantic_model, this->config);
+    _initialize_zero_state_polygons();
 
     step_start = this->config->planning().step_start;
     step_end = step_start + this->config->planning().steps_computation;
@@ -98,7 +100,7 @@ SemanticReachableSet::_propagate_reachable_set(vector<reach::ReachNodePtr> const
 }
 
 std::vector<reach::ReachPolygonPtr>
-SemanticReachableSet::_collision_check_and_repartition(std::vector<reach::ReachPolygonPtr> rectangles,
+SemanticReachableSet::_collision_check_and_repartition(const std::vector<reach::ReachPolygonPtr> &rectangles,
                                                        int const &step) {
     auto mode_repartition = config->reachable_set().mode_repartition;
     auto size_grid = config->reachable_set().size_grid;

@@ -1,10 +1,10 @@
 #pragma once
 
-#include "collision/collision_checker.h"
 #include "reach_semantic/data_structure/environment_model/semantic_model.hpp"
-#include "reach_semantic/data_structure/reach/reachable_set_labeler.hpp"
 #include "reach_semantic/data_structure/semantic_configuration.hpp"
 #include "reachset/data_structure/reach/reach_node.hpp"
+
+#include "collision/collision_checker.h"
 #include "reachset/data_structure/reach/reach_polygon.hpp"
 
 namespace semantic_reach {
@@ -22,8 +22,8 @@ class SemanticReachableSet {
     std::vector<reach::ReachNodePtr> _propagate_reachable_set(std::vector<reach::ReachNodePtr> const &vec_nodes);
 
     /// Computes collision free drivable area.
-    std::vector<reach::ReachPolygonPtr> _collision_check_and_repartition(std::vector<reach::ReachPolygonPtr> rectangles,
-                                                                         int const &step);
+    std::vector<reach::ReachPolygonPtr>
+    _collision_check_and_repartition(const std::vector<reach::ReachPolygonPtr> &rectangles, int const &step);
 
     virtual void _compute_drivable_area_at_step(int const &step) = 0;
 
@@ -35,7 +35,6 @@ class SemanticReachableSet {
 
     SemanticConfigurationPtr config;
     collision::CollisionCheckerPtr collision_checker;
-    ReachableSetLabelerPtr labeler;
     SemanticModelPtr semantic_model;
     TrafficRuleInterfacePtr rule_interface;
 

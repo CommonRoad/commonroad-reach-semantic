@@ -24,7 +24,7 @@ import commonroad_reach_semantic.utility.graph as util_graph
 from commonroad_reach_semantic.data_structure.config.semantic_configuration import SemanticConfiguration
 from commonroad_reach_semantic.data_structure.driving_corridor_extractor import DrivingCorridor
 from commonroad_reach_semantic.data_structure.environment_model.semantic_model import SemanticModel
-from commonroad_reach_semantic.data_structure.model_checking.kripke import KripkeNode
+from commonroad_reach_semantic.data_structure.model_checking.kripke_node import KripkeNode
 from commonroad_reach_semantic.data_structure.model_checking.spot_interface import SpotInterface
 from commonroad_reach_semantic.data_structure.rule.proposition_holder import PropositionHolder
 
@@ -296,7 +296,7 @@ def plot_scenario_with_regions(semantic_model: SemanticModel, coordinate_system:
 
     # plot traffic signs
     for sign in scenario.lanelet_network.traffic_signs:
-        sign.draw(renderer)
+        sign.draw(renderer, draw_params.traffic_sign)
 
     plt.rc("axes", axisbelow=True)
     ax = plt.gca()
@@ -562,7 +562,7 @@ def _draw_scenario_elements(config: SemanticConfiguration, renderer: MPRenderer,
     scenario = config.scenario
     scenario.draw(renderer, draw_params)
     for sign in scenario.lanelet_network.traffic_signs:
-        sign.draw(renderer)
+        sign.draw(renderer, draw_params.traffic_sign)
 
     if config.debug.draw_planning_problem:
         config.planning_problem.draw(renderer, draw_params)

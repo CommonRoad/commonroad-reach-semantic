@@ -19,7 +19,7 @@ class Region {
     explicit Region(py::handle const &obj_region_py);
 
     /// Returns true if the input box intersects with the bounding box.
-    bool intersects(reach::ReachPolygonPtr const &coordinates_box, std::string const &coordinate_system = "CVLN") const;
+    bool intersects(reach::ReachPolygonPtr const &rectangle, std::string const &coordinate_system = "CVLN") const;
 
     inline auto propositions_at_step(int const &step) { return proposition_holder->propositions_at_step(step); }
 

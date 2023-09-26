@@ -38,6 +38,9 @@ set(REACH_SOURCE
 
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/predicates/position/in_front_of_obstacle_predicate.cpp
 
+        ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/splitters/minterm_reach_node_splitter.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/splitters/region_reach_node_splitter.cpp
+
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/model_checking/finite_automaton.cpp
 
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/environment_model/semantic_model.cpp
@@ -96,6 +99,9 @@ add_custom_target(crreachs_headers SOURCES
         ${CMAKE_CURRENT_LIST_DIR}/include/reach_semantic/data_structure/reach/predicates/py_predicate.hpp
 
         ${CMAKE_CURRENT_LIST_DIR}/include/reach_semantic/data_structure/reach/predicates/position/in_front_of_obstacle_predicate.hpp
+
+        ${CMAKE_CURRENT_LIST_DIR}/include/reach_semantic/data_structure/reach/splitters/minterm_reach_node_splitter.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/include/reach_semantic/data_structure/reach/splitters/region_reach_node_splitter.hpp
 
         ${CMAKE_CURRENT_LIST_DIR}/include/reach_semantic/data_structure/model_checking/finite_automaton.hpp
 

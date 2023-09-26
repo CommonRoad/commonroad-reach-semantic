@@ -1,38 +1,48 @@
 import re
 
 from commonroad_reach_semantic.data_structure.config.outgoing_direction import OutgoingDirection
-from commonroad_reach_semantic.data_structure.reach.predicates.aligned_with_obstacle_predicate import \
+from commonroad_reach_semantic.data_structure.reach.predicates.position.aligned_with_obstacle_predicate import \
     AlignedWithObstaclePredicate
-from commonroad_reach_semantic.data_structure.reach.predicates.behind_obstacle_predicate import BehindObstaclePredicate
-from commonroad_reach_semantic.data_structure.reach.predicates.beside_obstacle_predicate import BesideObstaclePredicate
-from commonroad_reach_semantic.data_structure.reach.predicates.causes_braking_predicate import CausesBrakingPredicate
-from commonroad_reach_semantic.data_structure.reach.predicates.drives_backward_predicate import DrivesBackwardPredicate
-from commonroad_reach_semantic.data_structure.reach.predicates.has_priority_predicate import HasPriorityPredicate
-from commonroad_reach_semantic.data_structure.reach.predicates.in_conflict_area_of_vehicle_predicate import \
+from commonroad_reach_semantic.data_structure.reach.predicates.position.behind_obstacle_predicate import \
+    BehindObstaclePredicate
+from commonroad_reach_semantic.data_structure.reach.predicates.position.beside_obstacle_predicate import \
+    BesideObstaclePredicate
+from commonroad_reach_semantic.data_structure.reach.predicates.braking.causes_braking_predicate import \
+    CausesBrakingPredicate
+from commonroad_reach_semantic.data_structure.reach.predicates.velocity.drives_backward_predicate import \
+    DrivesBackwardPredicate
+from commonroad_reach_semantic.data_structure.reach.predicates.regulatory.has_priority_predicate import \
+    HasPriorityPredicate
+from commonroad_reach_semantic.data_structure.reach.predicates.position.in_conflict_area_of_vehicle_predicate import \
     InConflictAreaOfVehiclePredicate
-from commonroad_reach_semantic.data_structure.reach.predicates.in_front_of_obstacle_predicate import \
+from commonroad_reach_semantic.data_structure.reach.predicates.position.in_front_of_obstacle_predicate import \
     InFrontOfObstaclePredicate
-from commonroad_reach_semantic.data_structure.reach.predicates.in_intersection_predicate import InIntersectionPredicate
-from commonroad_reach_semantic.data_structure.reach.predicates.in_lanelet_predicate import InLaneletPredicate
-from commonroad_reach_semantic.data_structure.reach.predicates.in_straight_successor_predicate import \
+from commonroad_reach_semantic.data_structure.reach.predicates.position.in_intersection_predicate import \
+    InIntersectionPredicate
+from commonroad_reach_semantic.data_structure.reach.predicates.position.in_lanelet_predicate import InLaneletPredicate
+from commonroad_reach_semantic.data_structure.reach.predicates.position.in_straight_successor_predicate import \
     InStraightSuccessorPredicate
-from commonroad_reach_semantic.data_structure.reach.predicates.left_of_obstacle_predicate import LeftOfObstaclePredicate
-from commonroad_reach_semantic.data_structure.reach.predicates.no_priority_predicate import NoPriorityPredicate
-from commonroad_reach_semantic.data_structure.reach.predicates.on_main_carriageway_predicate import \
+from commonroad_reach_semantic.data_structure.reach.predicates.position.left_of_obstacle_predicate import \
+    LeftOfObstaclePredicate
+from commonroad_reach_semantic.data_structure.reach.predicates.regulatory.no_priority_predicate import \
+    NoPriorityPredicate
+from commonroad_reach_semantic.data_structure.reach.predicates.position.on_main_carriageway_predicate import \
     OnMainCarriagewayPredicate
-from commonroad_reach_semantic.data_structure.reach.predicates.on_right_lane_predicate import OnRightLanePredicate
-from commonroad_reach_semantic.data_structure.reach.predicates.right_of_obstacle_predicate import \
+from commonroad_reach_semantic.data_structure.reach.predicates.position.on_right_lane_predicate import \
+    OnRightLanePredicate
+from commonroad_reach_semantic.data_structure.reach.predicates.position.right_of_obstacle_predicate import \
     RightOfObstaclePredicate
-from commonroad_reach_semantic.data_structure.reach.predicates.same_priority_predicate import SamePriorityPredicate
-from commonroad_reach_semantic.data_structure.reach.predicates.vehicle_in_conflict_area_predicate import \
+from commonroad_reach_semantic.data_structure.reach.predicates.regulatory.same_priority_predicate import \
+    SamePriorityPredicate
+from commonroad_reach_semantic.data_structure.reach.predicates.ego_independent.vehicle_in_conflict_area_predicate import \
     VehicleInConflictAreaPredicate
-from commonroad_reach_semantic.data_structure.reach.predicates.vehicle_in_lanelet_predicate import \
+from commonroad_reach_semantic.data_structure.reach.predicates.ego_independent.vehicle_in_lanelet_predicate import \
     VehicleInLaneletPredicate
-from commonroad_reach_semantic.data_structure.reach.predicates.vehicle_in_successor_predicate import \
+from commonroad_reach_semantic.data_structure.reach.predicates.ego_independent.vehicle_in_successor_predicate import \
     VehicleInSuccessorPredicate
-from commonroad_reach_semantic.data_structure.reach.predicates.vehicle_on_access_ramp_predicate import \
+from commonroad_reach_semantic.data_structure.reach.predicates.ego_independent.vehicle_on_access_ramp_predicate import \
     VehicleOnAccessRampPredicate
-from commonroad_reach_semantic.data_structure.reach.predicates.vehicle_on_main_carriageway_predicate import \
+from commonroad_reach_semantic.data_structure.reach.predicates.ego_independent.vehicle_on_main_carriageway_predicate import \
     VehicleOnMainCarriagewayPredicate
 
 
