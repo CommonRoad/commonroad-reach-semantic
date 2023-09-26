@@ -10,12 +10,14 @@
 namespace semantic_reach {
 using Literal = std::pair<std::string, bool>;
 using Minterm = std::set<Literal>;
-using State = unsigned int;
 
 /**
  * Represents a finite automaton on words over the powerset of propositions.
  */
 class FiniteAutomaton {
+  public:
+    using State = unsigned int;
+
   private:
     spot::twa_graph_ptr _spot_automaton;
     spot::bdd_dict_ptr _bdict;

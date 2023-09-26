@@ -29,10 +29,11 @@ FiniteAutomaton::FiniteAutomaton(const std::vector<std::string> &ltlf_formulas, 
     switch (mode) {
     case 1: {
         auto true_automaton = trans.run(spot::formula::tt());
-        auto product_automaton = std::accumulate(spot_formulas.begin(), spot_formulas.end(), true_automaton,
-                                                 [&trans](const spot::twa_graph_ptr &acc, const spot::formula &formula) {
-                                                     return spot::product(acc, trans.run(formula));
-                                                 });
+        auto product_automaton =
+            std::accumulate(spot_formulas.begin(), spot_formulas.end(), true_automaton,
+                            [&trans](const spot::twa_graph_ptr &acc, const spot::formula &formula) {
+                                return spot::product(acc, trans.run(formula));
+                            });
         _spot_automaton = spot::to_finite(product_automaton);
         break;
     }
@@ -48,17 +49,18 @@ FiniteAutomaton::FiniteAutomaton(const std::vector<std::string> &ltlf_formulas, 
     _bdict = _spot_automaton->get_dict();
 }
 
-State FiniteAutomaton::initial_state() { return _spot_automaton->get_init_state_number(); }
+FiniteAutomaton::State FiniteAutomaton::initial_state() { return _spot_automaton->get_init_state_number(); }
 
-std::vector<std::pair<Minterm, State>> FiniteAutomaton::transitions_from(const std::set<State> &states) {
-    std::map<State, std::vector<bdd>> map_state_to_conditions{};
+std::vector<std::pair<Minterm, FiniteAutomaton::State>>
+FiniteAutomaton::transitions_from(const std::set<FiniteAutomaton::State> &states) {
+    std::map<FiniteAutomaton::State, std::vector<bdd>> map_state_to_conditions{};
     for (const auto &state : states) {
         for (auto &edge : _spot_automaton->out(state)) {
             map_state_to_conditions[edge.dst].emplace_back(edge.cond);
         }
     }
 
-    std::vector<std::pair<Minterm, State>> result{};
+    std::vector<std::pair<Minterm, FiniteAutomaton::State>> result{};
     for (const auto &[dst_state, conditions] : map_state_to_conditions) {
         bdd combined{bdd_false()};
         for (const auto &condition : conditions) {
@@ -72,12 +74,13 @@ std::vector<std::pair<Minterm, State>> FiniteAutomaton::transitions_from(const s
     return result;
 }
 
-std::map<Minterm, std::set<State>> FiniteAutomaton::multi_transitions_from(const std::set<State> &states) {
+std::map<Minterm, std::set<FiniteAutomaton::State>>
+FiniteAutomaton::multi_transitions_from(const std::set<FiniteAutomaton::State> &states) {
     if (_multi_transitions_cache.count(states) != 0) {
         return _multi_transitions_cache.at(states);
     }
 
-    std::map<Minterm, std::set<State>> minterm_to_dst_states{};
+    std::map<Minterm, std::set<FiniteAutomaton::State>> minterm_to_dst_states{};
     for (const auto &[minterm, dst_state] : transitions_from(states)) {
         minterm_to_dst_states[minterm].emplace(dst_state);
     }
@@ -85,7 +88,9 @@ std::map<Minterm, std::set<State>> FiniteAutomaton::multi_transitions_from(const
     return minterm_to_dst_states;
 }
 
-bool FiniteAutomaton::is_accepting_state(State state) { return _spot_automaton->state_is_accepting(state); }
+bool FiniteAutomaton::is_accepting_state(FiniteAutomaton::State state) {
+    return _spot_automaton->state_is_accepting(state);
+}
 
 std::vector<Minterm> FiniteAutomaton::_edge_condition_to_minterms(bdd cond) {
     // will be in DNF --> bbd_to_formula computes an irredundant sum of products

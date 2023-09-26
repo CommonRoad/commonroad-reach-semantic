@@ -5,19 +5,17 @@
 #include "reach_semantic/data_structure/reach/semantic_reach_set.hpp"
 #include "reach_semantic/data_structure/reach/splitters/minterm_reach_node_splitter.hpp"
 
-#include <commonroad_cpp/geometry/curvilinear_coordinate_system.h>
-#include <commonroad_cpp/world.h>
-
 namespace semantic_reach {
 class SemanticOTFReachableSet : public SemanticReachableSet {
   private:
     std::unique_ptr<FiniteAutomaton> automaton;
     std::unique_ptr<MintermReachNodeSplitter> splitter;
 
-    std::map<int,
-             std::map<std::pair<std::set<unsigned int>, std::set<unsigned int>>, std::vector<reach::ReachPolygonPtr>>>
+    std::map<int, std::map<std::pair<std::set<FiniteAutomaton::State>, std::set<FiniteAutomaton::State>>,
+                           std::vector<reach::ReachPolygonPtr>>>
         step_to_states_to_drivable_area{};
-    std::map<int, std::map<std::pair<std::set<unsigned int>, std::set<unsigned int>>, std::vector<reach::ReachNodePtr>>>
+    std::map<int, std::map<std::pair<std::set<FiniteAutomaton::State>, std::set<FiniteAutomaton::State>>,
+                           std::vector<reach::ReachNodePtr>>>
         step_to_states_to_propagated_set{};
 
     void _compute_drivable_area_at_step(int const &step) override;
@@ -69,6 +67,6 @@ class SemanticOTFReachableSet : public SemanticReachableSet {
     SemanticOTFReachableSet(SemanticConfigurationPtr config, collision::CollisionCheckerPtr collision_checker,
                             SemanticModelPtr semantic_model, TrafficRuleInterfacePtr traffic_rule_interface);
 
-    std::map<reach::ReachNodePtr, std::set<State>> reachable_set_to_label{};
+    std::map<reach::ReachNodePtr, std::set<FiniteAutomaton::State>> reachable_set_to_label{};
 };
 } // namespace semantic_reach

@@ -55,15 +55,16 @@ void SemanticOTFReachableSet::_compute_drivable_area_at_step(const int &step) {
     }
 
     // partition propagated sets by their automaton states
-    std::map<std::pair<std::set<unsigned int>, std::set<unsigned int>>, std::vector<reach::ReachNodePtr>>
+    std::map<std::pair<std::set<FiniteAutomaton::State>, std::set<FiniteAutomaton::State>>,
+             std::vector<reach::ReachNodePtr>>
         map_states_to_propagated_set{};
     for (auto const &propagated_set : propagated_sets_split) {
-        std::pair<std::set<unsigned int>, std::set<unsigned int>> key;
+        std::pair<std::set<FiniteAutomaton::State>, std::set<FiniteAutomaton::State>> key;
         if (step != step_start) {
             key = std::make_pair(reachable_set_to_label[propagated_set->vec_nodes_source[0]],
                                  reachable_set_to_label[propagated_set]);
         } else {
-            key = std::make_pair(std::set<unsigned int>{automaton->initial_state()},
+            key = std::make_pair(std::set<FiniteAutomaton::State>{automaton->initial_state()},
                                  reachable_set_to_label[propagated_set]);
         }
         map_states_to_propagated_set[key].emplace_back(propagated_set);
@@ -76,7 +77,8 @@ void SemanticOTFReachableSet::_compute_drivable_area_at_step(const int &step) {
     // because only if these are equal, the automaton cannot distinguish the base sets
     // if only the target states were considered, the automaton could possibly distinguish them
     // if the source states reach the target state via different propositions
-    std::map<std::pair<std::set<unsigned int>, std::set<unsigned int>>, std::vector<reach::ReachPolygonPtr>>
+    std::map<std::pair<std::set<FiniteAutomaton::State>, std::set<FiniteAutomaton::State>>,
+             std::vector<reach::ReachPolygonPtr>>
         map_states_to_drivable_area{};
     std::vector<reach::ReachPolygonPtr> vec_drivable_area{};
     for (const auto &[states, propagated_sets_per_states] : map_states_to_propagated_set) {
@@ -135,7 +137,7 @@ void SemanticOTFReachableSet::_compute_reachable_set_at_step(const int &step) {
 
 std::vector<reach::ReachNodePtr>
 SemanticOTFReachableSet::_split_reachable_set(int step, const reach::ReachNodePtr &reachable_set) {
-    auto current_states = step == step_start ? std::set<unsigned int>{automaton->initial_state()}
+    auto current_states = step == step_start ? std::set<FiniteAutomaton::State>{automaton->initial_state()}
                                              : reachable_set_to_label[reachable_set->vec_nodes_source[0]];
     auto transitions = automaton->multi_transitions_from(current_states);
 
@@ -173,7 +175,7 @@ void SemanticOTFReachableSet::_filter_reachable_sets(std::vector<reach::ReachNod
 bool SemanticOTFReachableSet::_has_accepting_state(const reach::ReachNodePtr &reachable_set) {
     auto states = reachable_set_to_label[reachable_set];
     return std::any_of(states.begin(), states.end(),
-                       [this](const int &state) { return automaton->is_accepting_state(state); });
+                       [this](const FiniteAutomaton::State &state) { return automaton->is_accepting_state(state); });
 }
 
 std::vector<reach::ReachNodePtr>
