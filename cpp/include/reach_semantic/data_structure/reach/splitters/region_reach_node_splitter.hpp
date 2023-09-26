@@ -1,7 +1,7 @@
 #pragma once
 
+#include "reach_semantic/data_structure/environment_model/semantic_model.hpp"
 #include "reach_semantic/data_structure/region.hpp"
-#include "reach_semantic/data_structure/semantic_model.hpp"
 
 #include "reachset/data_structure/reach/reach_node.hpp"
 

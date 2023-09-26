@@ -31,5 +31,5 @@ bool Region::intersects(reach::ReachPolygonPtr const &rectangle, string const &c
         throw std::logic_error("<Region> Provided coordinate system is invalid.");
 
     return p_lon_max_box >= p_lon_min && p_lon_min_box <= p_lon_max && p_lat_max_box >= p_lat_min &&
-        p_lat_min_box <= p_lat_max;
+           p_lat_min_box <= p_lat_max;
 }

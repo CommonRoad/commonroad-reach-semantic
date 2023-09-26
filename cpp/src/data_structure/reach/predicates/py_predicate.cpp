@@ -23,7 +23,7 @@ std::vector<reach::ReachNodePtr> PyPredicate::restrict_reach_node(
         step, reach_node, semantic_model->obj_semantic_model_py, node_lanelet_ids);
     std::vector<reach::ReachNodePtr> vec_reach_nodes{};
     vec_reach_nodes.reserve(reach_node_list_py.size());
-    for (auto &reach_node_py : reach_node_list_py) {
+    for (const auto &reach_node_py : reach_node_list_py) {
         vec_reach_nodes.emplace_back(reach_node_py.cast<reach::ReachNodePtr>());
     }
     return vec_reach_nodes;
