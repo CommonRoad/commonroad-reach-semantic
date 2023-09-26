@@ -7,8 +7,7 @@ using namespace semantic_reach;
 
 ReachableSetLabeler::ReachableSetLabeler(SemanticModelPtr semantic_model, SemanticConfigurationPtr config)
     : semantic_model(std::move(semantic_model)),
-      region_splitter(std::make_unique<RegionReachNodeSplitter>(this->semantic_model)), config(std::move(config)),
-      reachable_set_to_propositions(), reachable_set_to_lanelet_ids() {}
+      region_splitter(std::make_unique<RegionReachNodeSplitter>(this->semantic_model)), config(std::move(config)) {}
 
 void ReachableSetLabeler::label_initial_state(const std::vector<reach::ReachNodePtr> &reachable_sets, int step_start) {
     for (const auto &reachable_set : reachable_sets) {
@@ -82,6 +81,13 @@ ReachableSetLabeler::_label_traffic_status_propositions(int step, std::vector<re
 std::vector<reach::ReachNodePtr>
 ReachableSetLabeler::_label_in_conflict_area_propositions(int step, std::vector<reach::ReachNodePtr> reachable_sets) {
     // examine if the propagated set is conflicting with the vehicles
+    _label_in_conflict_with(reachable_sets);
+    // examine if the vehicles are in conflict with the propagated set
+    _label_in_conflict_by(step, reachable_sets);
+    return reachable_sets;
+}
+
+void ReachableSetLabeler::_label_in_conflict_with(const std::vector<reach::ReachNodePtr> &reachable_sets) {
     for (const auto &reachable_set : reachable_sets) {
         for (const auto &vehicle : semantic_model->vec_vehicles) {
             for (const auto &id_lanelet_propagated_set : reachable_set_to_lanelet_ids[reachable_set]) {
@@ -96,17 +102,18 @@ ReachableSetLabeler::_label_in_conflict_area_propositions(int step, std::vector<
             }
         }
     }
+}
 
-    // examine if the vehicles are in conflict with the propagated set
+void ReachableSetLabeler::_label_in_conflict_by(int step, const std::vector<reach::ReachNodePtr> &reachable_sets) {
     for (const auto &reachable_set : reachable_sets) {
         for (const auto &vehicle : semantic_model->vec_vehicles) {
             double p_lon_min_reachable_set = reachable_set->p_lon_min() - config->semantic_model().ego_radius_inflation;
             // if step is not in map continue
-            auto it = vehicle->map_step_to_state_lon_ref_s.find(step);
-            if (it == vehicle->map_step_to_state_lon_ref_s.end()) {
+            auto iter = vehicle->map_step_to_state_lon_ref_s.find(step);
+            if (iter == vehicle->map_step_to_state_lon_ref_s.end()) {
                 continue;
             }
-            double p_lon_ref_max_vehicle = it->second + vehicle->length / 2;
+            double p_lon_ref_max_vehicle = iter->second + vehicle->length / 2;
 
             // propagated set is in front of the vehicle along the reference path
             if (p_lon_min_reachable_set > p_lon_ref_max_vehicle) {
@@ -126,8 +133,6 @@ ReachableSetLabeler::_label_in_conflict_area_propositions(int step, std::vector<
             }
         }
     }
-
-    return reachable_sets;
 }
 
 std::vector<reach::ReachNodePtr>
@@ -265,8 +270,8 @@ ReachableSetLabeler::discard_colliding_nodes(const std::vector<reach::ReachNodeP
         for (const auto &proposition : set_propositions) {
             if (proposition.find(Proposition::aligned_with()) != std::string::npos) {
                 int vehicle_id = std::stoi(proposition.substr(proposition.find('_') + 2));
-                std::string x = Proposition::beside(vehicle_id);
-                if (set_propositions.find(x) != set_propositions.end()) {
+                std::string prop = Proposition::beside(vehicle_id);
+                if (set_propositions.find(prop) != set_propositions.end()) {
                     colliding = true;
                     break;
                 }

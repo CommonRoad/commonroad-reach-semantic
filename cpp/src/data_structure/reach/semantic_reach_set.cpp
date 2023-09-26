@@ -98,7 +98,7 @@ SemanticReachableSet::_propagate_reachable_set(vector<reach::ReachNodePtr> const
 }
 
 std::vector<reach::ReachPolygonPtr>
-SemanticReachableSet::_collision_check_and_repartition(std::vector<reach::ReachPolygonPtr> rectangles,
+SemanticReachableSet::_collision_check_and_repartition(const std::vector<reach::ReachPolygonPtr> &rectangles,
                                                        int const &step) {
     auto mode_repartition = config->reachable_set().mode_repartition;
     auto size_grid = config->reachable_set().size_grid;

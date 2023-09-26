@@ -1,8 +1,10 @@
+#include <utility>
+
 #include "reach_semantic/data_structure/reach/predicates/predicate.hpp"
 
 using namespace semantic_reach;
 
-Predicate::Predicate(pybind11::object obj_predicate_py) : obj_predicate_py(obj_predicate_py) {
+Predicate::Predicate(pybind11::object obj_predicate_py) : obj_predicate_py(std::move(obj_predicate_py)) {
     needs_lanelets = this->obj_predicate_py.attr("needs_lanelets").cast<bool>();
 }
 
@@ -16,7 +18,7 @@ Predicate::restrict_reach_node(int step, const reach::ReachNodePtr &reach_nodes,
         obj_predicate_py.attr("restrict_reach_node")(step, reach_nodes, semantic_model->obj_semantic_model_py);
     std::vector<reach::ReachNodePtr> vec_reach_nodes{};
     vec_reach_nodes.reserve(reach_node_list_py.size());
-    for (auto &reach_node_py : reach_node_list_py) {
+    for (const auto &reach_node_py : reach_node_list_py) {
         vec_reach_nodes.emplace_back(reach_node_py.cast<reach::ReachNodePtr>());
     }
     return vec_reach_nodes;
@@ -29,7 +31,7 @@ std::vector<reach::ReachNodePtr> Predicate::restrict_reach_node(int step, const 
         step, reach_nodes, semantic_model->obj_semantic_model_py, node_lanelet_ids);
     std::vector<reach::ReachNodePtr> vec_reach_nodes{};
     vec_reach_nodes.reserve(reach_node_list_py.size());
-    for (auto &reach_node_py : reach_node_list_py) {
+    for (const auto &reach_node_py : reach_node_list_py) {
         vec_reach_nodes.emplace_back(reach_node_py.cast<reach::ReachNodePtr>());
     }
     return vec_reach_nodes;

@@ -21,8 +21,8 @@ class SemanticReachableSet {
     std::vector<reach::ReachNodePtr> _propagate_reachable_set(std::vector<reach::ReachNodePtr> const &vec_nodes);
 
     /// Computes collision free drivable area.
-    std::vector<reach::ReachPolygonPtr> _collision_check_and_repartition(std::vector<reach::ReachPolygonPtr> rectangles,
-                                                                         int const &step);
+    std::vector<reach::ReachPolygonPtr>
+    _collision_check_and_repartition(const std::vector<reach::ReachPolygonPtr> &rectangles, int const &step);
 
     virtual void _compute_drivable_area_at_step(int const &step) = 0;
 

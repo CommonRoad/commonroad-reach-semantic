@@ -136,8 +136,8 @@ std::optional<Literal> MintermReachNodeSplitter::_choose_next_literal(const std:
 
     // the literals that occur most often are candidates for the next literal
     int max_cnt = std::max_element(literal_counts.begin(), literal_counts.end(),
-                                   [](const std::pair<Literal, int> &a, const std::pair<Literal, int> &b) {
-                                       return a.second < b.second;
+                                   [](const std::pair<Literal, int> &count1, const std::pair<Literal, int> &count2) {
+                                       return count1.second < count2.second;
                                    })
                       ->second;
     std::vector<Literal> candidates;
@@ -149,9 +149,9 @@ std::optional<Literal> MintermReachNodeSplitter::_choose_next_literal(const std:
 
     // prefer predicates that don't need lanelets, as this avoids splitting to regions
     // TODO: we could choose a different ordering here or make this configurable
-    std::sort(candidates.begin(), candidates.end(), [](const Literal &a, const Literal &b) {
-        return !Predicate::from_proposition(a.first, a.second).needs_lanelets &&
-               Predicate::from_proposition(b.first, b.second).needs_lanelets;
+    std::sort(candidates.begin(), candidates.end(), [](const Literal &literal1, const Literal &literal2) {
+        return !Predicate::from_proposition(literal1.first, literal1.second).needs_lanelets &&
+               Predicate::from_proposition(literal2.first, literal2.second).needs_lanelets;
     });
 
     return candidates.empty() ? std::nullopt : std::optional<Literal>{candidates[0]};

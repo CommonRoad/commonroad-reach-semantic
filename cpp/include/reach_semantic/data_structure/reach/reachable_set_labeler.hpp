@@ -37,6 +37,21 @@ class ReachableSetLabeler {
     std::vector<reach::ReachNodePtr>
     _label_in_conflict_area_propositions(int step, std::vector<reach::ReachNodePtr> reachable_sets);
 
+    /**
+     * Labels a reachable set if it is in the conflict area of another vehicle.
+     *
+     * @param reachable_sets The reachable sets to label.
+     */
+    void _label_in_conflict_with(const std::vector<reach::ReachNodePtr> &reachable_sets);
+
+    /**
+     * Labels a reachable set if another vehicle is in its conflict area.
+     *
+     * @param step Current step of the reachability analysis.
+     * @param reachable_sets The reachable sets to label.
+     */
+    void _label_in_conflict_by(int step, const std::vector<reach::ReachNodePtr> &reachable_sets);
+
     /// Labels propagated sets with propositions related to causes braking to other vehicles.
     std::vector<reach::ReachNodePtr>
     _label_causes_braking_propositions(int step, std::vector<reach::ReachNodePtr> reachable_sets);

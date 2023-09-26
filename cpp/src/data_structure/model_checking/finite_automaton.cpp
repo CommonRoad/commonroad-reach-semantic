@@ -7,7 +7,7 @@
 
 using namespace semantic_reach;
 
-FiniteAutomaton::FiniteAutomaton(const std::vector<std::string> &ltlf_formulas, int mode) : _multi_transitions_cache() {
+FiniteAutomaton::FiniteAutomaton(const std::vector<std::string> &ltlf_formulas, int mode) {
     if (mode == 0) {
         // We always use the product automaton for now
         mode = 1;
@@ -16,12 +16,12 @@ FiniteAutomaton::FiniteAutomaton(const std::vector<std::string> &ltlf_formulas, 
     std::vector<spot::formula> spot_formulas;
     spot_formulas.reserve(ltlf_formulas.size());
     std::transform(ltlf_formulas.begin(), ltlf_formulas.end(), std::back_inserter(spot_formulas),
-                   [](const std::string &f) {
-                       spot::parsed_formula pf = spot::parse_infix_psl(f);
-                       if (pf.format_errors(std::cerr)) {
+                   [](const std::string &formula) {
+                       spot::parsed_formula parsed_formula = spot::parse_infix_psl(formula);
+                       if (parsed_formula.format_errors(std::cerr)) {
                            throw std::runtime_error("Error while parsing LTLf formula.");
                        }
-                       return spot::from_ltlf(pf.f);
+                       return spot::from_ltlf(parsed_formula.f);
                    });
 
     auto trans{_get_translator()};
@@ -29,10 +29,11 @@ FiniteAutomaton::FiniteAutomaton(const std::vector<std::string> &ltlf_formulas, 
     switch (mode) {
     case 1: {
         auto true_automaton = trans.run(spot::formula::tt());
-        auto product_automaton = std::accumulate(spot_formulas.begin(), spot_formulas.end(), true_automaton,
-                                                 [&trans](const spot::twa_graph_ptr &acc, const spot::formula &f) {
-                                                     return spot::product(acc, trans.run(f));
-                                                 });
+        auto product_automaton =
+            std::accumulate(spot_formulas.begin(), spot_formulas.end(), true_automaton,
+                            [&trans](const spot::twa_graph_ptr &acc, const spot::formula &formula) {
+                                return spot::product(acc, trans.run(formula));
+                            });
         _spot_automaton = spot::to_finite(product_automaton);
         break;
     }
