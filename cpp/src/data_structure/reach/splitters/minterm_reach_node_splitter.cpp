@@ -1,11 +1,33 @@
 #include "reach_semantic/data_structure/reach/splitters/minterm_reach_node_splitter.hpp"
 #include "reach_semantic/data_structure/reach/predicates/predicate.hpp"
+#include "reach_semantic/utility/environment_model.hpp"
+
+#include <commonroad_cpp/interfaces/commonroad/input_utils.h>
 
 using namespace semantic_reach;
 
-MintermReachNodeSplitter::MintermReachNodeSplitter(SemanticModelPtr semantic_model)
+MintermReachNodeSplitter::MintermReachNodeSplitter(SemanticModelPtr semantic_model,
+                                                   const SemanticConfigurationPtr &config)
     : semantic_model(std::move(semantic_model)),
-      region_splitter(std::make_unique<RegionReachNodeSplitter>(this->semantic_model)) {}
+      region_splitter(std::make_unique<RegionReachNodeSplitter>(this->semantic_model)),
+      predicate_factory(PredicateFactory{std::make_shared<PredicateConfiguration>(*config)}) {
+    // Create environment model
+    const auto &[obstacles, roadNetwork, scenario_dt] = InputUtils::getDataFromCommonRoad(
+        config->config_general.path_scenarios + config->config_general.name_scenario + ".xml");
+    resample_obstacle_states(obstacles, scenario_dt, config->config_planning.dt);
+    world = std::make_shared<World>(config->config_planning.step_start, roadNetwork,
+                                    std::vector<std::shared_ptr<Obstacle>>{}, obstacles, config->config_planning.dt);
+
+    auto config_ccs{config->config_planning.CLCS};
+    ego_ccs = std::make_shared<geometry::CurvilinearCoordinateSystem>(config_ccs->referencePathOriginal());
+    // FIXME: Use projection domain and epsilons from config_ccs (using defaults for now)
+    // Currently, these have weird values
+    // Maybe this is a consequence of config_ccs being initialized as CCS of drivability checker, while we only link
+    // against the environment model
+    //    ego_ccs = std::make_shared<geometry::CurvilinearCoordinateSystem>(config_ccs->referencePathOriginal(),
+    //                                                                      config_ccs->defaultProjectionDomainLimit(),
+    //                                                                      config_ccs->eps(), config_ccs->eps2());
+}
 
 std::vector<std::pair<Minterm, std::vector<reach::ReachNodePtr>>>
 MintermReachNodeSplitter::split_to_minterms(int step, const reach::ReachNodePtr &reachable_set,
@@ -75,10 +97,10 @@ MintermReachNodeSplitter::_restrict_to_literal(int step, const std::vector<reach
         to_restrict = reachable_sets;
     }
 
-    Predicate pred = Predicate::from_proposition(literal.first, literal.second);
+    auto pred = predicate_factory.predicate_from_proposition(literal.first, literal.second);
 
     // if the predicate needs lanelets, we need to split the reachable sets into regions first (if we haven't already)
-    if (pred.needs_lanelets && !regionized) {
+    if (pred->needs_lanelets && !regionized) {
         std::vector<reach::ReachNodePtr> regionized_reachable_sets{};
         for (const auto &node : to_restrict) {
             for (const auto &[region, restricted_node] : region_splitter->split_wrt_regions(node)) {
@@ -94,9 +116,10 @@ MintermReachNodeSplitter::_restrict_to_literal(int step, const std::vector<reach
     for (const auto &node : to_restrict) {
 
         // restrict the reachable sets to the predicate
-        auto restricted_nodes = pred.needs_lanelets
-                                    ? pred.restrict_reach_node(step, node, semantic_model, node_to_lanelet_ids[node])
-                                    : pred.restrict_reach_node(step, node, semantic_model);
+        auto restricted_nodes =
+            pred->needs_lanelets
+                ? pred->restrict_reach_node(step, node, semantic_model, world, ego_ccs, node_to_lanelet_ids[node])
+                : pred->restrict_reach_node(step, node, semantic_model, world, ego_ccs);
         // restricting might create clones, so we need to copy the lanelet ids again
         if (regionized) {
             for (const auto &restricted_node : restricted_nodes) {
@@ -149,9 +172,9 @@ std::optional<Literal> MintermReachNodeSplitter::_choose_next_literal(const std:
 
     // prefer predicates that don't need lanelets, as this avoids splitting to regions
     // TODO: we could choose a different ordering here or make this configurable
-    std::sort(candidates.begin(), candidates.end(), [](const Literal &literal1, const Literal &literal2) {
-        return !Predicate::from_proposition(literal1.first, literal1.second).needs_lanelets &&
-               Predicate::from_proposition(literal2.first, literal2.second).needs_lanelets;
+    std::sort(candidates.begin(), candidates.end(), [this](const Literal &literal1, const Literal &literal2) {
+        return !predicate_factory.predicate_from_proposition(literal1.first, literal1.second)->needs_lanelets &&
+               predicate_factory.predicate_from_proposition(literal2.first, literal2.second)->needs_lanelets;
     });
 
     return candidates.empty() ? std::nullopt : std::optional<Literal>{candidates[0]};

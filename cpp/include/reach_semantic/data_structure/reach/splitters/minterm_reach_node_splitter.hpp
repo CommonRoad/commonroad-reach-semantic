@@ -1,11 +1,16 @@
 #pragma once
 
+#include "reach_semantic/data_structure/environment_model/semantic_model.hpp"
 #include "reach_semantic/data_structure/model_checking/finite_automaton.hpp"
+#include "reach_semantic/data_structure/reach/predicates/predicate_factory.hpp"
 #include "reach_semantic/data_structure/reach/reachable_set_labeler.hpp"
 #include "reach_semantic/data_structure/reach/splitters/region_reach_node_splitter.hpp"
-#include "reach_semantic/data_structure/semantic_model.hpp"
+#include "reach_semantic/data_structure/semantic_configuration.hpp"
 
 #include "reachset/data_structure/reach/reach_node.hpp"
+
+#include <commonroad_cpp/geometry/curvilinear_coordinate_system.h>
+#include <commonroad_cpp/world.h>
 
 #include <map>
 #include <set>
@@ -18,6 +23,11 @@ class MintermReachNodeSplitter {
   private:
     SemanticModelPtr semantic_model;
     std::unique_ptr<RegionReachNodeSplitter> region_splitter;
+    std::shared_ptr<World> world;
+    std::shared_ptr<geometry::CurvilinearCoordinateSystem> ego_ccs;
+
+    const PredicateFactory predicate_factory;
+
     std::map<reach::ReachNodePtr, std::set<int>> node_to_lanelet_ids;
 
     /**
@@ -84,16 +94,17 @@ class MintermReachNodeSplitter {
      * @param ignored_literals These literals will be ignored when choosing the next literal.
      * @return The literal that occurs most often in minterms.
      */
-    static std::optional<Literal> _choose_next_literal(const std::set<Minterm> &minterms,
-                                                       const std::set<Literal> &ignored_literals);
+    std::optional<Literal> _choose_next_literal(const std::set<Minterm> &minterms,
+                                                const std::set<Literal> &ignored_literals);
 
   public:
     /**
      * Create a new minterm reach node splitter.
      *
      * @param semantic_model The semantic model to use for splitting.
+     * @param config The configuration with information about the ego vehicle and traffic rule parameters.
      */
-    explicit MintermReachNodeSplitter(SemanticModelPtr semantic_model);
+    explicit MintermReachNodeSplitter(SemanticModelPtr semantic_model, const SemanticConfigurationPtr &config);
 
     /**
      * Split the given reachable sets along the given minterms.
