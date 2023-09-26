@@ -42,7 +42,7 @@ pycodestyle-commit:
   stage: static-check
   script:
     - pip install pycodestyle
-    - git  diff ${CI_COMMIT_BEFORE_SHA}...${CI_COMMIT_SHA} -- '*.py' | pycodestyle --max-line-length=120 --diff
+    - git diff ${CI_COMMIT_BEFORE_SHA}...${CI_COMMIT_SHA} -- '*.py' | pycodestyle --max-line-length=120 --diff
   except:
     - merge_requests
   allow_failure: true
@@ -51,7 +51,7 @@ pycodestyle-merge-request:
   stage: static-check
   script:
     - pip install pycodestyle
-    - git  diff ${CI_MERGE_REQUEST_TARGET_BRANCH_SHA}...${CI_MERGE_REQUEST_SOURCE_BRANCH_SHA} -- '*.py' | pycodestyle --max-line-length=120 --diff
+    - git diff ${CI_MERGE_REQUEST_TARGET_BRANCH_SHA}...${CI_MERGE_REQUEST_SOURCE_BRANCH_SHA} -- '*.py' | pycodestyle --max-line-length=120 --diff
   only:
     - merge_requests
   allow_failure: true
@@ -78,12 +78,13 @@ compile-cpp:
   stage: compile
   variables:
     GIT_SUBMODULE_STRATEGY: recursive # initialize submodules before starting job
-  script:
+  before_script:
     - *conda-init
     - conda activate "cr$PYTHON_VER"
     - *python-prepare
+  script:
     - mkdir build-debug && cd build-debug
-    - cmake -DCRDC_DIR="$CRDC_DIR" -DCRREACH_DIR="$CRREACH_DIR" -DPYTHON_VER="$PYTHON_VER" -DCMAKE_BUILD_TYPE=Debug ..
+    - cmake -DCRDC_DIR="$CRDC_DIR" -DCRREACH_DIR="$CRREACH_DIR" -DPYTHON_VER="$PYTHON_VER" -DCMAKE_BUILD_TYPE=Debug -DADD_TESTS=true ..
     - cmake --build . -- -j $BUILD_JOBS
   parallel:
     matrix:
@@ -91,6 +92,7 @@ compile-cpp:
   artifacts:
     paths:
       - pycrreachs.*.so
+      - build-debug/cpp/doctest_runner
     expire_in: 30 minutes
   needs: [ ]
 
@@ -116,19 +118,16 @@ test-python:
 ### test C++ ###
 test-cpp:
   stage: test
-  variables:
-    GIT_SUBMODULE_STRATEGY: recursive # initialize submodules before starting job
-  script:
+  before_script:
     - *conda-init
     - conda activate "cr$PYTHON_VER"
     - *python-prepare
-    - mkdir build-debug && cd build-debug
-    - cmake -DCRDC_DIR="$CRDC_DIR" -DCRREACH_DIR="$CRREACH_DIR" -DPYTHON_VER="$PYTHON_VER" -DCMAKE_BUILD_TYPE=Debug -DADD_TESTS=true ..
-    - cmake --build . --target doctest_runner -- -j $BUILD_JOBS
+  script:
+    - cd build-debug
     - ./cpp/doctest_runner
   parallel:
     matrix:
       - PYTHON_VER: *python-versions
   needs:
     - job: compile-cpp
-      artifacts: false
+      artifacts: true
