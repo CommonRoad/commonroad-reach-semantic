@@ -37,7 +37,7 @@ fi
 echo
 
 # run clang-format
-format_call="find src/ tests/ -regextype egrep -regex '.+\.(h|hpp|cpp|cu|cuh)$' | xargs $clang_format_tool -i -style=file"
+format_call="find cpp/ python_binding/ -regextype egrep -regex '.+\.(h|hpp|cpp|cu|cuh)$' | xargs $clang_format_tool -i -style=file"
 eval "$format_call"
 
 # check if something was modified
