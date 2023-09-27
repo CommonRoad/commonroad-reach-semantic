@@ -51,7 +51,7 @@ FiniteAutomaton::FiniteAutomaton(const std::vector<std::string> &ltlf_formulas, 
 
 State FiniteAutomaton::initial_state() { return _spot_automaton->get_init_state_number(); }
 
-std::vector<std::pair<Minterm, State>> FiniteAutomaton::transitions_from(const std::set<State> &states) {
+std::vector<std::pair<Minterm, State>> FiniteAutomaton::transitions_from(const StateSet &states) {
     std::map<State, std::vector<bdd>> map_state_to_conditions{};
     for (const auto &state : states) {
         for (auto &edge : _spot_automaton->out(state)) {
@@ -73,12 +73,12 @@ std::vector<std::pair<Minterm, State>> FiniteAutomaton::transitions_from(const s
     return result;
 }
 
-std::map<Minterm, std::set<State>> FiniteAutomaton::multi_transitions_from(const std::set<State> &states) {
+MintermMap<StateSet> FiniteAutomaton::multi_transitions_from(const StateSet &states) {
     if (_multi_transitions_cache.count(states) != 0) {
         return _multi_transitions_cache.at(states);
     }
 
-    std::map<Minterm, std::set<State>> minterm_to_dst_states{};
+    std::unordered_map<Minterm, StateSet> minterm_to_dst_states{};
     for (const auto &[minterm, dst_state] : transitions_from(states)) {
         minterm_to_dst_states[minterm].emplace(dst_state);
     }

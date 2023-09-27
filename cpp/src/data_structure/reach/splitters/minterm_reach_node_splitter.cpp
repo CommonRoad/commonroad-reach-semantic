@@ -9,16 +9,16 @@ MintermReachNodeSplitter::MintermReachNodeSplitter(SemanticModelPtr semantic_mod
 
 std::vector<std::pair<Minterm, std::vector<reach::ReachNodePtr>>>
 MintermReachNodeSplitter::split_to_minterms(int step, const reach::ReachNodePtr &reachable_set,
-                                            const std::set<Minterm> &minterms) {
+                                            const std::vector<Minterm> &minterms) {
     std::vector<std::pair<Minterm, std::vector<reach::ReachNodePtr>>> result{};
-    std::set<Literal> finished_literals{};
+    LiteralSet finished_literals{};
     _split_to_minterms(step, {reachable_set}, minterms, finished_literals, false, result);
     return result;
 }
 
 void MintermReachNodeSplitter::_split_to_minterms(
-    int step, const std::vector<reach::ReachNodePtr> &reachable_sets, const std::set<Minterm> &minterms,
-    std::set<Literal> &finished_literals, bool regionized,
+    int step, const std::vector<reach::ReachNodePtr> &reachable_sets, const std::vector<Minterm> &minterms,
+    const LiteralSet &finished_literals, bool regionized,
     std::vector<std::pair<Minterm, std::vector<reach::ReachNodePtr>>> &result) {
     // BASE CASE: if there are no reachable sets or no minterms, we are done
     if (reachable_sets.empty() || minterms.empty()) {
@@ -111,10 +111,10 @@ MintermReachNodeSplitter::_restrict_to_literal(int step, const std::vector<reach
     return {restricted_reachable_sets, regionized};
 }
 
-std::pair<std::set<Minterm>, std::set<Minterm>>
-MintermReachNodeSplitter::_partition_minterms(const Literal &literal, const std::set<Minterm> &minterms) {
-    std::set<Minterm> not_needs_literal{};
-    std::set<Minterm> needs_literal{};
+std::pair<std::vector<Minterm>, std::vector<Minterm>>
+MintermReachNodeSplitter::_partition_minterms(const Literal &literal, const std::vector<Minterm> &minterms) {
+    std::vector<Minterm> not_needs_literal{};
+    std::vector<Minterm> needs_literal{};
 
     std::partition_copy(minterms.begin(), minterms.end(), std::inserter(needs_literal, needs_literal.begin()),
                         std::inserter(not_needs_literal, not_needs_literal.begin()),
@@ -123,8 +123,8 @@ MintermReachNodeSplitter::_partition_minterms(const Literal &literal, const std:
     return {not_needs_literal, needs_literal};
 }
 
-std::optional<Literal> MintermReachNodeSplitter::_choose_next_literal(const std::set<Minterm> &minterms,
-                                                                      const std::set<Literal> &ignored_literals) {
+std::optional<Literal> MintermReachNodeSplitter::_choose_next_literal(const std::vector<Minterm> &minterms,
+                                                                      const LiteralSet &ignored_literals) {
     std::map<Literal, int> literal_counts{};
     for (const auto &minterm : minterms) {
         for (const auto &literal : minterm) {

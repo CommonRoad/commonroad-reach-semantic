@@ -45,7 +45,7 @@ TEST_SUITE("Spot utility") {
 
     TEST_CASE("extract_atomic_proposition") {
         spot::formula literal;
-        std::pair<std::string, bool> expected;
+        semantic_reach::Literal expected;
         SUBCASE("positive") {
             literal = spot::parse_formula("a");
             expected = {"a", false};
@@ -71,7 +71,7 @@ TEST_SUITE("Spot utility") {
 
     TEST_CASE("extract_minterms_from_dnf") {
         spot::formula dnf_formula;
-        std::vector<std::set<std::pair<std::string, bool>>> expected;
+        std::vector<semantic_reach::Minterm> expected;
         SUBCASE("true") {
             dnf_formula = spot::parse_formula("true");
             expected = {{}};

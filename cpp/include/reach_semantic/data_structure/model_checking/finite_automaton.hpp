@@ -1,16 +1,37 @@
 #pragma once
 
-#include <optional>
+#include "reach_semantic/data_structure/model_checking/minterm.hpp"
+
+#include <boost/functional/hash.hpp>
 #include <spot/tl/ltlf.hh>
 #include <spot/tl/parse.hh>
 #include <spot/twaalgos/hoa.hh>
 #include <spot/twaalgos/remprop.hh>
 #include <spot/twaalgos/translate.hh>
 
+#include <optional>
+#include <unordered_map>
+#include <unordered_set>
+
 namespace semantic_reach {
-using Literal = std::pair<std::string, bool>;
-using Minterm = std::set<Literal>;
 using State = unsigned int;
+using StateSet = std::unordered_set<State>;
+template <typename T> using StateSetMap = std::unordered_map<StateSet, T>;
+} // namespace semantic_reach
+
+namespace std {
+template <> struct hash<semantic_reach::StateSet> {
+    size_t operator()(const semantic_reach::StateSet &state_set) const {
+        size_t seed = state_set.size();
+        for (const auto &state : state_set) {
+            seed ^= boost::hash_value(state);
+        }
+        return seed;
+    }
+};
+} // namespace std
+
+namespace semantic_reach {
 
 /**
  * Represents a finite automaton on words over the powerset of propositions.
@@ -20,7 +41,7 @@ class FiniteAutomaton {
     spot::twa_graph_ptr _spot_automaton;
     spot::bdd_dict_ptr _bdict;
 
-    std::map<std::set<State>, std::map<Minterm, std::set<State>>> _multi_transitions_cache;
+    StateSetMap<MintermMap<StateSet>> _multi_transitions_cache;
 
     /**
      * Convert a condition on an automaton edge given as a BDD into a list of minterms.
@@ -68,7 +89,7 @@ class FiniteAutomaton {
      * @param states The source states.
      * @returns A list of pairs of minterms and destination states.
      */
-    std::vector<std::pair<Minterm, State>> transitions_from(const std::set<State> &states);
+    std::vector<std::pair<Minterm, State>> transitions_from(const StateSet &states);
 
     /**
      * Based on the transitions outgoing from the given states get a mapping from minterms to the states they reach.
@@ -76,7 +97,7 @@ class FiniteAutomaton {
      * @param states The source states.
      * @returns A mapping from minterms to the states they reach.
      */
-    std::map<Minterm, std::set<State>> multi_transitions_from(const std::set<State> &states);
+    MintermMap<StateSet> multi_transitions_from(const StateSet &states);
 
     /**
      * Check whether the given state is an accepting state.

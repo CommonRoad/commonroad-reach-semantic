@@ -1,5 +1,7 @@
 #pragma once
 
+#include "reach_semantic/data_structure/model_checking/minterm.hpp"
+
 #include <set>
 #include <spot/tl/formula.hh>
 
@@ -14,7 +16,7 @@ std::vector<spot::formula> disjuncts(const spot::formula &formula);
 /// @param literal Formula that is either a literal or a negated literal
 /// @returns Name of the atomic proposition and whether it is negated or not
 /// @throws std::invalid_argument if the formula is not a literal or a negated literal
-std::pair<std::string, bool> extract_atomic_proposition(const spot::formula &literal);
+semantic_reach::Literal extract_atomic_proposition(const spot::formula &literal);
 
 /// Extract the minterms from a spot formula in DNF.
 /// The formula is true iff at least one minterm is satisfied.
@@ -23,5 +25,5 @@ std::pair<std::string, bool> extract_atomic_proposition(const spot::formula &lit
 /// @param formula A formula in disjunctive normal form
 /// @returns The minterms of the formula
 /// @throws std::invalid_argument If the formula is not in DNF
-std::vector<std::set<std::pair<std::string, bool>>> extract_minterms_from_dnf(const spot::formula &formula);
+std::vector<semantic_reach::Minterm> extract_minterms_from_dnf(const spot::formula &formula);
 } // namespace util_spot

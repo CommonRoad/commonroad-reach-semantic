@@ -1,6 +1,6 @@
 #pragma once
 
-#include "reach_semantic/data_structure/model_checking/finite_automaton.hpp"
+#include "reach_semantic/data_structure/model_checking/minterm.hpp"
 #include "reach_semantic/data_structure/reach/reachable_set_labeler.hpp"
 #include "reach_semantic/data_structure/reach/splitters/region_reach_node_splitter.hpp"
 #include "reach_semantic/data_structure/semantic_model.hpp"
@@ -38,13 +38,13 @@ class MintermReachNodeSplitter {
      *
      * @param step Current step of the reachability analysis.
      * @param reachable_sets Reachable sets to split.
-     * @param minterms Minterms to split along.
+     * @param minterms Minterms to split along (assumed to contain no duplicates).
      * @param finished_literals Literals that we no longer have to consider.
      * @param regionized Whether the reachable sets are already split into regions.
      * @param result List to write the result to.
      */
     void _split_to_minterms(int step, const std::vector<reach::ReachNodePtr> &reachable_sets,
-                            const std::set<Minterm> &minterms, std::set<Literal> &finished_literals, bool regionized,
+                            const std::vector<Minterm> &minterms, const LiteralSet &finished_literals, bool regionized,
                             std::vector<std::pair<Minterm, std::vector<reach::ReachNodePtr>>> &result);
 
     /**
@@ -72,8 +72,8 @@ class MintermReachNodeSplitter {
      * @return A tuple of two minterm lists, the first containing the minterms don't contain the literal,
      *     the second containing the minterms that do.
      */
-    static std::pair<std::set<Minterm>, std::set<Minterm>> _partition_minterms(const Literal &literal,
-                                                                               const std::set<Minterm> &minterms);
+    static std::pair<std::vector<Minterm>, std::vector<Minterm>>
+    _partition_minterms(const Literal &literal, const std::vector<Minterm> &minterms);
 
     /**
      * Selects the next literal along which to split the reachable set.
@@ -84,8 +84,8 @@ class MintermReachNodeSplitter {
      * @param ignored_literals These literals will be ignored when choosing the next literal.
      * @return The literal that occurs most often in minterms.
      */
-    static std::optional<Literal> _choose_next_literal(const std::set<Minterm> &minterms,
-                                                       const std::set<Literal> &ignored_literals);
+    static std::optional<Literal> _choose_next_literal(const std::vector<Minterm> &minterms,
+                                                       const LiteralSet &ignored_literals);
 
   public:
     /**
@@ -100,13 +100,13 @@ class MintermReachNodeSplitter {
      *
      * @param step Current step of the reachability analysis.
      * @param reachable_set Reachable set to split.
-     * @param minterms Minterms to split along.
+     * @param minterms Minterms to split along (assumed to contain no duplicates).
      * @return List of reachable sets for each given minterm.
      *     The union of the reachable sets associated with a minterm overapproximates the original reachable set
      *     restricted to states that satisfy the minterm.
      *     A minterm may be omitted if the corresponding restricted set is empty.
      */
     std::vector<std::pair<Minterm, std::vector<reach::ReachNodePtr>>>
-    split_to_minterms(int step, const reach::ReachNodePtr &reachable_set, const std::set<Minterm> &minterms);
+    split_to_minterms(int step, const reach::ReachNodePtr &reachable_set, const std::vector<Minterm> &minterms);
 };
 } // namespace semantic_reach
