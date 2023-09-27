@@ -125,34 +125,35 @@ MintermReachNodeSplitter::_partition_minterms(const Literal &literal, const std:
 
 std::optional<Literal> MintermReachNodeSplitter::_choose_next_literal(const std::vector<Minterm> &minterms,
                                                                       const LiteralSet &ignored_literals) {
-    std::map<Literal, int> literal_counts{};
+    std::unordered_map<Literal, int> literal_counts;
     for (const auto &minterm : minterms) {
         for (const auto &literal : minterm) {
-            if (ignored_literals.find(literal) == ignored_literals.end()) {
-                literal_counts[literal]++;
-            }
+            ++literal_counts[literal];
         }
     }
 
-    // the literals that occur most often are candidates for the next literal
-    int max_cnt = std::max_element(literal_counts.begin(), literal_counts.end(),
-                                   [](const std::pair<Literal, int> &count1, const std::pair<Literal, int> &count2) {
-                                       return count1.second < count2.second;
-                                   })
-                      ->second;
-    std::vector<Literal> candidates;
-    for (const auto &[literal, cnt] : literal_counts) {
-        if (cnt == max_cnt) {
-            candidates.push_back(literal);
-        }
+    // remove ignored literals
+    // Removing ignored literals after counting is more efficient than not counting them in the first place,
+    // as for this we would need to do a set lookup in each iteration of the inner loop above
+    for (const auto &ignored_literal : ignored_literals) {
+        literal_counts.erase(ignored_literal);
     }
 
-    // prefer predicates that don't need lanelets, as this avoids splitting to regions
     // TODO: we could choose a different ordering here or make this configurable
-    std::sort(candidates.begin(), candidates.end(), [](const Literal &literal1, const Literal &literal2) {
-        return !Predicate::from_proposition(literal1.first, literal1.second).needs_lanelets &&
-               Predicate::from_proposition(literal2.first, literal2.second).needs_lanelets;
-    });
+    auto best_candidate = std::max_element(
+        literal_counts.begin(), literal_counts.end(),
+        [](const std::pair<Literal, int> &count1, const std::pair<Literal, int> &count2) {
+            if (count1.second < count2.second) {
+                // the literals that occur most often are the best candidates for the next literal
+                return true;
+            } else if (count1.second == count2.second) {
+                // if the literals occur equally often, we prefer literals that don't need lanelets,
+                // as this avoids splitting to regions early
+                return !Predicate::from_proposition(count2.first.first, count2.first.second).needs_lanelets;
+            } else {
+                return false;
+            }
+        });
 
-    return candidates.empty() ? std::nullopt : std::optional<Literal>{candidates[0]};
+    return best_candidate == literal_counts.end() ? std::nullopt : std::optional<Literal>{best_candidate->first};
 }
