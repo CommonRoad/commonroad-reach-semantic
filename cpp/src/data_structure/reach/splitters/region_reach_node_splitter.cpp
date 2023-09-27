@@ -10,22 +10,20 @@ RegionReachNodeSplitter::split_wrt_regions(const reach::ReachNodePtr &reachable_
     std::vector<std::pair<RegionPtr, reach::ReachNodePtr>> vec_nodes_split{};
     // iterate through region and examine propagated sets that are intersecting with the region
     for (auto const &region : semantic_model->vec_regions) {
-
-        auto rectangle = reachable_set->position_rectangle();
         // first compute intersection with bounding box
         // --> exact intersection is more expensive, so we only want to compute it if necessary
         // there is no possibility of intersection
-        if (!region->intersects(rectangle, "CVLN")) {
+        if (!region->bounding_box_intersects(reachable_set, "CVLN")) {
             continue;
         }
 
         // there is a possibility of intersection
         auto polygon_intersected = region->polygon_cvln->clone();
         // compute intersection with the position rectangle
-        polygon_intersected->intersect_halfspace(1, 0, rectangle->p_lon_max());
-        polygon_intersected->intersect_halfspace(-1, 0, -rectangle->p_lon_min());
-        polygon_intersected->intersect_halfspace(0, 1, rectangle->p_lat_max());
-        polygon_intersected->intersect_halfspace(0, -1, -rectangle->p_lat_min());
+        polygon_intersected->intersect_halfspace(1, 0, reachable_set->p_lon_max());
+        polygon_intersected->intersect_halfspace(-1, 0, -reachable_set->p_lon_min());
+        polygon_intersected->intersect_halfspace(0, 1, reachable_set->p_lat_max());
+        polygon_intersected->intersect_halfspace(0, -1, -reachable_set->p_lat_min());
 
         if (polygon_intersected->empty()) {
             continue;
