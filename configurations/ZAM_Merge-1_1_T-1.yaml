@@ -48,9 +48,5 @@ semantic_model:
 
 traffic_rules:
   activated_rules:
-    # rules to be concretized
     - NoBackwardDrivingRule
-    # rules to be applied directly
-#    - TPL !InLanelet_3 & !InLanelet_4
     - EnteringVehiclesRule
-#    - LTL G(((InLanelet_1 | InLanelet_2) & Behind_V8 & true & F(true)) -> !(!(InLanelet_3 | InLanelet_4) & F( InLanelet_3 | InLanelet_4)))
