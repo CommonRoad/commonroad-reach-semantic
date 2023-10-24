@@ -69,6 +69,7 @@ clang-tidy:
   script:
     - mkdir build && cd build
     - cmake -DCRDC_DIR="$CRDC_DIR" -DCRREACH_DIR="$CRREACH_DIR" -DPYTHON_VER="310" -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ..
+    - cmake --build . --target commonroad_protobuf # FIXME: this is required to generate the protobuf files (there is probably a better way to do this)
     - cd ..
     - ./ci/clang-tidy.sh
   needs: [ ]
