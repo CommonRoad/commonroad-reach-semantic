@@ -34,10 +34,12 @@ TEST_F(SpotUtilityTest, ExtractAtomicPropositions) {
 }
 
 TEST_F(SpotUtilityTest, ExtractAtomicPropositionsException) {
-    for (const auto &formula :
-         {conjunction, disjunction, implication, negated_conjunction, true_formula, false_formula}) {
-        EXPECT_THROW(util_spot::extract_atomic_proposition(formula), std::invalid_argument);
-    }
+    EXPECT_THROW(util_spot::extract_atomic_proposition(conjunction), std::invalid_argument);
+    EXPECT_THROW(util_spot::extract_atomic_proposition(disjunction), std::invalid_argument);
+    EXPECT_THROW(util_spot::extract_atomic_proposition(implication), std::invalid_argument);
+    EXPECT_THROW(util_spot::extract_atomic_proposition(negated_conjunction), std::invalid_argument);
+    EXPECT_THROW(util_spot::extract_atomic_proposition(true_formula), std::invalid_argument);
+    EXPECT_THROW(util_spot::extract_atomic_proposition(false_formula), std::invalid_argument);
 }
 
 TEST_F(SpotUtilityTest, ExtractMintermsFromDNF) {
@@ -58,7 +60,6 @@ TEST_F(SpotUtilityTest, ExtractMintermsFromDNF) {
 }
 
 TEST_F(SpotUtilityTest, ExtractMintermsFromDNFException) {
-    for (const auto &formula : {implication, negated_conjunction}) {
-        EXPECT_THROW(util_spot::extract_minterms_from_dnf(formula), std::invalid_argument);
-    }
+    EXPECT_THROW(util_spot::extract_minterms_from_dnf(implication), std::invalid_argument);
+    EXPECT_THROW(util_spot::extract_minterms_from_dnf(negated_conjunction), std::invalid_argument);
 }

@@ -4,7 +4,7 @@
 
 int main(int argc, char **argv) {
     // TODO: remove this dirty fix for undefined symbol checkParameterValidity once it is fixed in env model
-    PredicateParameters p{};
+    PredicateParameters params{};
 
     testing::InitGoogleTest(&argc, argv);
     // set the gtest death test style to threadsafe

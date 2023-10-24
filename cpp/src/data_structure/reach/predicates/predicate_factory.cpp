@@ -10,7 +10,7 @@ using namespace semantic_reach;
 PredicateFactory::PredicateFactory(std::shared_ptr<PredicateConfiguration> config) : config(std::move(config)) {
     // Check if there is an active Python interpreter, and if so import the module with Python predicates
     predicates_module =
-        Py_IsInitialized()
+        Py_IsInitialized() != 0
             ? std::optional{pybind11::module::import("commonroad_reach_semantic.data_structure.reach.predicates")}
             : std::nullopt;
 }
