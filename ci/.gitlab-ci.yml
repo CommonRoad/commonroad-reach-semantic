@@ -16,12 +16,13 @@ stages:
   - compile
   - test
 
-image: $CI_REGISTRY/cps/commonroad/commonroad-reach-semantic/deps:ci
+image: $CI_REGISTRY/cps/commonroad/commonroad-reach-semantic/deps:ci-cpp-env-model
 
 variables:
   CRDC_DIR: /dc
   CRREACH_DIR: /reach
   BUILD_JOBS: 4
+  CONDA_ENV_PREFIX: commonroad-py
 
 before_script:
   - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.lrz.de/".insteadOf "git@gitlab.lrz.de:"
@@ -36,7 +37,7 @@ before_script:
   - conda install -c conda-forge spot
 
 .python-versions: &python-versions
-  - 310
+  - "3.10"
 
 pycodestyle-commit:
   stage: static-check
@@ -80,11 +81,11 @@ compile-cpp:
     GIT_SUBMODULE_STRATEGY: recursive # initialize submodules before starting job
   before_script:
     - *conda-init
-    - conda activate "cr$PYTHON_VER"
+    - conda activate "$CONDA_ENV_PREFIX$PYTHON_VER"
     - *python-prepare
   script:
     - mkdir build-debug && cd build-debug
-    - cmake -DCRDC_DIR="$CRDC_DIR" -DCRREACH_DIR="$CRREACH_DIR" -DPYTHON_VER="$PYTHON_VER" -DCMAKE_BUILD_TYPE=Debug -DADD_TESTS=true ..
+    - cmake -DCRDC_DIR="$CRDC_DIR" -DCRREACH_DIR="$CRREACH_DIR" -DPYTHON_VER="$(echo $PYTHON_VER | sed -e 's/\.//g')" -DCMAKE_BUILD_TYPE=Debug -DADD_TESTS=true ..
     - cmake --build . -- -j $BUILD_JOBS
   parallel:
     matrix:
@@ -102,7 +103,7 @@ test-python:
   stage: test
   before_script:
     - *conda-init
-    - conda activate "cr$PYTHON_VER"
+    - conda activate "$CONDA_ENV_PREFIX$PYTHON_VER"
     - *python-prepare
   script:
     - cp pycrreachs.*.so commonroad_reach_semantic
@@ -120,7 +121,7 @@ test-cpp:
   stage: test
   before_script:
     - *conda-init
-    - conda activate "cr$PYTHON_VER"
+    - conda activate "$CONDA_ENV_PREFIX$PYTHON_VER"
     - *python-prepare
   script:
     - cd build-debug
