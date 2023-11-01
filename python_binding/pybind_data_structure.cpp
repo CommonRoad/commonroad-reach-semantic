@@ -75,6 +75,7 @@ void export_configuration(py::module &module) {
         .def_readwrite("distance_braking", &TrafficRuleConfiguration::distance_braking)
         .def_readwrite("acceleration_braking_hard", &TrafficRuleConfiguration::acceleration_braking_hard)
         .def_readwrite("backward_driving_v_err", &TrafficRuleConfiguration::backward_driving_v_err)
+        .def_readwrite("dis_stop_line", &TrafficRuleConfiguration::dis_stop_line)
         .def_readwrite("activated_rules", &TrafficRuleConfiguration::activated_rules)
         .def_readwrite("mode_spot", &TrafficRuleConfiguration::mode_spot)
         .def_readwrite("mode_automata", &TrafficRuleConfiguration::mode_automata);
