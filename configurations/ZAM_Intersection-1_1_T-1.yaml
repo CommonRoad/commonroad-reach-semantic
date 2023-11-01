@@ -11,7 +11,7 @@ planning:
   coordinate_system: "CVLN"
 
 reachable_set:
-  mode_computation: 8
+  mode_computation: 7
   size_grid: 0.25
   size_grid_2nd: 0.1
   radius_terminal_split: 0.7
@@ -25,6 +25,7 @@ traffic_rules:
     - TrafficLightRule
 #    - PriorityRule
     - EnteringVehiclesRule
-    - LTL G((F(InStraightSuc) & F(V38_InStraightSuc) & (No_straight_straight_PriorityOver_V38 | Same_straight_straight_PriorityAs_V38)) -> (!InIntersection | ((CausesBrakingFor_V38 | F[0..5]InConflictBy_V38) -> !InConflictWith_V38)))
-    # simulate no opposite driving in LTL
-    - LTL ! F (InLanelet_8 | InLanelet_13 | InLanelet_15)
+#    - LTL G((F(InStraightSuc) & F(V38_InStraightSuc) & (No_straight_straight_PriorityOver_V38 | Same_straight_straight_PriorityAs_V38)) -> (!InIntersection | ((CausesBrakingFor_V38 | F[0..5]InConflictBy_V38) -> !InConflictWith_V38)))
+#    # simulate no opposite driving in LTL
+#    - LTL ! F (InLanelet_8 | InLanelet_13 | InLanelet_15)
+    - LTL G(BehindStopLine & !InIntersection)
