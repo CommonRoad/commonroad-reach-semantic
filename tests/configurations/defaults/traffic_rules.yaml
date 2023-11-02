@@ -14,6 +14,8 @@ mode_spot: 2
 # 1: translate individually and then compute the product automaton (faster)
 # 2: form conjunction of the formulas and translate the result (probably smaller automaton)
 mode_automata: 0
+# a stop line is in front of a vehicle if any occupied lanelet references a stop line within a distance
+dis_stop_line: 1.0
 # clauses should be preceded and followed by a whitespace
 # TPL: timed propositional logic
 # CTL: computation tree logic, checked with PyNuSMV (uses TRUE, FALSE, .. in NuSMV 2.5.4)
