@@ -19,14 +19,9 @@ MintermReachNodeSplitter::MintermReachNodeSplitter(SemanticModelPtr semantic_mod
                                     std::vector<std::shared_ptr<Obstacle>>{}, obstacles, config->config_planning.dt);
 
     auto config_ccs{config->config_planning.CLCS};
-    ego_ccs = std::make_shared<geometry::CurvilinearCoordinateSystem>(config_ccs->referencePathOriginal());
-    // FIXME: Use projection domain and epsilons from config_ccs (using defaults for now)
-    // Currently, these have weird values
-    // Maybe this is a consequence of config_ccs being initialized as CCS of drivability checker, while we only link
-    // against the environment model
-    //    ego_ccs = std::make_shared<geometry::CurvilinearCoordinateSystem>(config_ccs->referencePathOriginal(),
-    //                                                                      config_ccs->defaultProjectionDomainLimit(),
-    //                                                                      config_ccs->eps(), config_ccs->eps2());
+    ego_ccs = std::make_shared<geometry::CurvilinearCoordinateSystem>(config_ccs->referencePathOriginal(),
+                                                                      config_ccs->defaultProjectionDomainLimit(),
+                                                                      config_ccs->eps(), config_ccs->eps2());
 }
 
 std::vector<std::pair<Minterm, std::vector<reach::ReachNodePtr>>>
