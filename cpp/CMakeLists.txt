@@ -5,10 +5,7 @@ set(CRDC_INCLUDE
 
 set(CRDC_LIBRARY
         ${CRDC_DIR}/commonroad_dc/libcrcc.a # drivability checker
-        # FIXME: temporary fix for duplicate CCS class from drivability checker and environment model
-        # for now, we do not link against the CCS part of the drivability checker, which fixes the problem
-        # change this back once the environment model uses the CCS of the drivability checker again
-        # ${CRDC_DIR}/commonroad_dc/libcrccosy.a # curvilinear coordinate system
+        ${CRDC_DIR}/commonroad_dc/libcrccosy.a # curvilinear coordinate system
         ${CRDC_DIR}/commonroad_dc/libgpc.a # curvilinear collision checker
         CACHE STRING "" FORCE)
 
