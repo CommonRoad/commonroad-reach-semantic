@@ -1,7 +1,7 @@
 #pragma once
 
-#include <commonroad_cpp/geometry/curvilinear_coordinate_system.h>
 #include <commonroad_cpp/world.h>
+#include <geometry/curvilinear_coordinate_system.h>
 
 struct TestEnvironments {
     static constexpr size_t time_step = 0;
