@@ -93,7 +93,8 @@ compile-cpp:
   artifacts:
     paths:
       - pycrreachs.*.so
-      - build-debug
+      - build-debug/lib
+      - build-debug/cpp/tests/crreachs_test
     expire_in: 30 minutes
   needs: [ ]
 
