@@ -27,10 +27,12 @@ class BehindStopLinePredicate(predicate.Predicate):
         node_lanelet_ids: Optional[Set[int]] = None,
     ) -> List[ReachNode]:
         lanelet_ids = semantic_model.lanelet_model.stop_line_lanelet_ids
-        lanelet_with_sl_ids = node_lanelet_ids.intersection(lanelet_ids)
-        if not lanelet_with_sl_ids:
+        # check whether the node is fully within the lanelet with stop line (not partially)
+        if not node_lanelet_ids <= lanelet_ids:
             return []
         else:
+            # behind the stop line
+            lanelet_with_sl_ids = node_lanelet_ids.intersection(lanelet_ids)
             stop_line_s = self._get_stop_line(semantic_model, lanelet_with_sl_ids)
             reach_node.intersect_in_position_domain(p_lon_max=stop_line_s)
             return [reach_node]
@@ -44,9 +46,12 @@ class BehindStopLinePredicate(predicate.Predicate):
     ) -> List[ReachNode]:
         lanelet_ids = semantic_model.lanelet_model.stop_line_lanelet_ids
         lanelet_with_sl_ids = node_lanelet_ids.intersection(lanelet_ids)
+        # check whether located in lanelets with stop line
         if not lanelet_with_sl_ids:
+            # not located, return the whole node
             return [reach_node]
         else:
+            # located, not behind the stop line
             stop_line_s = self._get_stop_line(semantic_model, lanelet_with_sl_ids)
             reach_node.intersect_in_position_domain(p_lat_min=stop_line_s)
             return [reach_node]
