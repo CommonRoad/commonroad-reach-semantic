@@ -28,4 +28,4 @@ traffic_rules:
 #    - LTL G((F(InStraightSuc) & F(V38_InStraightSuc) & (No_straight_straight_PriorityOver_V38 | Same_straight_straight_PriorityAs_V38)) -> (!InIntersection | ((CausesBrakingFor_V38 | F[0..5]InConflictBy_V38) -> !InConflictWith_V38)))
 #    # simulate no opposite driving in LTL
 #    - LTL ! F (InLanelet_8 | InLanelet_13 | InLanelet_15)
-    - LTL G(BehindStopLine)
+    - LTL G[7..20](BehindStopLine)
