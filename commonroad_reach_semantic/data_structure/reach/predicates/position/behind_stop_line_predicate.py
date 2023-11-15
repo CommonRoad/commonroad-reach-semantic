@@ -1,6 +1,5 @@
 from typing import List, Optional, Set, Tuple
 
-from commonroad_reach import pycrreach
 from commonroad_reach.data_structure.reach.reach_node import ReachNode
 
 import commonroad_reach_semantic.data_structure.reach.predicates.predicate as predicate
@@ -44,7 +43,9 @@ class BehindStopLinePredicate(predicate.Predicate):
 
         result_nodes = []
         for lanelet_id in occupied_lanelet_ids:
-            safe_stop_positions = self._get_safe_stopping_positions(semantic_model, lanelet_id)
+            safe_stop_positions = self._get_safe_stopping_positions(
+                semantic_model, lanelet_id
+            )
             if safe_stop_positions is not None:
                 # Adjust the reach node positions
                 new_node = reach_node.clone()
@@ -77,29 +78,27 @@ class BehindStopLinePredicate(predicate.Predicate):
             return [reach_node]
 
         result_nodes = [reach_node]  # Initialize with the initial reach_node
-        for node in result_nodes:  # Iterate over current result_nodes
-            new_nodes = []  # Temporarily store new nodes for this iteration
-            for lanelet_id in occupied_lanelet_ids:
-                # Obtain the longitudinal coordinate of the stop line
-                safe_stop_positions = self._get_safe_stopping_positions(semantic_model, lanelet_id)
-
+        for lanelet_id in occupied_lanelet_ids:
+            safe_stop_positions = self._get_safe_stopping_positions(
+                semantic_model, lanelet_id
+            )
+            new_nodes = []
+            # Iterate over current result_nodes
+            for node in result_nodes:
                 if safe_stop_positions is not None:
-
                     # Clone and adjust the reach node positions
                     behind_sl_node = node.clone()
                     behind_sl_node.intersect_in_position_domain(
                         p_lon_max=safe_stop_positions[0]
                     )
 
-                    in_front_sl_node = node.clone()
-                    in_front_sl_node.intersect_in_position_domain(
-                        p_lon_min=safe_stop_positions[1]
-                    )
-
+                    in_front_sl_node = node
+                    node.intersect_in_position_domain(p_lon_min=safe_stop_positions[1])
                     new_nodes.extend([behind_sl_node, in_front_sl_node])
             result_nodes = new_nodes  # Update result_nodes for the next iteration
-        # If no adjustment is made, return the original reach node
-        return result_nodes if result_nodes else [reach_node]
+            if not result_nodes:
+                break
+        return result_nodes
 
     @staticmethod
     def _get_safe_stopping_positions(
