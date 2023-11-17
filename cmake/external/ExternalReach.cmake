@@ -8,3 +8,6 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(crreach)
+
+# Only build targets of crreach if they are required by one of our targets
+set_property(DIRECTORY ${crreach_SOURCE_DIR} PROPERTY EXCLUDE_FROM_ALL ON)
