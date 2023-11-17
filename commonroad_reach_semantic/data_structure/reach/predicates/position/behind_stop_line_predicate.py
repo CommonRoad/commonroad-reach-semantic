@@ -96,7 +96,7 @@ class BehindStopLinePredicate(predicate.Predicate):
                     node.intersect_in_position_domain(p_lon_min=safe_stop_positions[1])
                     new_nodes.extend([behind_sl_node, in_front_sl_node])
             else:
-                # safe_stop_positions is none, i.e., the stop line is far away
+                # safe_stop_positions is none, i.e., the stop line is far away/incomplete
                 new_nodes = result_nodes
             result_nodes = new_nodes  # Update result_nodes for the next iteration
             if not result_nodes:
@@ -117,25 +117,32 @@ class BehindStopLinePredicate(predicate.Predicate):
             semantic_model.config.planning.CLCS.convert_to_curvilinear_coords
         )
 
+        # Validate if stop_line has start and end attributes
+        if not hasattr(stop_line, "start") or not hasattr(stop_line, "end"):
+            return None  # Invalid stop_line, cannot determine positions
+
         # Starting and ending longitudinal coordinate of the stop line
-        start_s = convert_coords(*stop_line.start)[0]
-        end_s = convert_coords(*stop_line.end)[0]
+        start_s, end_s = [
+            convert_coords(*coord)[0] for coord in [stop_line.start, stop_line.end]
+        ]
 
-        stop_line_s = min(start_s, end_s) if start_s and end_s else None
+        # Ensure both start_s and end_s are not None
+        if start_s is None or end_s is None:
+            return None  # Out of project domain
 
-        if stop_line_s is not None:
-            # Calculate positions relative to the stop line
-            dis_stop_line = semantic_model.config.traffic_rule.dis_stop_line
+        stop_line_s = min(start_s, end_s)
 
-            # Additional consideration of the vehicle length
-            vehicle_length_add = semantic_model.config.vehicle.ego.length / 2
-            if semantic_model.config.planning.reference_point == "REAR":
-                vehicle_length_add += semantic_model.config.vehicle.ego.wb_rear_axle
+        # Calculate positions relative to the stop line
+        dis_stop_line = semantic_model.config.traffic_rule.dis_stop_line
 
-            # stop_line_s - vehicle_front < dis_stop_line
-            min_position = stop_line_s - dis_stop_line - vehicle_length_add
-            # vehicle_front < stop_line_s
-            max_position = stop_line_s - vehicle_length_add
+        # Additional consideration of the vehicle length
+        vehicle_length_add = semantic_model.config.vehicle.ego.length / 2
+        if semantic_model.config.planning.reference_point == "REAR":
+            vehicle_length_add += semantic_model.config.vehicle.ego.wb_rear_axle
 
-            return min_position, max_position
-        return None  # out of projection domain
+        # stop_line_s - vehicle_front < dis_stop_line
+        min_position = stop_line_s - dis_stop_line - vehicle_length_add
+        # vehicle_front < stop_line_s
+        max_position = stop_line_s - vehicle_length_add
+
+        return min_position, max_position
