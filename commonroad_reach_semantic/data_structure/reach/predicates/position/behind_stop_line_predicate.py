@@ -25,7 +25,7 @@ class BehindStopLinePredicate(predicate.Predicate):
         step: int,
         reach_node: ReachNode,
         semantic_model: SemanticModel,
-        node_lanelet_ids: Optional[Set[int]] = None,
+        node_lanelet_ids: Set[int],
     ) -> List[ReachNode]:
         # Obtain the id of lanelets with stop lines
         stop_line_lanelet_ids = semantic_model.lanelet_model.stop_line_lanelet_ids
@@ -52,7 +52,7 @@ class BehindStopLinePredicate(predicate.Predicate):
                 new_node.intersect_in_position_domain(
                     p_lon_min=safe_stop_positions[0], p_lon_max=safe_stop_positions[1]
                 )
-                result_nodes.append(new_node) if new_node else None
+                result_nodes.append(new_node)
         return result_nodes
 
     @predicate.needs_lanelets_set
@@ -61,7 +61,7 @@ class BehindStopLinePredicate(predicate.Predicate):
         step: int,
         reach_node: ReachNode,
         semantic_model: SemanticModel,
-        node_lanelet_ids: Optional[Set[int]] = None,
+        node_lanelet_ids: Set[int],
     ) -> List[ReachNode]:
         # Obtain the id of lanelets with stop lines
         stop_line_lanelet_ids = semantic_model.lanelet_model.stop_line_lanelet_ids
@@ -84,8 +84,8 @@ class BehindStopLinePredicate(predicate.Predicate):
             )
             new_nodes = []
             # Iterate over current result_nodes
-            for node in result_nodes:
-                if safe_stop_positions is not None:
+            if safe_stop_positions is not None:
+                for node in result_nodes:
                     # Clone and adjust the reach node positions
                     behind_sl_node = node.clone()
                     behind_sl_node.intersect_in_position_domain(
@@ -95,6 +95,9 @@ class BehindStopLinePredicate(predicate.Predicate):
                     in_front_sl_node = node
                     node.intersect_in_position_domain(p_lon_min=safe_stop_positions[1])
                     new_nodes.extend([behind_sl_node, in_front_sl_node])
+            else:
+                # safe_stop_positions is none, i.e., the stop line is far away
+                new_nodes = result_nodes
             result_nodes = new_nodes  # Update result_nodes for the next iteration
             if not result_nodes:
                 break
@@ -135,4 +138,4 @@ class BehindStopLinePredicate(predicate.Predicate):
             max_position = stop_line_s - vehicle_length_add
 
             return min_position, max_position
-        return None
+        return None  # out of projection domain
