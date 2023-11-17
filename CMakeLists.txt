@@ -1,50 +1,58 @@
 # ========= minimum settings
-cmake_minimum_required(VERSION 3.15) # minimum required version of CMake
-project(semantic_reach) # project name
-option(ADD_TESTS "unit tests" OFF) # flag to add unit tests
+cmake_minimum_required(VERSION 3.20..3.26)
 
-# ========= check for required variables
-if(NOT DEFINED PYTHON_VER)
-    message(FATAL_ERROR "Please specify the python version via -DPYTHON_VER=")
+if(SKBUILD)
+    set(SEMANTIC_REACH_VERSION ${SKBUILD_PROJECT_VERSION})
+else()
+    set(SEMANTIC_REACH_VERSION 0.1.0)
 endif()
 
-if(NOT DEFINED CRDC_DIR) # path to drivability checker
-    message(FATAL_ERROR "Please specify the path to drivability checker via -DCRDC_DIR=")
+project(reach
+        LANGUAGES CXX
+        VERSION ${SEMANTIC_REACH_VERSION}
+        DESCRIPTION "C++ extension for the commonroad-reach-semantic Python package")
+
+option(ADD_TESTS "Build unit tests" OFF) # flag to add unit tests
+
+# CMP0135 - URL download timestamp
+if(POLICY CMP0135)
+    cmake_policy(SET CMP0135 NEW)
 endif()
 
-if(NOT DEFINED CRREACH_DIR) # path to regular commonroad reach
-    message(FATAL_ERROR "Please specify the path to regular commonroad reach via -DCRREACH_DIR=")
-endif()
+# make FetchContent_Declare_Fallback available
+include(FetchContent)
+FetchContent_Declare(
+        commonroad_cmake
 
-# ========= set variables
-# path to FCL installation in drivability checker
-set(fcl_DIR ${CRDC_DIR}/build/temp.linux-x86_64-cpython-${PYTHON_VER}/dist/lib/cmake/fcl)
-# path to CCD installation in drivability checker
-set(ccd_DIR ${CRDC_DIR}/build/temp.linux-x86_64-cpython-${PYTHON_VER}/dist/lib/ccd)
+        GIT_REPOSITORY https://gitlab.lrz.de/tum-cps/commonroad-cmake.git
+        GIT_TAG        main
+)
+FetchContent_MakeAvailable(commonroad_cmake)
+list(APPEND CMAKE_MODULE_PATH ${commonroad_cmake_SOURCE_DIR})
+
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/external) # add path to cmake files for external packages
+
+# ========= general settings
+set(CMAKE_CXX_STANDARD 17) # c++ standard
+set(CMAKE_CXX_STANDARD_REQUIRED ON) # c++ standard
+set(CMAKE_CXX_EXTENSIONS OFF) # turn off compiler extensions
+
+# Necessary for Python modules: never build as shared library
+# IMPORTANT: This must be set before finding the necessary packages
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+add_compile_definitions(BOOST_ALLOW_DEPRECATED_HEADERS) # silence warnings caused by boost using deprecated headers internally
 
 # ========= find necessary packages
-find_package(Eigen3 REQUIRED) # Eigen3
-find_package(ccd REQUIRED) # for collision checks
-find_package(fcl REQUIRED) # for collision checks
 find_package(yaml-cpp REQUIRED) # for reading yaml files
 find_package(OpenMP REQUIRED) # for parallel computation
 if(ADD_TESTS)
     find_package(doctest REQUIRED) # testing with doctest
 endif()
 
-# ========= general settings
-set(CMAKE_CXX_STANDARD 17) # c++ standard
-set(CMAKE_CXX_STANDARD_REQUIRED ON) # c++ standard
-set(CMAKE_CXX_EXTENSIONS OFF) # turn off compiler extensions
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}") # enable parallel computation
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}") # enable parallel computation
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}") # enable parallel computation
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/../) # output directory of built libraries
-
-set(CMAKE_CXX_VISIBILITY_PRESET hidden) # required by pybind11
-add_compile_definitions(BOOST_ALLOW_DEPRECATED_HEADERS) # silence warnings caused by boost using deprecated headers internally
+include(ExternalPybind)
+include(ExternalReach)
 
 # ========= add sub directories
-add_subdirectory(external/pybind11) # pybind header
-add_subdirectory(cpp) # reachable set
-add_subdirectory(python_binding)  # python binding for reachable set
+add_subdirectory(cpp) # semantic reachable set
+add_subdirectory(python_binding)  # python binding for semantic reachable set
