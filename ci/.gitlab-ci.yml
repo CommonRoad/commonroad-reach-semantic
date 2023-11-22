@@ -74,15 +74,14 @@ compile-cpp:
     - conda activate "$CONDA_ENV_PREFIX$PYTHON_VER"
     - *python-prepare
     - mkdir build-debug && cd build-debug
-    - cmake -DCMAKE_BUILD_TYPE=Debug -DADD_TESTS=true ..
-    - cmake --build . -- -j $BUILD_JOBS
+    - cmake -DCMAKE_BUILD_TYPE=Debug ..
+    - cmake --build . -- -t pycrreachs -j $BUILD_JOBS
   parallel:
     matrix:
       - PYTHON_VER: *python-versions
   artifacts:
     paths:
       - commonroad_reach_semantic/pycrreachs.*.so
-      - build-debug/cpp/crreachs_test
     expire_in: 30 minutes
   needs: [ ]
 
@@ -97,6 +96,19 @@ compile-via-pip-install:
   parallel:
     matrix:
       - PYTHON_VER: *python-versions
+  needs: [ ]
+
+### compile C++ tests ###
+compile-cpp-tests:
+  stage: compile
+  script:
+    - mkdir build-debug && cd build-debug
+    - cmake -DCMAKE_BUILD_TYPE=Debug -DADD_TESTS=ON ..
+    - cmake --build . -- -t crreachs_tests -j $BUILD_JOBS
+  artifacts:
+    paths:
+      - build-debug/cpp/crreachs_test
+    expire_in: 30 minutes
   needs: [ ]
 
 ### test Python ###
@@ -121,9 +133,6 @@ test-cpp:
   script:
     - cd build-debug
     - ./cpp/crreachs_test
-  parallel:
-    matrix:
-      - PYTHON_VER: *python-versions
   needs:
-    - job: compile-cpp
+    - job: compile-cpp-tests
       artifacts: true
