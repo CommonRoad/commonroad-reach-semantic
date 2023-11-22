@@ -75,7 +75,7 @@ compile-cpp:
     - *python-prepare
     - mkdir build-debug && cd build-debug
     - cmake -DCMAKE_BUILD_TYPE=Debug ..
-    - cmake --build . -- -t pycrreachs -j $BUILD_JOBS
+    - cmake --build . -t pycrreachs -- -j $BUILD_JOBS
   parallel:
     matrix:
       - PYTHON_VER: *python-versions
@@ -104,7 +104,7 @@ compile-cpp-tests:
   script:
     - mkdir build-debug && cd build-debug
     - cmake -DCMAKE_BUILD_TYPE=Debug -DADD_TESTS=ON ..
-    - cmake --build . -- -t crreachs_tests -j $BUILD_JOBS
+    - cmake --build . -t crreachs_tests -- -j $BUILD_JOBS
   artifacts:
     paths:
       - build-debug/cpp/crreachs_test
