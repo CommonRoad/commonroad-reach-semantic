@@ -38,6 +38,14 @@ Please refer to its [README](https://gitlab.lrz.de/cps/commonroad-reachable-set/
 pip install -v .
 ```
 
+> **Note**: The verbose flag (`-v`) prints detailed information about the C++ build progress.
+
+**Optional:**
+
+- To build the code in Debug mode, add the flag `--config-settings=cmake.build-type="Debug"` to the `pip` command.
+- See [here](https://scikit-build-core.readthedocs.io/en/latest/configuration.html#configuring-cmake-arguments-and-defines) for further information on configuring CMake arguments via our build system (`scikit-build-core`).
+
+
 ### Running the Code
 
 Run the example script `main.py` to compute specification-compliant reachable sets.
