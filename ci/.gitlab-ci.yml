@@ -13,7 +13,7 @@ stages:
   - test
 
 default:
-  image: $CI_REGISTRY/cps/commonroad/commonroad-reach-semantic/deps:ci-fc
+  image: $CI_REGISTRY/cps/commonroad/commonroad-reach-semantic/ci:1.0
 
 before_script:
   - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.lrz.de/".insteadOf "git@gitlab.lrz.de:"
