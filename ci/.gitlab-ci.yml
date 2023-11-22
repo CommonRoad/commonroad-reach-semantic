@@ -104,7 +104,7 @@ compile-cpp-tests:
     - cmake --build . -t crreachs_tests
   artifacts:
     paths:
-      - build-debug/cpp/crreachs_test
+      - build-debug/cpp/crreachs_tests
     expire_in: 30 minutes
   needs: [ ]
 
@@ -129,7 +129,7 @@ test-cpp:
   stage: test
   script:
     - cd build-debug
-    - ./cpp/crreachs_test
+    - ./cpp/crreachs_tests
   needs:
     - job: compile-cpp-tests
       artifacts: true
