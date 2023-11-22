@@ -82,7 +82,7 @@ compile-cpp:
   artifacts:
     paths:
       - commonroad_reach_semantic/pycrreachs.*.so
-      - build-debug/cpp/doctest_runner
+      - build-debug/cpp/crreachs_test
     expire_in: 30 minutes
   needs: [ ]
 
@@ -120,7 +120,7 @@ test-cpp:
   stage: test
   script:
     - cd build-debug
-    - ./cpp/doctest_runner
+    - ./cpp/crreachs_test
   parallel:
     matrix:
       - PYTHON_VER: *python-versions

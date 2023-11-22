@@ -7,7 +7,7 @@ else()
     set(SEMANTIC_REACH_VERSION 0.1.0)
 endif()
 
-project(reach
+project(semantic_reach
         LANGUAGES CXX
         VERSION ${SEMANTIC_REACH_VERSION}
         DESCRIPTION "C++ extension for the commonroad-reach-semantic Python package")
