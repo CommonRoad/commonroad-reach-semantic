@@ -15,9 +15,6 @@ stages:
 default:
   image: $CI_REGISTRY/cps/commonroad/commonroad-reach-semantic/deps:ci-fc
 
-variables:
-  BUILD_JOBS: 20
-
 before_script:
   - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.lrz.de/".insteadOf "git@gitlab.lrz.de:"
 
@@ -74,8 +71,8 @@ compile-cpp:
     - conda activate "$CONDA_ENV_PREFIX$PYTHON_VER"
     - *python-prepare
     - mkdir build-debug && cd build-debug
-    - cmake -DCMAKE_BUILD_TYPE=Debug ..
-    - cmake --build . -t pycrreachs -- -j $BUILD_JOBS
+    - cmake -GNinja -DCMAKE_BUILD_TYPE=Debug ..
+    - cmake --build . -t pycrreachs
   parallel:
     matrix:
       - PYTHON_VER: *python-versions
@@ -92,7 +89,7 @@ compile-via-pip-install:
     - *conda-init
     - conda activate "$CONDA_ENV_PREFIX$PYTHON_VER"
     - *python-prepare
-    - pip install -v . --config-settings=cmake.define.CMAKE_BUILD_PARALLEL_LEVEL=$BUILD_JOBS
+    - pip install -v .
   parallel:
     matrix:
       - PYTHON_VER: *python-versions
@@ -103,8 +100,8 @@ compile-cpp-tests:
   stage: compile
   script:
     - mkdir build-debug && cd build-debug
-    - cmake -DCMAKE_BUILD_TYPE=Debug -DADD_TESTS=ON ..
-    - cmake --build . -t crreachs_tests -- -j $BUILD_JOBS
+    - cmake -GNinja -DCMAKE_BUILD_TYPE=Debug -DADD_TESTS=ON ..
+    - cmake --build . -t crreachs_tests
   artifacts:
     paths:
       - build-debug/cpp/crreachs_test
