@@ -7,21 +7,16 @@
 # CI_JOB_TOKEN: Token, valid as long as the job is running
 # CI_PROJECT_DIR: path where project is cloned to and gitlab job runs from
 
-# -------------- Variables from Docker container ----------------------------
-# CRDC_DIR: Path to the installation of commonroad-drivability-checker in the Docker container
-# CRREACH_DIR: Path to the installation of commonroad-reachable-set in the Docker container
-
 stages:
   - static-check
   - compile
   - test
 
-image: $CI_REGISTRY/cps/commonroad/commonroad-reach-semantic/deps:ci
+default:
+  image: $CI_REGISTRY/cps/commonroad/commonroad-reach-semantic/deps:ci-fc
 
 variables:
-  CRDC_DIR: /dc
-  CRREACH_DIR: /reach
-  BUILD_JOBS: 4
+  BUILD_JOBS: 20
 
 before_script:
   - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.lrz.de/".insteadOf "git@gitlab.lrz.de:"
@@ -36,7 +31,7 @@ before_script:
   - conda install -c conda-forge spot
 
 .python-versions: &python-versions
-  - 310
+  - "3.10"
 
 pycodestyle-commit:
   stage: static-check
@@ -63,49 +58,54 @@ clang-format:
 
 clang-tidy:
   stage: static-check
-  variables:
-    GIT_SUBMODULE_STRATEGY: recursive # initialize submodules before starting job
   script:
     - mkdir build && cd build
-    - cmake -DCRDC_DIR="$CRDC_DIR" -DCRREACH_DIR="$CRREACH_DIR" -DPYTHON_VER="310" -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ..
+    - cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ..
     - cd ..
     - ./ci/clang-tidy.sh
   needs: [ ]
 
 
-### build C++ library ###
+### build C++ library using CMake directly ###
 compile-cpp:
   stage: compile
-  variables:
-    GIT_SUBMODULE_STRATEGY: recursive # initialize submodules before starting job
-  before_script:
-    - *conda-init
-    - conda activate "cr$PYTHON_VER"
-    - *python-prepare
   script:
+    - *conda-init
+    - conda activate "$CONDA_ENV_PREFIX$PYTHON_VER"
+    - *python-prepare
     - mkdir build-debug && cd build-debug
-    - cmake -DCRDC_DIR="$CRDC_DIR" -DCRREACH_DIR="$CRREACH_DIR" -DPYTHON_VER="$PYTHON_VER" -DCMAKE_BUILD_TYPE=Debug -DADD_TESTS=true ..
+    - cmake -DCMAKE_BUILD_TYPE=Debug -DADD_TESTS=true ..
     - cmake --build . -- -j $BUILD_JOBS
   parallel:
     matrix:
       - PYTHON_VER: *python-versions
   artifacts:
     paths:
-      - pycrreachs.*.so
+      - commonroad_reach_semantic/pycrreachs.*.so
       - build-debug/cpp/doctest_runner
     expire_in: 30 minutes
   needs: [ ]
 
+### build and install C++ extension using pip ###
+compile-via-pip-install:
+  stage: compile
+  script:
+    - *conda-init
+    - conda activate "$CONDA_ENV_PREFIX$PYTHON_VER"
+    - *python-prepare
+    - pip install -v . --config-settings=cmake.define.CMAKE_BUILD_PARALLEL_LEVEL=$BUILD_JOBS
+  parallel:
+    matrix:
+      - PYTHON_VER: *python-versions
+  needs: [ ]
 
 ### test Python ###
 test-python:
   stage: test
-  before_script:
-    - *conda-init
-    - conda activate "cr$PYTHON_VER"
-    - *python-prepare
   script:
-    - cp pycrreachs.*.so commonroad_reach_semantic
+    - *conda-init
+    - conda activate "$CONDA_ENV_PREFIX$PYTHON_VER"
+    - *python-prepare
     - cd tests
     - pytest .
   parallel:
@@ -118,10 +118,6 @@ test-python:
 ### test C++ ###
 test-cpp:
   stage: test
-  before_script:
-    - *conda-init
-    - conda activate "cr$PYTHON_VER"
-    - *python-prepare
   script:
     - cd build-debug
     - ./cpp/doctest_runner
