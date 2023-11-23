@@ -13,6 +13,7 @@ struct TrafficRuleConfiguration : reach::ReachableSetConfiguration {
     double distance_braking{};
     double acceleration_braking_hard{};
     double backward_driving_v_err{};
+    double dis_stop_line{};
     std::vector<std::string> activated_rules{};
     int mode_spot{};
     int mode_automata{};

@@ -192,6 +192,15 @@ class LaneletModel:
 
     @property
     @functools.lru_cache(maxsize=1)
+    def stop_line_lanelet_ids(self) -> Set[int]:
+        """Lanelet IDs of the stop lines."""
+        return {
+            lanelet.lanelet_id for lanelet in self.local_lanelet_network.lanelets
+            if lanelet.stop_line
+        }
+
+    @property
+    @functools.lru_cache(maxsize=1)
     def access_ramp_lanelet_ids(self) -> Set[int]:
         """Lanelet IDs of the access ramp(s)."""
         return self._lanelet_ids_by_type(LaneletType.ACCESS_RAMP)

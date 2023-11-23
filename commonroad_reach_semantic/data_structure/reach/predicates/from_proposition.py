@@ -19,6 +19,8 @@ from commonroad_reach_semantic.data_structure.reach.predicates.position.in_front
     InFrontOfObstaclePredicate
 from commonroad_reach_semantic.data_structure.reach.predicates.position.in_intersection_predicate import \
     InIntersectionPredicate
+from commonroad_reach_semantic.data_structure.reach.predicates.position.behind_stop_line_predicate import \
+    BehindStopLinePredicate
 from commonroad_reach_semantic.data_structure.reach.predicates.position.in_lanelet_predicate import InLaneletPredicate
 from commonroad_reach_semantic.data_structure.reach.predicates.position.in_straight_successor_predicate import \
     InStraightSuccessorPredicate
@@ -77,6 +79,8 @@ def from_proposition(proposition: str, negated: bool):
         return VehicleInSuccessorPredicate(int(matched.group(1)), OutgoingDirection[matched.group(2).upper()], negated)
     elif re.fullmatch(r"InIntersection", proposition):
         return InIntersectionPredicate(negated)
+    elif re.fullmatch(r"BehindStopLine", proposition):
+        return BehindStopLinePredicate(negated)
     elif re.fullmatch(r"DrivesBackward", proposition):
         return DrivesBackwardPredicate(negated)
     elif matched := re.fullmatch(r"CausesBrakingFor_V(\d+)", proposition):

@@ -36,6 +36,10 @@ class Proposition:
         return "OnMainCarriageway"
 
     @staticmethod
+    def behind_stop_line() -> str:
+        return "BehindStopLine"
+
+    @staticmethod
     def vehicle_on_main_carriageway(id_obstacle: int) -> str:
         return f"OnMainCarriageway_V{id_obstacle}"
 
