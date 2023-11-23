@@ -115,6 +115,9 @@ test-python:
     - *conda-init
     - conda activate "$CONDA_ENV_PREFIX$PYTHON_VER"
     - *python-prepare
+    # FIXME: temporary workaround until we can compile against commonroad-reach from PyPI
+    # this fix will no longer work once we start testing the C++ bindings from Python
+    - pip install commonroad-reach>=2023.1.1
     - cd tests
     - pytest .
   parallel:
