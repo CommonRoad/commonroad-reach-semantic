@@ -33,6 +33,10 @@ Please refer to its [README](https://gitlab.lrz.de/cps/commonroad-reachable-set/
 > To do so, indicate the path to the older version of GCC in the `CXX` environment variable before building the code (e.g. `export CXX=/usr/bin/g++-10`).
 > **Important:** Make sure that you use the same compiler version for building CommonRoad-Reach and CommonRoad-Reach-Semantic.
 
+> **Note:** Using the pip package of CommonRoad-Reach does currently not work when using the C++ extensions, probably due to incompatible compiler versions.
+> We will have to check this again, once we release a new version of CommonRoad-Reach (> 2023.1.1).
+
+
 * Build the C++ extension and install the Python package:
 ```bash
 pip install -v .
