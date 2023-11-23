@@ -1,27 +1,10 @@
-# set include & library paths variables for external commonroad libraries
-set(CRDC_INCLUDE
-        ${CRDC_DIR}/cpp/collision/include # drivability checker
-        ${CRDC_DIR}/cpp/geometry/include) # curvilinear collision checker
-
-set(CRDC_LIBRARY
-        ${CRDC_DIR}/commonroad_dc/libcrcc.a # drivability checker
-        ${CRDC_DIR}/commonroad_dc/libcrccosy.a # curvilinear collision checker
-        ${CRDC_DIR}/commonroad_dc/libgpc.a # curvilinear collision checker
-        CACHE STRING "" FORCE)
-
-set(CRREACH_INCLUDE ${CRREACH_DIR}/cpp/include)
-set(CRREACH_LIBRARY ${CRREACH_DIR}/build/temp.linux-x86_64-cpython-${PYTHON_VER}/cpp/libcrreach.a)
-
 # set a variable to hold all relevant include directories
-set(REACH_INCLUDE_DIR
+set(REACHS_INCLUDE_DIR
         ${CMAKE_CURRENT_LIST_DIR}/include
-        ${CRDC_INCLUDE}
-        ${CRREACH_INCLUDE}
-        ${EIGEN3_INCLUDE_DIR}
         CACHE STRING "" FORCE)
 
 # set a variable to hold all relevant cpp source files of reachable sets
-set(REACH_SOURCE
+set(REACHS_SOURCE
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/reachable_set_labeler.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/semantic_reach_set.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/semantic_labeling_reach_set.cpp
@@ -48,34 +31,34 @@ set(REACH_SOURCE
 
 # ========= building library
 # 1. create library from source files above
-add_library(crreachs STATIC ${REACH_SOURCE})
+add_library(crreachs STATIC ${REACHS_SOURCE})
 # build position independent code so that we can link this in the Python bindings (builds shared lib)
 set_property(TARGET crreachs PROPERTY POSITION_INDEPENDENT_CODE ON)
+# handle pybind11 warning "... declared with greater visibility than the type of its field ..."
+set_property(TARGET crreachs PROPERTY CXX_VISIBILITY_PRESET hidden)
 # 2. include directories
 target_include_directories(crreachs PUBLIC
-        ${REACH_INCLUDE_DIR})
+        ${REACHS_INCLUDE_DIR})
 # 3. link to external libraries
 target_link_libraries(crreachs PUBLIC
-        ${CRREACH_LIBRARY}
-        ${CRDC_LIBRARY}
-        fcl
-        ccd
+        crreach
         yaml-cpp
         spot
-        bddx)
+        bddx
+        OpenMP::OpenMP_CXX)
 target_link_libraries(crreachs PRIVATE pybind11::embed)
 
 # ==== unit tests using Doctest
 if (ADD_TESTS)
     # 1. create target
-    add_executable(doctest_runner
+    add_executable(crreachs_tests
             tests/utility/test_spot.cpp
     )
     # 2. include directories
-    target_include_directories(doctest_runner PRIVATE
+    target_include_directories(crreachs_tests PRIVATE
             ${CMAKE_CURRENT_LIST_DIR}/tests/)
     # 3. link to external libraries
-    target_link_libraries(doctest_runner crreachs)
+    target_link_libraries(crreachs_tests crreachs)
     # 4. tell doctest to use main for implementation
-    target_compile_definitions(doctest_runner PRIVATE DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN)
+    target_compile_definitions(crreachs_tests PRIVATE DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN)
 endif ()

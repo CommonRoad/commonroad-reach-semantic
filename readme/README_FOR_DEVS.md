@@ -10,6 +10,14 @@
 For the following instructions, we assume that you are using an Anaconda environment named `commonroad` for
 CommonRoad-Reach-Semantic.
 
+* You can build the C++ code directly via CMake, which might be more convenient for local development.
+  To do so, run the following commands within your Anaconda environment:
+```bash
+mkdir build && cd build
+cmake -DCMAKE_BUILD_TYPE=Debug ..
+cmake --build . -j $BUILD_JOBS
+```
+
 #### Building the C++ code from your IDE
 
 If you want to build the code from your IDE, extra steps are necessary to ensure that the build uses the Python version
@@ -41,7 +49,5 @@ Python bindings.
 ![Custom Build Application](img/run_configuration.png)
 
 ![Custom Build Target](img/custom_target.png)
-
-![External Build Tool](img/external_tool.png)
 
 ![Dummy Run Configuration](img/dumy_run_configuration.png)
