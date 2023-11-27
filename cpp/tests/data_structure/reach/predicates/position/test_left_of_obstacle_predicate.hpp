@@ -1,0 +1,10 @@
+//
+// Created by tarabasz on 11/27/23.
+//
+
+#ifndef SEMANTIC_REACH_TEST_LEFT_OF_OBSTACLE_PREDICATE_HPP
+#define SEMANTIC_REACH_TEST_LEFT_OF_OBSTACLE_PREDICATE_HPP
+
+class test_left_of_obstacle_predicate {};
+
+#endif // SEMANTIC_REACH_TEST_LEFT_OF_OBSTACLE_PREDICATE_HPP

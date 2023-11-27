@@ -34,6 +34,9 @@ set(REACH_SOURCE
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/predicates/py_predicate.cpp
 
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/predicates/position/in_front_of_obstacle_predicate.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/predicates/position/behind_obstacle_predicate.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/predicates/position/left_of_obstacle_predicate.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/predicates/position/right_of_obstacle_predicate.cpp
 
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/splitters/minterm_reach_node_splitter.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/splitters/region_reach_node_splitter.cpp
