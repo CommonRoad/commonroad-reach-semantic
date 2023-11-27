@@ -81,9 +81,9 @@ target_link_libraries(crreachs PRIVATE
         spdlog::spdlog)
 
 # ==== unit tests
-if(ADD_TESTS)
+if (ADD_TESTS)
     add_subdirectory(tests)
-endif()
+endif ()
 
 # dummy target for CLion to detect header files
 add_custom_target(crreachs_headers SOURCES
@@ -99,6 +99,9 @@ add_custom_target(crreachs_headers SOURCES
         ${CMAKE_CURRENT_LIST_DIR}/include/reach_semantic/data_structure/reach/predicates/py_predicate.hpp
 
         ${CMAKE_CURRENT_LIST_DIR}/include/reach_semantic/data_structure/reach/predicates/position/in_front_of_obstacle_predicate.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/include/reach_semantic/data_structure/reach/predicates/position/behind_obstacle_predicate.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/include/reach_semantic/data_structure/reach/predicates/position/left_of_obstacle_predicate.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/include/reach_semantic/data_structure/reach/predicates/position/right_of_obstacle_predicate.hpp
 
         ${CMAKE_CURRENT_LIST_DIR}/include/reach_semantic/data_structure/reach/splitters/minterm_reach_node_splitter.hpp
         ${CMAKE_CURRENT_LIST_DIR}/include/reach_semantic/data_structure/reach/splitters/region_reach_node_splitter.hpp

@@ -40,7 +40,7 @@ std::vector<reach::ReachNodePtr> RightOfObstaclePredicate::_restrict_reach_node_
 
 std::optional<double>
 RightOfObstaclePredicate::_get_obstacle_right(int step, const std::shared_ptr<World> &world,
-                                            const std::shared_ptr<CurvilinearCoordinateSystem> &ego_ccs) const {
+                                              const std::shared_ptr<CurvilinearCoordinateSystem> &ego_ccs) const {
     auto obstacle = world->findObstacle(obstacle_id);
     std::shared_ptr<State> obstacle_state;
     try {

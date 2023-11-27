@@ -26,4 +26,4 @@ class BehindObstaclePredicate : public CppPredicate {
   public:
     BehindObstaclePredicate(bool negated, size_t obstacle_id, double ego_length);
 };
-}
+} // namespace semantic_reach

@@ -24,7 +24,6 @@ class LeftOfObstaclePredicate : public CppPredicate {
         const std::shared_ptr<geometry::CurvilinearCoordinateSystem> &ego_ccs) const override;
 
   public:
-
     LeftOfObstaclePredicate(bool negated, size_t obstacle_id, double ego_length);
 };
 } // namespace semantic_reach
