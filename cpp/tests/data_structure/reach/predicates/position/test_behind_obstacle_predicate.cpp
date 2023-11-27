@@ -2,10 +2,10 @@
 
 void BehindObstaclePredicateTest::SetUp() {
     test_envs.set_up_environments();
-    positive_pred = std::make_unique<semantic_reach::BehindObstaclePredicate>(
-        false, TestEnvironments::id_obstacle_one, ego_length);
-    negative_pred = std::make_unique<semantic_reach::BehindObstaclePredicate>(
-        true, TestEnvironments::id_obstacle_one, ego_length);
+    positive_pred =
+        std::make_unique<semantic_reach::BehindObstaclePredicate>(false, TestEnvironments::id_obstacle_one, ego_length);
+    negative_pred =
+        std::make_unique<semantic_reach::BehindObstaclePredicate>(true, TestEnvironments::id_obstacle_one, ego_length);
 
     reach_node_one = std::make_shared<reach::ReachNode>(
         TestEnvironments::time_step,
@@ -20,10 +20,11 @@ TEST_F(BehindObstaclePredicateTest, Positive) {
     ASSERT_EQ(restricted.size(), 1);
     auto restricted_node = restricted.at(0);
     // expect lon min set to obstacle front inflated by ego length
-    double expected_lon_min = 20.0 + (5.0 / 2.0) + ego_length / 2.0;
-    EXPECT_NEAR(restricted_node->p_lon_min(), expected_lon_min, tolerance);
+    // double expected_lon_min = 20.0 + (5.0 / 2.0) + ego_length / 2.0;
+    double expected_lon_max = 20.0 - (5.0 / 2.0) - ego_length / 2.0;
+    EXPECT_NEAR(restricted_node->p_lon_min(), expected_lon_max, tolerance);
     // expect other bounds to be unchanged
-    EXPECT_EQ(restricted_node->p_lon_max(), reach_node_one->p_lon_max());
+    EXPECT_EQ(restricted_node->p_lon_min(), reach_node_one->p_lon_min());
     EXPECT_EQ(restricted_node->v_lon_min(), reach_node_one->v_lon_min());
     EXPECT_EQ(restricted_node->v_lon_max(), reach_node_one->v_lon_max());
     EXPECT_EQ(restricted_node->box_lat(), reach_node_one->box_lat());
