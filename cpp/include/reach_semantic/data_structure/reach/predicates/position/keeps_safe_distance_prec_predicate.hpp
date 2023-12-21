@@ -23,7 +23,6 @@ class KeepSafeDistancePrecPredicate : CppPredicate {
         [[nodiscard]] std::pair<double, double> _determine_safe_position(
             int step, const reach::ReachNodePtr &reach_node, const std::shared_ptr<World> &world,
             const std::shared_ptr<geometry::CurvilinearCoordinateSystem> &ego_ccs, double ego_speed) const;
-
     public:
         KeepSafeDistancePrecPredicate(bool negated, size_t obstacle_id, double ego_length);
 
