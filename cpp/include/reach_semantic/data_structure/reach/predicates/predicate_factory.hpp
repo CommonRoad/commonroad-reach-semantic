@@ -1,6 +1,7 @@
 #pragma once
 
 #include "reach_semantic/data_structure/reach/predicates/position/in_front_of_obstacle_predicate.hpp"
+#include "reach_semantic/data_structure/reach/predicates/position/keeps_safe_distance_prec_predicate.hpp"
 #include "reach_semantic/data_structure/reach/predicates/predicate.hpp"
 #include "reach_semantic/data_structure/reach/predicates/predicate_config.hpp"
 
@@ -51,6 +52,9 @@ class PredicateFactory {
      * @return The created predicate.
      */
     std::unique_ptr<InFrontOfObstaclePredicate> make_in_front_of_obstacle_predicate(bool negated,
+                                                                                    size_t obstacle_id) const;
+
+    std::unique_ptr<KeepSafeDistancePrecPredicate> make_safe_distance_prec_predicate(bool negated,
                                                                                     size_t obstacle_id) const;
 };
 } // namespace semantic_reach
