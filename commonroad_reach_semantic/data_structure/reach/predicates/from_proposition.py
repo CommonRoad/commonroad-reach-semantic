@@ -44,8 +44,6 @@ from commonroad_reach_semantic.data_structure.reach.predicates.ego_independent.v
     VehicleOnAccessRampPredicate
 from commonroad_reach_semantic.data_structure.reach.predicates.ego_independent.vehicle_on_main_carriageway_predicate import \
     VehicleOnMainCarriagewayPredicate
-from commonroad_reach_semantic.data_structure.reach.predicates.position.keeps_safe_distance_prec_predicate import \
-    KeepSafeDistancePrecPredicate
 
 
 def from_proposition(proposition: str, negated: bool):
@@ -73,8 +71,6 @@ def from_proposition(proposition: str, negated: bool):
         return AlignedWithObstaclePredicate(int(matched.group(1)), negated)
     elif matched := re.fullmatch(r"LeftOf_V(\d+)", proposition):
         return LeftOfObstaclePredicate(int(matched.group(1)), negated)
-    elif matched := re.fullmatch(r"SafeDistance_V(\d+)", proposition):
-        return KeepSafeDistancePrecPredicate(int(matched.group(1)), negated)
     elif re.fullmatch(r"InStraightSuc", proposition):
         return InStraightSuccessorPredicate(negated)
     elif matched := re.fullmatch(r"V(\d+)_In(Left|Straight|Right)Suc", proposition):
