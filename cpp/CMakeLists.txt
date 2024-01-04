@@ -37,6 +37,7 @@ set(REACH_SOURCE
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/predicates/position/behind_obstacle_predicate.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/predicates/position/left_of_obstacle_predicate.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/predicates/position/right_of_obstacle_predicate.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/predicates/position/keeps_safe_distance_prec_predicate.cpp
 
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/predicates/position/keeps_safe_distance_prec_predicate.cpp
 

@@ -6,8 +6,8 @@ using geometry::CurvilinearCoordinateSystem;
 
 namespace semantic_reach {
 
-class KeepSafeDistancePrecPredicate : CppPredicate {
-    private:
+class KeepSafeDistancePrecPredicate : public CppPredicate {
+  private:
         size_t obstacle_id;
         double ego_length;
 
