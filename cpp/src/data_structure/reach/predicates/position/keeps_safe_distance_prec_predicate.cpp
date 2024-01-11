@@ -15,16 +15,17 @@ std::vector<reach::ReachNodePtr> KeepSafeDistancePrecPredicate::_restrict_reach_
 
     std::pair <double, double> safe_position_for_given_velocity[20];
     auto obstacle = world->findObstacle(obstacle_id);
-    std::shared_ptr<State> obstacle_state;
+    // TODO: check for error
+    std::shared_ptr<State> obstacle_state = obstacle->getStateByTimeStep(step);
     double vehicle_speed = obstacle_state->getVelocity(); //vehicle.v_lon_ref(step)
-    double vehicle_deceleration = -6.0; //semantic_model.config.vehicle.other.a_lon_min
+    double vehicle_deceleration = -10.5;                  // semantic_model.config.vehicle.other.a_lon_min
     double ego_speed = 36.66; //for now
     double ego_reaction_time = 0.3; //semantic_model.config.vehicle.ego.t_react
-    double ego_deceleration = -6.0; //semantic_model.config.vehicle.ego.a_lon_min
+    double ego_deceleration = -10.0; // semantic_model.config.vehicle.ego.a_lon_min
     for(int i = 0; i<20; i++) {
         double ego_speed_change = reach_node->v_lon_max() - reach_node->v_lon_min();
         double start_velocity = reach_node->v_lon_min();
-
+        ego_speed = start_velocity + ego_speed_change * i / 19;
 
         safe_position_for_given_velocity[i] = _determine_safe_position(step, reach_node, world, ego_ccs, start_velocity + ego_speed_change*i/19);
         reach_node->polygon_lon->intersect_halfspace( -(ego_speed /abs(ego_deceleration) + ego_reaction_time), 1, - (vehicle_speed * vehicle_speed) / (-2 * abs(vehicle_deceleration)) - (3*(ego_speed * ego_speed) / (2 * abs(ego_deceleration) +2 * ego_speed * ego_reaction_time)));
@@ -52,12 +53,13 @@ std::vector<reach::ReachNodePtr> KeepSafeDistancePrecPredicate::_restrict_reach_
     std::pair <double, double> safe_position_for_given_velocity[20];
     reach::ReachNodePtr node[20];
     auto obstacle = world->findObstacle(obstacle_id);
-    std::shared_ptr<State> obstacle_state;
+    // TODO: check for error
+    std::shared_ptr<State> obstacle_state = obstacle->getStateByTimeStep(step);
     double vehicle_speed = obstacle_state -> getVelocity(); //vehicle.v_lon_ref(step)
-    double vehicle_deceleration = -6.0; //semantic_model.config.vehicle.other.a_lon_min
+    double vehicle_deceleration = -10.5;                  // semantic_model.config.vehicle.other.a_lon_min
     double ego_speed = 36.66; //for now
     double ego_reaction_time = 0.3; //semantic_model.config.vehicle.ego.t_react
-    double ego_deceleration = -6.0; //semantic_model.config.vehicle.ego.a_lon_min
+    double ego_deceleration = -10.0; // semantic_model.config.vehicle.ego.a_lon_min
     // f(es) = (vs^2) / (-2 * abs(vd)) - (es^2) / (-2 * abs(ed)) + es * er;
     // f'(es) =  es /abs(ed) + er;
     //  ax + by <= c
@@ -86,13 +88,14 @@ std::pair<double, double> KeepSafeDistancePrecPredicate::_determine_safe_positio
     const std::shared_ptr<geometry::CurvilinearCoordinateSystem> &ego_ccs, double ego_speed) const {
 
     auto obstacle = world->findObstacle(obstacle_id);
-    std::shared_ptr<State> obstacle_state;
+    // TODO: check for error
+    std::shared_ptr<State> obstacle_state = obstacle->getStateByTimeStep(step);
 
-    double vehicle_pos = obstacle_state->getLonPosition();//vehicle.p_lon_min_ref(step, semantic_model.config.vehicle.ego.length / 2)
+    double vehicle_pos = obstacle->rearS(step, ego_ccs) + ego_length / 2.0;
     double vehicle_speed = obstacle_state -> getVelocity(); //vehicle.v_lon_ref(step)
-    double vehicle_deceleration = -6.0; //semantic_model.config.vehicle.other.a_lon_min
+    double vehicle_deceleration = -10.5;                  // semantic_model.config.vehicle.other.a_lon_min
     double ego_reaction_time = 0.3; //semantic_model.config.vehicle.ego.t_react
-    double ego_deceleration = -6.0; //semantic_model.config.vehicle.ego.a_lon_min
+    double ego_deceleration = -10.0;                      // semantic_model.config.vehicle.ego.a_lon_min
 
     double safe_dist = (vehicle_speed * vehicle_speed) / (-2 * abs(vehicle_deceleration)) - (ego_speed * ego_speed) / (-2 * abs(ego_deceleration)) + ego_speed * ego_reaction_time;
 
