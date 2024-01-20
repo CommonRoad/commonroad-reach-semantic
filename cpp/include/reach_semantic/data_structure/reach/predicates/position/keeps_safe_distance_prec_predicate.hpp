@@ -20,7 +20,11 @@ class KeepSafeDistancePrecPredicate : public CppPredicate {
                 const std::shared_ptr<geometry::CurvilinearCoordinateSystem> &ego_ccs) const override;
 
 
-        [[nodiscard]] std::pair<double, double> _determine_safe_position(
+        [[nodiscard]] double _determine_safe_position(
+            int step, const reach::ReachNodePtr &reach_node, const std::shared_ptr<World> &world,
+            const std::shared_ptr<geometry::CurvilinearCoordinateSystem> &ego_ccs, double ego_speed) const;
+
+        [[nodiscard]] double _determine_shape(
             int step, const reach::ReachNodePtr &reach_node, const std::shared_ptr<World> &world,
             const std::shared_ptr<geometry::CurvilinearCoordinateSystem> &ego_ccs, double ego_speed) const;
     public:

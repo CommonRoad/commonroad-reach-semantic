@@ -13,15 +13,21 @@ std::vector<reach::ReachNodePtr> KeepSafeDistancePrecPredicate::_restrict_reach_
     int step, const reach::ReachNodePtr &reach_node, const std::shared_ptr<World> &world,
     const std::shared_ptr<CurvilinearCoordinateSystem> &ego_ccs) const {
 
-    std::pair <double, double> safe_position_for_given_velocity[20];
+    double safe_position_for_given_velocity[20];
     auto obstacle = world->findObstacle(obstacle_id);
     // TODO: check for error
     std::shared_ptr<State> obstacle_state = obstacle->getStateByTimeStep(step);
+//    try {
+//        obstacle_state = obstacle->getStateByTimeStep(step);
+//    } catch (std::logic_error &e) {
+//
+//    }
     double vehicle_speed = obstacle_state->getVelocity(); //vehicle.v_lon_ref(step)
     double vehicle_deceleration = -10.5;                  // semantic_model.config.vehicle.other.a_lon_min
-    double ego_speed = 36.66; //for now
+    double ego_speed;
     double ego_reaction_time = 0.3; //semantic_model.config.vehicle.ego.t_react
     double ego_deceleration = -10.0; // semantic_model.config.vehicle.ego.a_lon_min
+
     for(int i = 0; i<20; i++) {
         double ego_speed_change = reach_node->v_lon_max() - reach_node->v_lon_min();
         double start_velocity = reach_node->v_lon_min();
@@ -50,16 +56,21 @@ std::vector<reach::ReachNodePtr> KeepSafeDistancePrecPredicate::_restrict_reach_
     int step, const reach::ReachNodePtr &reach_node, const std::shared_ptr<World> &world,
     const std::shared_ptr<CurvilinearCoordinateSystem> &ego_ccs) const {
 
-    std::pair <double, double> safe_position_for_given_velocity[20];
+    double safe_position_for_given_velocity[20];
     reach::ReachNodePtr node[20];
     auto obstacle = world->findObstacle(obstacle_id);
     // TODO: check for error
     std::shared_ptr<State> obstacle_state = obstacle->getStateByTimeStep(step);
-    double vehicle_speed = obstacle_state -> getVelocity(); //vehicle.v_lon_ref(step)
-    double vehicle_deceleration = -10.5;                  // semantic_model.config.vehicle.other.a_lon_min
+//    try {
+//        obstacle_state = obstacle->getStateByTimeStep(step);
+//    } catch (std::logic_error &e) {
+//
+//    }
+    double vehicle_speed = obstacle_state -> getVelocity();
+    double vehicle_deceleration = -10.5;
     double ego_speed = 36.66; //for now
-    double ego_reaction_time = 0.3; //semantic_model.config.vehicle.ego.t_react
-    double ego_deceleration = -10.0; // semantic_model.config.vehicle.ego.a_lon_min
+    double ego_reaction_time = 0.3;
+    double ego_deceleration = -10.0;
     // f(es) = (vs^2) / (-2 * abs(vd)) - (es^2) / (-2 * abs(ed)) + es * er;
     // f'(es) =  es /abs(ed) + er;
     //  ax + by <= c
@@ -77,31 +88,46 @@ std::vector<reach::ReachNodePtr> KeepSafeDistancePrecPredicate::_restrict_reach_
         safe_position_for_given_velocity[i] = _determine_safe_position(step, reach_node, world, ego_ccs, start_velocity + ego_speed_change*i/19);
         node[i]->polygon_lon->intersect_halfspace( (ego_speed /abs(ego_deceleration) - ego_reaction_time), -1,  (vehicle_speed * vehicle_speed) / (-2 * abs(vehicle_deceleration)) + (3*(ego_speed * ego_speed) / (2 * abs(ego_deceleration) - 2 * ego_speed * ego_reaction_time)));
     }
-    return {node[0]};
+    std::vector<reach::ReachNodePtr> v(node, node + sizeof node / sizeof node[0]);
+    return {v};
 
 }
 
 
-
-std::pair<double, double> KeepSafeDistancePrecPredicate::_determine_safe_position(
+// It returns max lon position, that is still safe for ego
+double KeepSafeDistancePrecPredicate::_determine_safe_position(
     int step, const reach::ReachNodePtr &reach_node, const std::shared_ptr<World> &world,
     const std::shared_ptr<geometry::CurvilinearCoordinateSystem> &ego_ccs, double ego_speed) const {
 
     auto obstacle = world->findObstacle(obstacle_id);
     // TODO: check for error
     std::shared_ptr<State> obstacle_state = obstacle->getStateByTimeStep(step);
+//    try {
+//        obstacle_state = obstacle->getStateByTimeStep(step);
+//    } catch (std::logic_error &e) {
+//
+//    }
 
-    double vehicle_pos = obstacle->rearS(step, ego_ccs) + ego_length / 2.0;
-    double vehicle_speed = obstacle_state -> getVelocity(); //vehicle.v_lon_ref(step)
-    double vehicle_deceleration = -10.5;                  // semantic_model.config.vehicle.other.a_lon_min
-    double ego_reaction_time = 0.3; //semantic_model.config.vehicle.ego.t_react
-    double ego_deceleration = -10.0;                      // semantic_model.config.vehicle.ego.a_lon_min
+    double vehicle_speed = obstacle_state -> getVelocity(); //speed of other vehicle
+    double vehicle_deceleration = -10.5;                    //deceleration of other vehicle
+    double ego_reaction_time = 0.3;
+    double ego_deceleration = -10.0;
 
-    double safe_dist = (vehicle_speed * vehicle_speed) / (-2 * abs(vehicle_deceleration)) - (ego_speed * ego_speed) / (-2 * abs(ego_deceleration)) + ego_speed * ego_reaction_time;
+    double safe_dist = (vehicle_speed * vehicle_speed) / (-2 * abs(vehicle_deceleration))
+                       - (ego_speed * ego_speed) / (-2 * abs(ego_deceleration))
+                       + ego_speed * ego_reaction_time;
 
 
-    return std::make_pair(vehicle_pos, safe_dist);
 
+    return obstacle -> rearS(step, ego_ccs) - safe_dist - ego_length / 2.0;
+
+}
+
+double KeepSafeDistancePrecPredicate::_determine_shape(
+    int step, const reach::ReachNodePtr &reach_node, const std::shared_ptr<World> &world,
+    const std::shared_ptr<geometry::CurvilinearCoordinateSystem> &ego_ccs, double ego_speed) const{
+
+    return 1.0;
 }
 
 
