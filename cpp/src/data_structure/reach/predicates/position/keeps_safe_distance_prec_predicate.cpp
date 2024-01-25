@@ -34,8 +34,8 @@ std::vector<reach::ReachNodePtr> KeepSafeDistancePrecPredicate::_restrict_reach_
 //        2. version x<=slope(ego_speed) * y + safe_position(ego_speed);
 //        reformulated: x - slope(ego_speed) * y <= safe_position(ego_speed)
         double a = 1;
-        double b = _determine_slope(step, reach_node, world, ego_ccs, ego_speed);
-        double c = _determine_safe_position(step, reach_node, world, ego_ccs, ego_speed);
+        double b = -1 * _determine_slope(step, reach_node, world, ego_ccs, ego_speed);
+        double c = _determine_safe_position(step, reach_node, world, ego_ccs, ego_speed) - _determine_slope(step, reach_node, world, ego_ccs, ego_speed) * ego_speed;
 
         reach_node->polygon_lon->intersect_halfspace(a, b, c);
     }
