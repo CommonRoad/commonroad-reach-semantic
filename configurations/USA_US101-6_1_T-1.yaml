@@ -50,6 +50,6 @@ traffic_rules:
   activated_rules:
     - NoBackwardDrivingRule
     # - EnteringVehiclesRule
-    #    - LTL G SafeDistance_V397
+#    - LTL G SafeDistance_V397
     - LTL G SafeDistance_V419
-    - LTL G SafeDistance_V410
+#    - LTL G SafeDistance_V410

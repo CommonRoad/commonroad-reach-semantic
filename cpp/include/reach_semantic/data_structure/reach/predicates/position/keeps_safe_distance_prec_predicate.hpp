@@ -24,7 +24,10 @@ class KeepSafeDistancePrecPredicate : public CppPredicate {
             int step, const reach::ReachNodePtr &reach_node, const std::shared_ptr<World> &world,
             const std::shared_ptr<geometry::CurvilinearCoordinateSystem> &ego_ccs, double ego_speed) const;
 
-        [[nodiscard]] double _determine_shape(
+        [[nodiscard]] double _determine_slope(
+            int step, const reach::ReachNodePtr &reach_node, const std::shared_ptr<World> &world,
+            const std::shared_ptr<geometry::CurvilinearCoordinateSystem> &ego_ccs, double ego_speed) const;
+        [[nodiscard]] double _determine_constant_b(
             int step, const reach::ReachNodePtr &reach_node, const std::shared_ptr<World> &world,
             const std::shared_ptr<geometry::CurvilinearCoordinateSystem> &ego_ccs, double ego_speed) const;
     public:

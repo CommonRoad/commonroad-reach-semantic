@@ -14,13 +14,13 @@ def main():
     # ==== specify scenario
     # name_scenario = "ZAM_Intersection-1_1_T-1"
     # name_scenario = "ZAM_Intersection-1_2_T-1"
-    name_scenario = "ZAM_Merge-1_1_T-1"
+    # name_scenario = "ZAM_Merge-1_1_T-1"
     # name_scenario = "ZAM_Yield-1_1_T-1"
     # name_scenario = "ESP_Monzon-2_2_T-1"
-    # name_scenario = "USA_US101-6_1_T-1"
+    name_scenario = "USA_US101-6_1_T-1"
 
     # ==== build configuration
-    path_root = "/home/lercher/tum/commonroad/commonroad-reach-semantic-addon"
+    path_root = "/home/tarabasz/commonroad/commonroad-reach-semantic"
     config = SemanticConfigurationBuilder(path_root=path_root).build_configuration(name_scenario)
     config.update()
     util_logger.initialize_logger(config)
