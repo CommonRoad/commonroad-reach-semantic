@@ -8,7 +8,9 @@ namespace semantic_reach {
 
 class KeepSafeDistancePrecPredicate : public CppPredicate {
   private:
-        size_t obstacle_id;
+    static constexpr int NUM_SUPPORT_POINTS = 2;
+
+    size_t obstacle_id;
         double ego_length;
 
         [[nodiscard]] std::vector<reach::ReachNodePtr> _restrict_reach_node_mandatory(
