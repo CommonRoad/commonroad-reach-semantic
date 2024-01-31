@@ -8,19 +8,19 @@ from analysis import otf_labeling_comparison, boxplot_computation_times_otf, box
 from benchmark import benchmark_with_progress, run_scenario
 
 
-def main(figure_3: bool = True, table_1: bool = True, figure_4: bool = True, exid_offline: bool = True,
+def main(figure_5: bool = True, table_1: bool = True, figure_6: bool = True, exid_offline: bool = True,
          regenerate_data: bool = False):
-    if figure_3:
-        reproduce_figure_3(regenerate_data=regenerate_data)
+    if figure_5:
+        reproduce_figure_5(regenerate_data=regenerate_data)
     if table_1:
         reproduce_table_1(regenerate_data=regenerate_data)
-    if figure_4:
-        reproduce_figure_4(regenerate_data=regenerate_data)
+    if figure_6:
+        reproduce_figure_6(regenerate_data=regenerate_data)
     if exid_offline:
         exid_boxplot_offline(regenerate_data=regenerate_data)
 
 
-def reproduce_figure_3(regenerate_data: bool = False):
+def reproduce_figure_5(regenerate_data: bool = False):
     name = "ZAM_Yield-1_1_T-1"
 
     output_dir = "output"
@@ -31,7 +31,7 @@ def reproduce_figure_3(regenerate_data: bool = False):
     if not regenerate_data and (not os.path.exists(os.path.join(this_dir(), otf_output_dir)) or
                                 not os.path.exists(os.path.join(this_dir(), otf_output_dir_no_prune)) or
                                 not os.path.exists(os.path.join(this_dir(), labeling_output_dir))):
-        print(f"No data for Figure 3 found. Regenerating data...")
+        print(f"No data for Figure 5 found. Regenerating data...")
         regenerate_data = True
 
     if regenerate_data:
@@ -50,13 +50,13 @@ def reproduce_figure_3(regenerate_data: bool = False):
 
     step = 9
     figures = [
-        ("fig_3a", os.path.join(this_dir(), otf_output_dir, f"svgreach_{step:05d}.svg")),
-        ("fig_3b", os.path.join(this_dir(), labeling_output_dir, f"svgreach_{step:05d}.svg")),
-        ("fig_3b_hatching", os.path.join(this_dir(), labeling_output_dir, f"svgkripke_{step:05d}.svg")),
+        ("fig_5a", os.path.join(this_dir(), otf_output_dir, f"svgreach_{step:05d}.svg")),
+        ("fig_5b", os.path.join(this_dir(), labeling_output_dir, f"svgreach_{step:05d}.svg")),
+        ("fig_5b_hatching", os.path.join(this_dir(), labeling_output_dir, f"svgkripke_{step:05d}.svg")),
     ]
     for name, path in figures:
         shutil.copy(path, os.path.join(this_dir(), f"{name}.svg"))
-    print(f"Figure 3 written to {this_dir()}")
+    print(f"Figure 5 written to {this_dir()}")
 
     # copy images for video
     video_sections = [
@@ -163,13 +163,13 @@ def reproduce_table_1(regenerate_data: bool = False):
     print(f"Table 1 written to {filename}")
 
 
-def reproduce_figure_4(regenerate_data: bool = False):
+def reproduce_figure_6(regenerate_data: bool = False):
     scenario_names = list(scenarios_from_file("exiD.txt"))
 
-    output_dir = "data_figure_4"
+    output_dir = "data_figure_6"
 
     if not regenerate_data and not os.path.exists(os.path.join(this_dir(), output_dir)):
-        print(f"No data for Figure 4 found. Regenerating data...")
+        print(f"No data for Figure 6 found. Regenerating data...")
         regenerate_data = True
 
     if regenerate_data:
@@ -185,14 +185,17 @@ def reproduce_figure_4(regenerate_data: bool = False):
 
     latex = latex_plot(bp)
 
-    filename = os.path.join(this_dir(), "figure_4.tex")
+    filename = os.path.join(this_dir(), "figure_6.tex")
     with open(filename, "w") as f:
         f.write(latex)
         f.write("\n")
         for idx, row in high_total_times.iterrows():
             total = row["total"]
             f.write(f"{idx}: {round(total * 1000)} ms\n")
-    print(f"Figure 4 written to {filename}")
+        f.write("\n")
+        f.write(f"Average automaton creation time: {round(comp_times['automaton_creation'].mean() * 1000)} ms\n")
+        f.write(f"Average pruning time: {round(comp_times['pruning'].mean() * 1000, 2)} ms\n")
+    print(f"Figure 6 written to {filename}")
 
 
 def exid_boxplot_offline(regenerate_data: bool = False):
@@ -279,15 +282,15 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Reproduce results from the paper. If no specific figure or table is given, all are reproduced."
     )
-    parser.add_argument("--figure-3", action="store_true", help="create Figure 3")
+    parser.add_argument("--figure-5", action="store_true", help="create Figure 5")
     parser.add_argument("--table-1", action="store_true", help="create Table 1")
-    parser.add_argument("--figure-4", action="store_true", help="create Figure 4")
+    parser.add_argument("--figure-6", action="store_true", help="create Figure 6")
     parser.add_argument("--exid-offline", action="store_true", help="create boxplot for exiD with offline approach")
     parser.add_argument("--regenerate-data", action="store_true", help="force data regeneration")
     args = parser.parse_args()
     # if no switch is given, run all
-    if not any((args.figure_3, args.table_1, args.figure_4, args.exid_offline)):
+    if not any((args.figure_5, args.table_1, args.figure_6, args.exid_offline)):
         main(regenerate_data=args.regenerate_data)
     else:
-        main(figure_3=args.figure_3, table_1=args.table_1, figure_4=args.figure_4, exid_offline=args.exid_offline,
+        main(figure_5=args.figure_5, table_1=args.table_1, figure_6=args.figure_6, exid_offline=args.exid_offline,
              regenerate_data=args.regenerate_data)
