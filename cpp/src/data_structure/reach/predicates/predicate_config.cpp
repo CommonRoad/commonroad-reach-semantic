@@ -12,4 +12,7 @@ PredicateConfiguration::PredicateConfiguration(const SemanticConfiguration &conf
 
     ego_length = config.config_vehicle.ego.length;
     ego_width = config.config_vehicle.ego.width;
+    ego_reaction_time = 0.3;
+    ego_deceleration = -10.0;
+    vehicle_deceleration = -10.5;
 }

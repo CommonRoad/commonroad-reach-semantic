@@ -45,5 +45,5 @@ PredicateFactory::make_in_front_of_obstacle_predicate(bool negated, size_t obsta
 
 std::unique_ptr<KeepSafeDistancePrecPredicate>
 PredicateFactory::make_safe_distance_prec_predicate(bool negated, size_t obstacle_id) const {
-    return std::make_unique<KeepSafeDistancePrecPredicate>(negated, obstacle_id, config->ego_length);
+    return std::make_unique<KeepSafeDistancePrecPredicate>(negated, obstacle_id, config->ego_length, config->ego_reaction_time, config->ego_deceleration, config->vehicle_deceleration);
 }

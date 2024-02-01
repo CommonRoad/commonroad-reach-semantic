@@ -26,6 +26,10 @@ struct PredicateConfiguration {
      */
     double ego_width{2.0};
 
+    double ego_reaction_time = 0.3;
+    double ego_deceleration = -10.0;
+    double vehicle_deceleration = -10.5;
+
     /**
      * Construct predicate configuration with all default values.
      */
