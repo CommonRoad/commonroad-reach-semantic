@@ -32,10 +32,10 @@ class KeepSafeDistancePrecPredicate : public CppPredicate {
 
         [[nodiscard]] double _determine_slope(double ego_speed) const;
 
-        [[nodiscard]] std::tuple<double, double, double> _compute_parameters_of_halfspace(
-            int step, const reach::ReachNodePtr &reach_node, const std::shared_ptr<World> &world,
-            const std::shared_ptr<geometry::CurvilinearCoordinateSystem> &ego_ccs, double ego_velocity_support) const;
-    public:
+        [[nodiscard]] static std::tuple<double, double, double>
+        _compute_parameters_of_halfspace(double ego_velocity_support, double slope, double safe_pos);
+
+      public:
         KeepSafeDistancePrecPredicate(bool negated, size_t obstacle_id, double ego_length);
 
 };
