@@ -51,10 +51,17 @@ class PredicateFactory {
      * @param obstacle_id ID of the obstacle.
      * @return The created predicate.
      */
-    std::unique_ptr<InFrontOfObstaclePredicate> make_in_front_of_obstacle_predicate(bool negated,
-                                                                                    size_t obstacle_id) const;
+    [[nodiscard]] std::unique_ptr<InFrontOfObstaclePredicate>
+    make_in_front_of_obstacle_predicate(bool negated, size_t obstacle_id) const;
 
-    std::unique_ptr<KeepSafeDistancePrecPredicate> make_safe_distance_prec_predicate(bool negated,
-                                                                                     size_t obstacle_id) const;
+    /**
+     * Create a safe distance predicate using the factory's configuration.
+     *
+     * @param negated Whether the predicate is negated.
+     * @param obstacle_id ID of the obstacle.
+     * @return The created predicate.
+     */
+    [[nodiscard]] std::unique_ptr<KeepSafeDistancePrecPredicate>
+    make_safe_distance_prec_predicate(bool negated, size_t obstacle_id) const;
 };
 } // namespace semantic_reach
