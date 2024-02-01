@@ -6,8 +6,8 @@
 using namespace semantic_reach;
 using geometry::CurvilinearCoordinateSystem;
 
-KeepSafeDistancePrecPredicate :: KeepSafeDistancePrecPredicate(bool negated, size_t obstacle_id, double ego_length)
-    : CppPredicate(negated, false), obstacle_id(obstacle_id), ego_length(ego_length) {}
+KeepSafeDistancePrecPredicate :: KeepSafeDistancePrecPredicate(bool negated, size_t obstacle_id, double ego_length, double ego_reaction_time, double ego_deceleration, double vehicle_deceleration)
+    : CppPredicate(negated, false), obstacle_id(obstacle_id), ego_length(ego_length), ego_reaction_time(ego_reaction_time), ego_deceleration(ego_deceleration), vehicle_deceleration(vehicle_deceleration) {}
 
 std::vector<reach::ReachNodePtr> KeepSafeDistancePrecPredicate::_restrict_reach_node_mandatory(
     int step, const reach::ReachNodePtr &reach_node, const std::shared_ptr<World> &world,

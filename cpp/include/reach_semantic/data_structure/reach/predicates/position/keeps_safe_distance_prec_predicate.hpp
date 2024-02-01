@@ -15,7 +15,6 @@ class KeepSafeDistancePrecPredicate : public CppPredicate {
     double ego_reaction_time;
     double ego_deceleration;
     double vehicle_deceleration;                    //deceleration of other vehicle
-    double ego_speed;
 
         [[nodiscard]] std::vector<reach::ReachNodePtr> _restrict_reach_node_mandatory(
                 int step, const reach::ReachNodePtr &reach_node, const std::shared_ptr<World> &world,
@@ -36,7 +35,7 @@ class KeepSafeDistancePrecPredicate : public CppPredicate {
             int step, const reach::ReachNodePtr &reach_node, const std::shared_ptr<World> &world,
             const std::shared_ptr<geometry::CurvilinearCoordinateSystem> &ego_ccs, double ego_velocity_support) const;
     public:
-        KeepSafeDistancePrecPredicate(bool negated, size_t obstacle_id, double ego_length);
+        KeepSafeDistancePrecPredicate(bool negated, size_t obstacle_id, double ego_length, double ego_reaction_time, double ego_deceleration, double vehicle_deceleration);
 
 };
 }
