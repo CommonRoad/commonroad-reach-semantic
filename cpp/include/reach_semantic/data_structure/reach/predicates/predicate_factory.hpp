@@ -55,6 +55,6 @@ class PredicateFactory {
                                                                                     size_t obstacle_id) const;
 
     std::unique_ptr<KeepSafeDistancePrecPredicate> make_safe_distance_prec_predicate(bool negated,
-                                                                                    size_t obstacle_id) const;
+                                                                                     size_t obstacle_id) const;
 };
 } // namespace semantic_reach

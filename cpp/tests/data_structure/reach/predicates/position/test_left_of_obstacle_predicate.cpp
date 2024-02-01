@@ -2,10 +2,10 @@
 
 void LeftOfObstaclePredicateTest::SetUp() {
     test_envs.set_up_environments();
-    positive_pred = std::make_unique<semantic_reach::LeftOfObstaclePredicate>(
-        false, TestEnvironments::id_obstacle_one, ego_length);
-    negative_pred = std::make_unique<semantic_reach::LeftOfObstaclePredicate>(
-        true, TestEnvironments::id_obstacle_one, ego_length);
+    positive_pred =
+        std::make_unique<semantic_reach::LeftOfObstaclePredicate>(false, TestEnvironments::id_obstacle_one, ego_length);
+    negative_pred =
+        std::make_unique<semantic_reach::LeftOfObstaclePredicate>(true, TestEnvironments::id_obstacle_one, ego_length);
 
     reach_node_one = std::make_shared<reach::ReachNode>(
         TestEnvironments::time_step,
