@@ -2,7 +2,7 @@
 
 #include "reach_semantic/data_structure/semantic_configuration.hpp"
 
-#include <commonroad_cpp/predicates/predicate_config.h>
+#include <commonroad_cpp/predicates/predicate_parameter_collection.h>
 
 namespace semantic_reach {
 /**
