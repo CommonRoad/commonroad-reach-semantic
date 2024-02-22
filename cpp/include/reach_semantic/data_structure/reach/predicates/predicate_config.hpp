@@ -26,8 +26,19 @@ struct PredicateConfiguration {
      */
     double ego_width{2.0};
 
+    /**
+     * Reaction time of the ego vehicle.
+     */
     double ego_reaction_time{0.3};
+
+    /**
+     * Maximal feasible deceleration of the ego vehicle.
+     */
     double ego_deceleration{-10.0};
+
+    /**
+     * Assumed maximal feasible deceleration of other vehicles.
+     */
     double vehicle_deceleration{-10.5};
 
     /**
@@ -40,6 +51,6 @@ struct PredicateConfiguration {
      *
      * @param config The semantic configuration.
      */
-    PredicateConfiguration(const SemanticConfiguration &config);
+    explicit PredicateConfiguration(const SemanticConfiguration &config);
 };
 } // namespace semantic_reach

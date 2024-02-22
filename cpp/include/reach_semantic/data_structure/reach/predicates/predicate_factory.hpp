@@ -1,7 +1,10 @@
 #pragma once
 
+#include "reach_semantic/data_structure/reach/predicates/position/behind_obstacle_predicate.hpp"
 #include "reach_semantic/data_structure/reach/predicates/position/in_front_of_obstacle_predicate.hpp"
 #include "reach_semantic/data_structure/reach/predicates/position/keeps_safe_distance_prec_predicate.hpp"
+#include "reach_semantic/data_structure/reach/predicates/position/left_of_obstacle_predicate.hpp"
+#include "reach_semantic/data_structure/reach/predicates/position/right_of_obstacle_predicate.hpp"
 #include "reach_semantic/data_structure/reach/predicates/predicate.hpp"
 #include "reach_semantic/data_structure/reach/predicates/predicate_config.hpp"
 
@@ -53,6 +56,36 @@ class PredicateFactory {
      */
     [[nodiscard]] std::unique_ptr<InFrontOfObstaclePredicate>
     make_in_front_of_obstacle_predicate(bool negated, size_t obstacle_id) const;
+
+    /**
+     * Create a behind obstacle predicate using the factory's configuration.
+     *
+     * @param negated Whether the predicate is negated.
+     * @param obstacle_id ID of the obstacle.
+     * @return The created predicate.
+     */
+    [[nodiscard]] std::unique_ptr<BehindObstaclePredicate> make_behind_obstacle_predicate(bool negated,
+                                                                                          size_t obstacle_id) const;
+
+    /**
+     * Create a right of obstacle predicate using the factory's configuration.
+     *
+     * @param negated Whether the predicate is negated.
+     * @param obstacle_id ID of the obstacle.
+     * @return The created predicate.
+     */
+    [[nodiscard]] std::unique_ptr<RightOfObstaclePredicate> make_right_of_obstacle_predicate(bool negated,
+                                                                                             size_t obstacle_id) const;
+
+    /**
+     * Create a left of obstacle predicate using the factory's configuration.
+     *
+     * @param negated Whether the predicate is negated.
+     * @param obstacle_id ID of the obstacle.
+     * @return The created predicate.
+     */
+    [[nodiscard]] std::unique_ptr<LeftOfObstaclePredicate> make_left_of_obstacle_predicate(bool negated,
+                                                                                           size_t obstacle_id) const;
 
     /**
      * Create a safe distance predicate using the factory's configuration.

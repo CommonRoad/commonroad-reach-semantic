@@ -7,7 +7,7 @@ using namespace semantic_reach;
 using geometry::CurvilinearCoordinateSystem;
 
 RightOfObstaclePredicate::RightOfObstaclePredicate(bool negated, size_t obstacle_id, double ego_length)
-    : CppPredicate(negated, false), obstacle_id(obstacle_id), ego_length(ego_length) {}
+    : CppPredicate(negated, false), obstacle_id(obstacle_id), ego_width(ego_length) {}
 
 std::vector<reach::ReachNodePtr> RightOfObstaclePredicate::_restrict_reach_node_mandatory(
     int step, const reach::ReachNodePtr &reach_node, const std::shared_ptr<World> &world,
@@ -18,7 +18,9 @@ std::vector<reach::ReachNodePtr> RightOfObstaclePredicate::_restrict_reach_node_
         return {reach_node};
     }
 
-    reach_node->intersect_in_position_domain(obstacle_right.value());
+    reach_node->intersect_in_position_domain(-std::numeric_limits<double>::infinity(),
+                                             -std::numeric_limits<double>::infinity(),
+                                             std::numeric_limits<double>::infinity(), obstacle_right.value());
 
     return {reach_node};
 }
@@ -32,8 +34,7 @@ std::vector<reach::ReachNodePtr> RightOfObstaclePredicate::_restrict_reach_node_
         return {reach_node};
     }
 
-    reach_node->intersect_in_position_domain(-std::numeric_limits<double>::infinity(),
-                                             -std::numeric_limits<double>::infinity(), obstacle_right.value());
+    reach_node->intersect_in_position_domain(-std::numeric_limits<double>::infinity(), obstacle_right.value());
 
     return {reach_node};
 }
@@ -53,5 +54,5 @@ RightOfObstaclePredicate::_get_obstacle_right(int step, const std::shared_ptr<Wo
     }
 
     // inflate by half the length of the ego vehicle, as we use the center for reference
-    return obstacle->rightD(step, ego_ccs) + ego_length / 2.0;
+    return obstacle->rightD(step, ego_ccs) + ego_width / 2.0;
 }

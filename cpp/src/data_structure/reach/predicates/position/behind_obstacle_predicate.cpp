@@ -18,7 +18,8 @@ std::vector<reach::ReachNodePtr> BehindObstaclePredicate::_restrict_reach_node_m
         return {reach_node};
     }
 
-    reach_node->intersect_in_position_domain(obstacle_behind.value());
+    reach_node->intersect_in_position_domain(-std::numeric_limits<double>::infinity(),
+                                             -std::numeric_limits<double>::infinity(), obstacle_behind.value());
 
     return {reach_node};
 }
@@ -32,8 +33,7 @@ std::vector<reach::ReachNodePtr> BehindObstaclePredicate::_restrict_reach_node_f
         return {reach_node};
     }
 
-    reach_node->intersect_in_position_domain(-std::numeric_limits<double>::infinity(),
-                                             -std::numeric_limits<double>::infinity(), obstacle_behind.value());
+    reach_node->intersect_in_position_domain(obstacle_behind.value());
 
     return {reach_node};
 }

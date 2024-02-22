@@ -9,7 +9,7 @@ namespace semantic_reach {
 class LeftOfObstaclePredicate : public CppPredicate {
   private:
     size_t obstacle_id;
-    double ego_length;
+    double ego_width;
 
     [[nodiscard]] std::optional<double>
     _get_obstacle_left(int step, const std::shared_ptr<World> &world,
@@ -24,6 +24,6 @@ class LeftOfObstaclePredicate : public CppPredicate {
         const std::shared_ptr<geometry::CurvilinearCoordinateSystem> &ego_ccs) const override;
 
   public:
-    LeftOfObstaclePredicate(bool negated, size_t obstacle_id, double ego_length);
+    LeftOfObstaclePredicate(bool negated, size_t obstacle_id, double ego_width);
 };
 } // namespace semantic_reach
