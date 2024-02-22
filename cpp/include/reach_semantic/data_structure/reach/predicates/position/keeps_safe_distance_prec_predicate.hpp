@@ -27,17 +27,13 @@ class KeepSafeDistancePrecPredicate : public CppPredicate {
     /**
      * Evaluate the safe position function at the given velocity.
      *
-     * @param step Current time step
-     * @param world Environment model
-     * @param ego_ccs Curvilinear coordinate system of the ego vehicle
      * @param ego_velocity Velocity at which to evaluate the safe position function
-     * @return Maximal longitudinal position of the ego vehicle is still safe at the given velocity or nullopt if the
-     * safe position cannot be computed due to prediction or projection domain issues.
+     * @param other_position Longitudinal position of the rear bumper of the other vehicle
+     * @param other_velocity Velocity of the other vehicle
+     * @return Maximal longitudinal position of the ego vehicle is still safe at the given velocity
      */
-    [[nodiscard]] std::optional<double>
-    _determine_safe_position(int step, const std::shared_ptr<World> &world,
-                             const std::shared_ptr<geometry::CurvilinearCoordinateSystem> &ego_ccs,
-                             double ego_velocity) const;
+    [[nodiscard]] double _determine_safe_position(double ego_velocity, double other_position,
+                                                  double other_velocity) const;
 
     /**
      * Determine the slope (derivative) of the safe position function at the given velocity.
@@ -46,6 +42,32 @@ class KeepSafeDistancePrecPredicate : public CppPredicate {
      * @return Slope of the safe position function at ego_velocity
      */
     [[nodiscard]] double _determine_slope(double ego_velocity) const;
+
+    /**
+     * Determine the slope of the secant line of the safe position function between two support points.
+     *
+     * @param lower_support Lower support point
+     * @param upper_support Upper support point
+     * @param lower_value Value of the safe position function at the lower support point
+     * @param upper_value Value of the safe position function at the upper support point
+     * @return Slope of the secant line
+     */
+    [[nodiscard]] static double _determine_secant_slope(double lower_support, double upper_support, double lower_value,
+                                                        double upper_value);
+
+    /**
+     * Get the position and velocity of the other vehicle at the given time step.
+     *
+     * @param step Time step
+     * @param world Environment model
+     * @param ego_ccs Curvilinear coordinate system of the ego vehicle
+     * @return Position and velocity of the other vehicle at the given time step, or nullopt if there are issues with
+     * the prediction or projection domain.
+     * @throw std::logic_error If the obstacle does not exist in the world.
+     */
+    [[nodiscard]] std::optional<std::pair<double, double>>
+    _get_other_position_and_velocity(int step, const shared_ptr<World> &world,
+                                     const shared_ptr<geometry::CurvilinearCoordinateSystem> &ego_ccs) const;
 
     /**
      * Compute the coefficients of the halfspace that defines the safe region.

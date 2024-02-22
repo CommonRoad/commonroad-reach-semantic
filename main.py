@@ -20,7 +20,7 @@ def main():
     name_scenario = "USA_US101-6_1_T-1"
 
     # ==== build configuration
-    path_root = "/home/tarabasz/commonroad/commonroad-reach-semantic"
+    path_root = "/home/lercher/tum/commonroad/commonroad-reach-semantic-addon"
     config = SemanticConfigurationBuilder(path_root=path_root).build_configuration(name_scenario)
     config.update()
     util_logger.initialize_logger(config)

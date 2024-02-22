@@ -22,16 +22,18 @@ std::vector<reach::ReachNodePtr> KeepSafeDistancePrecPredicate::_restrict_reach_
     for (int i = 0; i < NUM_SUPPORT_POINTS; i++) {
         auto ego_velocity_support = min_ego_velocity + i * ego_velocity_increment;
 
-        auto safe_position_opt = _determine_safe_position(step, world, ego_ccs, ego_velocity_support);
-        if (!safe_position_opt.has_value()) {
+        auto pos_v_opt = _get_other_position_and_velocity(step, world, ego_ccs);
+        if (!pos_v_opt.has_value()) {
             spdlog::warn("No prediction for obstacle {} at step {}, assuming the vehicle is far away.", obstacle_id,
                          step);
             return {reach_node};
         }
+        auto [other_position, other_velocity] = pos_v_opt.value();
 
+        auto safe_position = _determine_safe_position(ego_velocity_support, other_position, other_velocity);
         auto slope = _determine_slope(ego_velocity_support);
 
-        auto [a, b, c] = _compute_halfspace_coefficients(ego_velocity_support, slope, safe_position_opt.value());
+        auto [a, b, c] = _compute_halfspace_coefficients(ego_velocity_support, slope, safe_position);
         reach_node->polygon_lon->intersect_halfspace(a, b, c);
     }
     return {reach_node};
@@ -46,19 +48,24 @@ std::vector<reach::ReachNodePtr> KeepSafeDistancePrecPredicate::_restrict_reach_
     auto min_ego_velocity = reach_node->v_lon_min();
     auto ego_velocity_range = reach_node->v_lon_max() - reach_node->v_lon_min();
     auto ego_velocity_increment = ego_velocity_range / static_cast<double>(NUM_SUPPORT_POINTS - 1);
-    for (int i = 0; i < NUM_SUPPORT_POINTS; i++) {
+    for (int i = 0; i < NUM_SUPPORT_POINTS - 1; i++) {
         auto ego_velocity_support = min_ego_velocity + i * ego_velocity_increment;
+        auto next_support = min_ego_velocity + (i + 1) * ego_velocity_increment;
 
-        auto safe_position_opt = _determine_safe_position(step, world, ego_ccs, ego_velocity_support);
-        if (!safe_position_opt.has_value()) {
+        auto pos_v_opt = _get_other_position_and_velocity(step, world, ego_ccs);
+        if (!pos_v_opt.has_value()) {
             spdlog::warn("No prediction for obstacle {} at step {}, assuming the vehicle is far away.", obstacle_id,
                          step);
             return {};
         }
+        auto [other_position, other_velocity] = pos_v_opt.value();
 
-        auto slope = _determine_slope(ego_velocity_support);
+        auto safe_position = _determine_safe_position(ego_velocity_support, other_position, other_velocity);
+        auto next_safe_position = _determine_safe_position(next_support, other_position, other_velocity);
+        auto secant_slope =
+            _determine_secant_slope(ego_velocity_support, next_support, safe_position, next_safe_position);
 
-        auto [a, b, c] = _compute_halfspace_coefficients(ego_velocity_support, slope, safe_position_opt.value());
+        auto [a, b, c] = _compute_halfspace_coefficients(ego_velocity_support, secant_slope, safe_position);
         auto node = reach_node->clone();
         // negate the halfspace parameters to get the forbidden region
         node->polygon_lon->intersect_halfspace(-a, -b, -c);
@@ -67,24 +74,12 @@ std::vector<reach::ReachNodePtr> KeepSafeDistancePrecPredicate::_restrict_reach_
     return v;
 }
 
-std::optional<double> KeepSafeDistancePrecPredicate::_determine_safe_position(
-    int step, const std::shared_ptr<World> &world,
-    const std::shared_ptr<geometry::CurvilinearCoordinateSystem> &ego_ccs, double ego_velocity) const {
-
-    auto obstacle = world->findObstacle(obstacle_id);
-    std::shared_ptr<State> obstacle_state;
-    try {
-        obstacle_state = obstacle->getStateByTimeStep(step);
-    } catch (std::logic_error &e) {
-        return std::nullopt;
-    }
-
-    double vehicle_speed = obstacle_state->getVelocity(); // speed of other vehicle
-
-    double safe_dist = (vehicle_speed * vehicle_speed) / (-2 * abs(other_deceleration)) -
+double KeepSafeDistancePrecPredicate::_determine_safe_position(double ego_velocity, double other_position,
+                                                               double other_velocity) const {
+    double safe_dist = (other_velocity * other_velocity) / (-2 * abs(other_deceleration)) -
                        (ego_velocity * ego_velocity) / (-2 * abs(ego_deceleration)) + ego_velocity * ego_reaction_time;
 
-    return obstacle->rearS(step, ego_ccs) - safe_dist - ego_length / 2.0;
+    return other_position - safe_dist - ego_length / 2.0;
 }
 
 double KeepSafeDistancePrecPredicate::_determine_slope(double ego_velocity) const {
@@ -92,6 +87,24 @@ double KeepSafeDistancePrecPredicate::_determine_slope(double ego_velocity) cons
     // negate the slope of the safe distance function to get the slope of the safe position function (safe distance is
     // negated there)
     return -v_prime;
+}
+
+double KeepSafeDistancePrecPredicate::_determine_secant_slope(double lower_support, double upper_support,
+                                                              double lower_value, double upper_value) {
+    return (upper_value - lower_value) / (upper_support - lower_support);
+}
+
+std::optional<std::pair<double, double>> KeepSafeDistancePrecPredicate::_get_other_position_and_velocity(
+    int step, const std::shared_ptr<World> &world,
+    const std::shared_ptr<geometry::CurvilinearCoordinateSystem> &ego_ccs) const {
+    auto obstacle = world->findObstacle(obstacle_id);
+    std::shared_ptr<State> obstacle_state;
+    try {
+        obstacle_state = obstacle->getStateByTimeStep(step);
+    } catch (std::logic_error &e) {
+        return std::nullopt;
+    }
+    return std::make_pair(obstacle->rearS(step, ego_ccs), obstacle_state->getVelocity());
 }
 
 std::tuple<double, double, double>

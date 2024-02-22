@@ -49,6 +49,7 @@ semantic_model:
 traffic_rules:
   activated_rules:
     - NoBackwardDrivingRule
-    # - EnteringVehiclesRule
-#    - LTL G SafeDistance_V397
+    - EnteringVehiclesRule
     - LTL G SafeDistance_V419
+#    - LTL F[4,4] G !SafeDistance_V410
+#    - LTL F[4,4] G SafeDistance_V410
