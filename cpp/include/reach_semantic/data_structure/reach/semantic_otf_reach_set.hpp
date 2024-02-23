@@ -5,17 +5,30 @@
 #include "reach_semantic/data_structure/reach/semantic_reach_set.hpp"
 #include "reach_semantic/data_structure/reach/splitters/minterm_reach_node_splitter.hpp"
 
+namespace std {
+template <> struct hash<std::pair<semantic_reach::StateSet, semantic_reach::StateSet>> {
+    size_t operator()(const std::pair<semantic_reach::StateSet, semantic_reach::StateSet> &state_set_pair) const {
+        size_t seed = state_set_pair.first.size() + state_set_pair.second.size();
+        for (const auto &state : state_set_pair.first) {
+            seed ^= boost::hash_value(state);
+        }
+        for (const auto &state : state_set_pair.second) {
+            seed ^= boost::hash_value(state);
+        }
+        return seed;
+    }
+};
+} // namespace std
+
 namespace semantic_reach {
 class SemanticOTFReachableSet : public SemanticReachableSet {
   private:
     std::unique_ptr<FiniteAutomaton> automaton;
     std::unique_ptr<MintermReachNodeSplitter> splitter;
 
-    std::map<int, std::map<std::pair<std::set<FiniteAutomaton::State>, std::set<FiniteAutomaton::State>>,
-                           std::vector<reach::ReachPolygonPtr>>>
+    std::unordered_map<int, std::unordered_map<std::pair<StateSet, StateSet>, std::vector<reach::ReachPolygonPtr>>>
         step_to_states_to_drivable_area{};
-    std::map<int, std::map<std::pair<std::set<FiniteAutomaton::State>, std::set<FiniteAutomaton::State>>,
-                           std::vector<reach::ReachNodePtr>>>
+    std::unordered_map<int, std::unordered_map<std::pair<StateSet, StateSet>, std::vector<reach::ReachNodePtr>>>
         step_to_states_to_propagated_set{};
 
     void _compute_drivable_area_at_step(int const &step) override;
@@ -67,6 +80,6 @@ class SemanticOTFReachableSet : public SemanticReachableSet {
     SemanticOTFReachableSet(SemanticConfigurationPtr config, collision::CollisionCheckerPtr collision_checker,
                             SemanticModelPtr semantic_model, TrafficRuleInterfacePtr traffic_rule_interface);
 
-    std::map<reach::ReachNodePtr, std::set<FiniteAutomaton::State>> reachable_set_to_label{};
+    std::map<reach::ReachNodePtr, StateSet> reachable_set_to_label{};
 };
 } // namespace semantic_reach

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "reach_semantic/data_structure/proposition.hpp"
+#include "reach_semantic/utility/pybind_includes.hpp"
 #include "reach_semantic/utility/shared_include.hpp"
 
 namespace semantic_reach {

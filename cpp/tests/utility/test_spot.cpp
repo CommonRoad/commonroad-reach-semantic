@@ -43,7 +43,7 @@ TEST_F(SpotUtilityTest, ExtractAtomicPropositionsException) {
 }
 
 TEST_F(SpotUtilityTest, ExtractMintermsFromDNF) {
-    std::vector<std::set<std::pair<std::string, bool>>> expected{{}};
+    std::vector<semantic_reach::Minterm> expected{{}};
     EXPECT_EQ(util_spot::extract_minterms_from_dnf(true_formula), expected);
     expected = {};
     EXPECT_EQ(util_spot::extract_minterms_from_dnf(false_formula), expected);

@@ -1,8 +1,7 @@
 #pragma once
 
+#include "reach_semantic/utility/pybind_includes.hpp"
 #include "reach_semantic/utility/shared_include.hpp"
-#include <pybind11/embed.h>
-#include <pybind11/stl.h>
 
 namespace semantic_reach {
 /// Class to represent position intervals in which a set of propositions hold.

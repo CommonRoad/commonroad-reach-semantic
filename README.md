@@ -10,10 +10,6 @@ The software is written in Python 3.10, and was tested on Ubuntu 20.04 & 22.04.
 
 * We strongly recommend using [Anaconda](https://www.anaconda.com/) to manage your virtual python environment.
 If you don't want to use Anaconda for space reasons, consider using [Miniconda](https://docs.conda.io/en/latest/miniconda.html).
-* Install Python dependencies:
-```bash
-pip install -r requirements.txt
-```
 * Install [spot](https://spot.lre.epita.fr/) and its Python bindings.
 If you are using Anaconda or Miniconda, you can install spot from conda forge with:
 ```bash
@@ -30,32 +26,29 @@ sudo apt-get install libspot-dev
 ```
 
 * Install [CommonRoad-Reach](https://commonroad.in.tum.de/tools/commonroad-reach) **from source**.
-Please refer to its [documentation](https://commonroad.in.tum.de/docs/commonroad-reach/getting_started.html) for instructions.
-  Note that this includes installing
-  the [CommonRoad Drivability Checker](https://commonroad.in.tum.de/drivability-checker) from source.
+Please refer to its [README](https://gitlab.lrz.de/cps/commonroad-reachable-set/-/blob/develop/README.md?ref_type=heads) for instructions.
 
-> **Note:** Currently there appears to be a bug with boost geometry and newer versions of GCC (this seems to start with
-> version 11.4).
+> **Note:** Currently there appears to be a bug with boost geometry and newer versions of GCC (this seems to start with version 11.4).
 > A workaround until this is fixed is to use an older version of GCC (we suggest GCC 10).
-> To do so, indicate the path to the older version of GCC in the `CXX` environment variable before building the code (
-> e.g. `export CXX=/usr/bin/g++-10`).
-> Make sure that you use the same compiler version for building the CommonRoad Drivability Checker, CommonRoad-Reach,
-> and CommonRoad-Reach-Semantic.
+> To do so, indicate the path to the older version of GCC in the `CXX` environment variable before building the code (e.g. `export CXX=/usr/bin/g++-10`).
+> **Important:** Make sure that you use the same compiler version for building CommonRoad-Reach and CommonRoad-Reach-Semantic.
 
-* Build the C++ code and its Python bindings (where your Python version is Python X.Y.Z):
-```bash
-mkdir build && cd build
-cmake -DCRDC_DIR="/path/to/drivability-checker-root" -DCRREACH_DIR="/path/to/reach-root" -DPYTHON_VER="XY" -DCMAKE_BUILD_TYPE=Release ..
-cmake --build .
-```
-Make sure to use absolute paths to the root directory of your drivability checker and CommonRoad-Reach installation for `CRDC_DIR` and `CRREACH_DIR`, respectively.
-If you are using Anaconda, activate your environment before running cmake.
+> **Note:** Using the pip package of CommonRoad-Reach does currently not work when using the C++ extensions, probably due to incompatible compiler versions.
+> We will have to check this again, once we release a new version of CommonRoad-Reach (> 2023.1.1).
 
-* Move the resulting Python bindings to `commonroad_reach_semantic`:
+
+* Build the C++ extension and install the Python package:
 ```bash
-cd ..
-mv pycrreachs.*.so commonroad_reach_semantic/
+pip install -v .
 ```
+
+> **Note**: The verbose flag (`-v`) prints detailed information about the C++ build progress.
+
+**Optional:**
+
+- To build the code in Debug mode, add the flag `--config-settings=cmake.build-type="Debug"` to the `pip` command.
+- See [here](https://scikit-build-core.readthedocs.io/en/latest/configuration.html#configuring-cmake-arguments-and-defines) for further information on configuring CMake arguments via our build system (`scikit-build-core`).
+
 
 ### Running the Code
 
@@ -79,6 +72,12 @@ The scenarios themselves are located in the `./scenarios/` directory.
   There might still be some old version of `spot` is used from your conda environment.
   Try uninstalling `spot` and see whether the error still appears.
   If yes, delete other spot files in your anaconda folder and reinstall spot.
+* `ImportError: /.../commonroad_reach/pycrreach.cpython-310-x86_64-linux-gnu.so: undefined symbol: _ZN3fcl15CollisionObjectIdEdlEPv` when running the example script:
+  This is most likely caused by using two different compiler versions for compiling `commonroad-reach` and `commonroad-reach-semantic`.
+  Make sure that you use the same compiler version for both.
+* `terminate called without an active exception` when running the example script:
+  This is most likely caused by using two different compiler versions for compiling `commonroad-reach` and `commonroad-reach-semantic`.
+  Make sure that you use the same compiler version for both.
 
 ### Development
 

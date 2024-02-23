@@ -17,19 +17,16 @@ Region::Region(pybind11::handle const &obj_region_py) {
     proposition_holder = make_shared<MultiStepPropositionHolder>(obj_region_py.attr("proposition_holder"));
 }
 
-bool Region::intersects(reach::ReachPolygonPtr const &rectangle, string const &coordinate_system) const {
-    auto [p_lon_min_box, p_lat_min_box, p_lon_max_box, p_lat_max_box] = rectangle->bounding_box();
-
+bool Region::bounding_box_intersects(const reach::ReachNodePtr &reach_node, const string &coordinate_system) const {
     double p_lon_min, p_lat_min, p_lon_max, p_lat_max;
-    if (coordinate_system == "CART")
+    if (coordinate_system == "CART") {
         std::tie(p_lon_min, p_lat_min, p_lon_max, p_lat_max) = polygon_cart->bounding_box();
-
-    else if (coordinate_system == "CVLN")
+    } else if (coordinate_system == "CVLN") {
         std::tie(p_lon_min, p_lat_min, p_lon_max, p_lat_max) = polygon_cvln->bounding_box();
-
-    else
+    } else {
         throw std::logic_error("<Region> Provided coordinate system is invalid.");
+    }
 
-    return p_lon_max_box >= p_lon_min && p_lon_min_box <= p_lon_max && p_lat_max_box >= p_lat_min &&
-           p_lat_min_box <= p_lat_max;
+    return reach_node->p_lon_max() >= p_lon_min && reach_node->p_lon_min() <= p_lon_max &&
+           reach_node->p_lat_max() >= p_lat_min && reach_node->p_lat_min() <= p_lat_max;
 }
