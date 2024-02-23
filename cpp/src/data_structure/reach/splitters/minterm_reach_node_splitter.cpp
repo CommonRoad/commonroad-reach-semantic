@@ -167,7 +167,8 @@ std::optional<Literal> MintermReachNodeSplitter::_choose_next_literal(const std:
             } else if (count1.second == count2.second) {
                 // if the literals occur equally often, we prefer literals that don't need lanelets,
                 // as this avoids splitting to regions early
-                return !predicate_factory.predicate_from_proposition(count2.first.first, count2.first.second)->needs_lanelets;
+                return !predicate_factory.predicate_from_proposition(count2.first.first, count2.first.second)
+                            ->needs_lanelets;
             } else {
                 return false;
             }
