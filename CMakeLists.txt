@@ -102,7 +102,13 @@ find_package(OpenMP REQUIRED) # for parallel computation
 
 include(ExternalPybind)
 include(ExternalReach)
+
+# FIXME: This is a dirty hack to make the environment model believe that we never build the Python bindings.
+# Otherwise, it tries to install its own bindings, when we want to install ours.
+set(WAS_SKBUILD ${SKBUILD})
+set(SKBUILD OFF)
 include(ExternalEnvironmentModel)
+set(SKBUILD ${WAS_SKBUILD})
 
 # ========= add sub directories
 add_subdirectory(cpp) # semantic reachable set

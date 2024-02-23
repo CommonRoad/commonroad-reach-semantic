@@ -12,10 +12,21 @@ stages:
   - compile
   - test
 
+variables:
+  CMAKE_VERSION: "3.27.8"
+
 default:
   image: $CI_REGISTRY/cps/commonroad/commonroad-reach-semantic/ci:1.0
   before_script:
     - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.lrz.de/".insteadOf "git@gitlab.lrz.de:"
+    - rm -rf /opt/cmake
+    - wget "https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-Linux-x86_64.sh" -q -O /tmp/cmake-install.sh
+    - chmod u+x /tmp/cmake-install.sh && \
+    - mkdir /opt/cmake
+    - /tmp/cmake-install.sh --skip-license --prefix=/opt/cmake
+    - rm /tmp/cmake-install.sh
+    - apt-get remove -y libspdlog-dev
+
 
 .conda-init: &conda-init
   - conda init bash
@@ -70,6 +81,7 @@ compile-cpp:
     - *conda-init
     - conda activate "$CONDA_ENV_PREFIX$PYTHON_VER"
     - *python-prepare
+    - export PATH="/opt/cmake/bin:${PATH}"
     - mkdir build-debug && cd build-debug
     - cmake -GNinja -DCMAKE_BUILD_TYPE=Debug ..
     - cmake --build . -t pycrreachs
@@ -89,6 +101,7 @@ compile-via-pip-install:
     - *conda-init
     - conda activate "$CONDA_ENV_PREFIX$PYTHON_VER"
     - *python-prepare
+    - export PATH="/opt/cmake/bin:${PATH}"
     - pip install -v .
   parallel:
     matrix:
@@ -99,12 +112,13 @@ compile-via-pip-install:
 compile-cpp-tests:
   stage: compile
   script:
+    - export PATH=/opt/cmake/bin:$PATH
     - mkdir build-debug && cd build-debug
     - cmake -GNinja -DCMAKE_BUILD_TYPE=Debug -DADD_TESTS=ON ..
-    - cmake --build . -t crreachs_tests
+    - cmake --build . -t crreachs_test
   artifacts:
     paths:
-      - build-debug/cpp/crreachs_tests
+      - build-debug/cpp/tests/crreachs_test
     expire_in: 30 minutes
   needs: [ ]
 
@@ -132,7 +146,7 @@ test-cpp:
   stage: test
   script:
     - cd build-debug
-    - ./cpp/crreachs_tests
+    - ./cpp/tests/crreachs_test
   needs:
     - job: compile-cpp-tests
       artifacts: true
