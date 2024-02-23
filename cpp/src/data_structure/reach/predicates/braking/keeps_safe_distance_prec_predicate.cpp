@@ -7,7 +7,7 @@ using geometry::CurvilinearCoordinateSystem;
 
 KeepsSafeDistancePrecPredicate ::KeepsSafeDistancePrecPredicate(bool negated, size_t obstacle_id, double ego_length,
                                                                 double ego_reaction_time, double ego_deceleration,
-                                                              double vehicle_deceleration)
+                                                                double vehicle_deceleration)
     : CppPredicate(negated, false), obstacle_id(obstacle_id), ego_length(ego_length),
       ego_reaction_time(ego_reaction_time), ego_deceleration(ego_deceleration),
       other_deceleration(vehicle_deceleration) {}
