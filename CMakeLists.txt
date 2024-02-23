@@ -83,15 +83,21 @@ if (CRREACHS_SYSTEM_PACKAGES_FORCE)
 
     find_package(spdlog 1.8.0 REQUIRED)
     find_package(GTest)
+    find_package(yaml-cpp 0.6.0 REQUIRED)
+
+    # yaml-cpp::yaml-cpp is not present in installed config file as of version 0.7.0
+    if (NOT TARGET yaml-cpp::yaml-cpp)
+        add_library(yaml-cpp::yaml-cpp ALIAS yaml-cpp)
+    endif ()
 else ()
     # Normal path: We try to use find_package via FetchContent, otherwise we fall
     # back to normal FetchContent
 
     include(ExternalSpdlog)
     include(ExternalGoogleTest)
+    include(ExternalYamlCpp)
 endif ()
 
-find_package(yaml-cpp REQUIRED) # for reading yaml files
 find_package(OpenMP REQUIRED) # for parallel computation
 
 include(ExternalPybind)
