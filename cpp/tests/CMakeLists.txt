@@ -2,7 +2,7 @@ set(CRREACHS_TEST_SRC_FILES
         data_structure/reach/predicates/predicate_test_setup.cpp
         data_structure/reach/predicates/position/test_behind_obstacle_predicate.cpp
         data_structure/reach/predicates/position/test_in_front_of_obstacle_predicate.cpp
-        data_structure/reach/predicates/position/test_behind_obstacle_predicate.cpp
+        data_structure/reach/predicates/braking/test_keeps_safe_distance_prec_predicate.cpp
         data_structure/reach/predicates/position/test_left_of_obstacle_predicate.cpp
         data_structure/reach/predicates/position/test_right_of_obstacle_predicate.cpp
         utility/test_spot.cpp
