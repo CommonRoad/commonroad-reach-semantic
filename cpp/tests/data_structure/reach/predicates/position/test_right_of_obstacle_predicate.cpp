@@ -14,7 +14,7 @@ void RightOfObstaclePredicateTest::SetUp() {
 }
 
 TEST_F(RightOfObstaclePredicateTest, Positive) {
-    auto restricted = positive_pred->restrict_reach_node(TestEnvironments::time_step, reach_node_one, {},
+    auto restricted = positive_pred->restrict_reach_node(TestEnvironments::time_step, reach_node_one->clone(), {},
                                                          test_envs.world_one, test_envs.ccs_one);
     // Splitting is not necessary for this predicate
     ASSERT_EQ(restricted.size(), 1);
@@ -30,7 +30,7 @@ TEST_F(RightOfObstaclePredicateTest, Positive) {
 }
 
 TEST_F(RightOfObstaclePredicateTest, Negative) {
-    auto restricted = negative_pred->restrict_reach_node(TestEnvironments::time_step, reach_node_one, {},
+    auto restricted = negative_pred->restrict_reach_node(TestEnvironments::time_step, reach_node_one->clone(), {},
                                                          test_envs.world_one, test_envs.ccs_one);
     // Splitting is not necessary for this predicate
     ASSERT_EQ(restricted.size(), 1);
