@@ -30,7 +30,7 @@ ego:
   a_max: 8.0
 
   # reaction time in seconds
-  t_react: 0.5
+  t_react: 0.3
 
   # field of view in meters
   fov: 200

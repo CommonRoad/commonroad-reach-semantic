@@ -10,7 +10,7 @@ MintermReachNodeSplitter::MintermReachNodeSplitter(SemanticModelPtr semantic_mod
                                                    const SemanticConfigurationPtr &config)
     : semantic_model(std::move(semantic_model)),
       region_splitter(std::make_unique<RegionReachNodeSplitter>(this->semantic_model)),
-      predicate_factory(PredicateFactory{std::make_shared<PredicateConfiguration>(*config)}) {
+      predicate_factory(PredicateFactory{std::make_unique<PredicateConfiguration>(*config)}) {
     // Create environment model
     const auto &[obstacles, roadNetwork, scenario_dt] = InputUtils::getDataFromCommonRoad(
         config->config_general.path_scenarios + config->config_general.name_scenario + ".xml");

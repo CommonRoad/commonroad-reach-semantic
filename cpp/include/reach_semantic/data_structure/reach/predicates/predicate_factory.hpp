@@ -19,7 +19,7 @@ class PredicateFactory {
     /**
      * Configuration that is used for all predicates.
      */
-    std::shared_ptr<PredicateConfiguration> config;
+    std::unique_ptr<PredicateConfiguration> config;
 
     /**
      * Python module with predicates.
@@ -34,7 +34,7 @@ class PredicateFactory {
      *
      * @param config Configuration that is used for all predicates.
      */
-    explicit PredicateFactory(std::shared_ptr<PredicateConfiguration> config);
+    explicit PredicateFactory(std::unique_ptr<PredicateConfiguration> config);
 
     /**
      * Tries to parse a proposition into a predicate.

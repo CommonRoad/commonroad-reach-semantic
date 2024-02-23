@@ -113,6 +113,7 @@ class SemanticConfiguration(Configuration):
         config.vehicle.ego.radius_disc = self.vehicle.ego.radius_disc
         config.vehicle.ego.circle_distance = self.vehicle.ego.circle_distance
         config.vehicle.ego.wheelbase = self.vehicle.ego.wheelbase
+        config.vehicle.ego.t_react = self.vehicle.ego.t_react
 
         config.vehicle.other.id_type_vehicle = self.vehicle.other.id_type_vehicle
         config.vehicle.other.length = self.vehicle.other.length
@@ -129,6 +130,7 @@ class SemanticConfiguration(Configuration):
         config.vehicle.other.radius_disc = self.vehicle.other.radius_disc
         config.vehicle.other.circle_distance = self.vehicle.other.circle_distance
         config.vehicle.other.wheelbase = self.vehicle.other.wheelbase
+        config.vehicle.other.t_react = self.vehicle.other.t_react
 
         config.planning.dt = self.planning.dt
         config.planning.step_start = self.planning.step_start
