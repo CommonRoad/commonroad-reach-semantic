@@ -37,9 +37,9 @@ set(REACH_SOURCE
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/predicates/position/behind_obstacle_predicate.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/predicates/position/left_of_obstacle_predicate.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/predicates/position/right_of_obstacle_predicate.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/predicates/position/keeps_safe_distance_prec_predicate.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/predicates/braking/keeps_safe_distance_prec_predicate.cpp
 
-        ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/predicates/position/keeps_safe_distance_prec_predicate.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/predicates/braking/keeps_safe_distance_prec_predicate.cpp
 
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/splitters/minterm_reach_node_splitter.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/splitters/region_reach_node_splitter.cpp
@@ -106,7 +106,7 @@ add_custom_target(crreachs_headers SOURCES
         ${CMAKE_CURRENT_LIST_DIR}/include/reach_semantic/data_structure/reach/predicates/position/left_of_obstacle_predicate.hpp
         ${CMAKE_CURRENT_LIST_DIR}/include/reach_semantic/data_structure/reach/predicates/position/right_of_obstacle_predicate.hpp
 
-        ${CMAKE_CURRENT_LIST_DIR}/include/reach_semantic/data_structure/reach/predicates/position/keeps_safe_distance_prec_predicate.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/include/reach_semantic/data_structure/reach/predicates/braking/keeps_safe_distance_prec_predicate.hpp
 
         ${CMAKE_CURRENT_LIST_DIR}/include/reach_semantic/data_structure/reach/splitters/minterm_reach_node_splitter.hpp
         ${CMAKE_CURRENT_LIST_DIR}/include/reach_semantic/data_structure/reach/splitters/region_reach_node_splitter.hpp

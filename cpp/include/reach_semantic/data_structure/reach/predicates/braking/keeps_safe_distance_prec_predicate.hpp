@@ -6,7 +6,7 @@ using geometry::CurvilinearCoordinateSystem;
 
 namespace semantic_reach {
 
-class KeepSafeDistancePrecPredicate : public CppPredicate {
+class KeepsSafeDistancePrecPredicate : public CppPredicate {
   private:
     static constexpr int NUM_SUPPORT_POINTS = 10;
 
@@ -91,7 +91,7 @@ class KeepSafeDistancePrecPredicate : public CppPredicate {
      * @param ego_deceleration Deceleration of the ego vehicle.
      * @param vehicle_deceleration Deceleration of the other vehicle.
      */
-    KeepSafeDistancePrecPredicate(bool negated, size_t obstacle_id, double ego_length, double ego_reaction_time,
-                                  double ego_deceleration, double vehicle_deceleration);
+    KeepsSafeDistancePrecPredicate(bool negated, size_t obstacle_id, double ego_length, double ego_reaction_time,
+                                   double ego_deceleration, double vehicle_deceleration);
 };
 } // namespace semantic_reach

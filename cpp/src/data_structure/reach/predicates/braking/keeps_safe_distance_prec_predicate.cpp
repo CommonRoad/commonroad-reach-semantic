@@ -1,18 +1,18 @@
-#include "reach_semantic/data_structure/reach/predicates/position/keeps_safe_distance_prec_predicate.hpp"
-#include <commonroad_cpp/obstacle/obstacle.h>
+#include "reach_semantic/data_structure/reach/predicates/braking/keeps_safe_distance_prec_predicate.hpp"
+#include "commonroad_cpp/obstacle/obstacle.h"
 #include <spdlog/spdlog.h>
 
 using namespace semantic_reach;
 using geometry::CurvilinearCoordinateSystem;
 
-KeepSafeDistancePrecPredicate ::KeepSafeDistancePrecPredicate(bool negated, size_t obstacle_id, double ego_length,
-                                                              double ego_reaction_time, double ego_deceleration,
+KeepsSafeDistancePrecPredicate ::KeepsSafeDistancePrecPredicate(bool negated, size_t obstacle_id, double ego_length,
+                                                                double ego_reaction_time, double ego_deceleration,
                                                               double vehicle_deceleration)
     : CppPredicate(negated, false), obstacle_id(obstacle_id), ego_length(ego_length),
       ego_reaction_time(ego_reaction_time), ego_deceleration(ego_deceleration),
       other_deceleration(vehicle_deceleration) {}
 
-std::vector<reach::ReachNodePtr> KeepSafeDistancePrecPredicate::_restrict_reach_node_mandatory(
+std::vector<reach::ReachNodePtr> KeepsSafeDistancePrecPredicate::_restrict_reach_node_mandatory(
     int step, const reach::ReachNodePtr &reach_node, const std::shared_ptr<World> &world,
     const std::shared_ptr<CurvilinearCoordinateSystem> &ego_ccs) const {
 
@@ -39,7 +39,7 @@ std::vector<reach::ReachNodePtr> KeepSafeDistancePrecPredicate::_restrict_reach_
     return {reach_node};
 }
 
-std::vector<reach::ReachNodePtr> KeepSafeDistancePrecPredicate::_restrict_reach_node_forbidden(
+std::vector<reach::ReachNodePtr> KeepsSafeDistancePrecPredicate::_restrict_reach_node_forbidden(
     int step, const reach::ReachNodePtr &reach_node, const std::shared_ptr<World> &world,
     const std::shared_ptr<CurvilinearCoordinateSystem> &ego_ccs) const {
     std::vector<reach::ReachNodePtr> v{};
@@ -74,27 +74,27 @@ std::vector<reach::ReachNodePtr> KeepSafeDistancePrecPredicate::_restrict_reach_
     return v;
 }
 
-double KeepSafeDistancePrecPredicate::_determine_safe_position(double ego_velocity, double other_position,
-                                                               double other_velocity) const {
+double KeepsSafeDistancePrecPredicate::_determine_safe_position(double ego_velocity, double other_position,
+                                                                double other_velocity) const {
     double safe_dist = (other_velocity * other_velocity) / (-2 * abs(other_deceleration)) -
                        (ego_velocity * ego_velocity) / (-2 * abs(ego_deceleration)) + ego_velocity * ego_reaction_time;
 
     return other_position - safe_dist - ego_length / 2.0;
 }
 
-double KeepSafeDistancePrecPredicate::_determine_slope(double ego_velocity) const {
+double KeepsSafeDistancePrecPredicate::_determine_slope(double ego_velocity) const {
     double v_prime = ego_velocity / abs(ego_deceleration) + ego_reaction_time;
     // negate the slope of the safe distance function to get the slope of the safe position function (safe distance is
     // negated there)
     return -v_prime;
 }
 
-double KeepSafeDistancePrecPredicate::_determine_secant_slope(double lower_support, double upper_support,
-                                                              double lower_value, double upper_value) {
+double KeepsSafeDistancePrecPredicate::_determine_secant_slope(double lower_support, double upper_support,
+                                                               double lower_value, double upper_value) {
     return (upper_value - lower_value) / (upper_support - lower_support);
 }
 
-std::optional<std::pair<double, double>> KeepSafeDistancePrecPredicate::_get_other_position_and_velocity(
+std::optional<std::pair<double, double>> KeepsSafeDistancePrecPredicate::_get_other_position_and_velocity(
     int step, const std::shared_ptr<World> &world,
     const std::shared_ptr<geometry::CurvilinearCoordinateSystem> &ego_ccs) const {
     auto obstacle = world->findObstacle(obstacle_id);
@@ -108,8 +108,8 @@ std::optional<std::pair<double, double>> KeepSafeDistancePrecPredicate::_get_oth
 }
 
 std::tuple<double, double, double>
-KeepSafeDistancePrecPredicate::_compute_halfspace_coefficients(double ego_velocity_support, double slope,
-                                                               double safe_pos) {
+KeepsSafeDistancePrecPredicate::_compute_halfspace_coefficients(double ego_velocity_support, double slope,
+                                                                double safe_pos) {
     // position <= slope * velocity + safe_pos - slope * ego_velocity_support;
     // in the form a * position + b * velocity <= c:
     // 1 * position + (-slope) * velocity <= safe_pos - slope * ego_velocity_support

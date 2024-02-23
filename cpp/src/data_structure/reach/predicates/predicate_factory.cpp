@@ -77,9 +77,9 @@ std::unique_ptr<LeftOfObstaclePredicate> PredicateFactory::make_left_of_obstacle
     return std::make_unique<LeftOfObstaclePredicate>(negated, obstacle_id, config->ego_width);
 }
 
-std::unique_ptr<KeepSafeDistancePrecPredicate>
+std::unique_ptr<KeepsSafeDistancePrecPredicate>
 PredicateFactory::make_safe_distance_prec_predicate(bool negated, size_t obstacle_id) const {
-    return std::make_unique<KeepSafeDistancePrecPredicate>(negated, obstacle_id, config->ego_length,
-                                                           config->ego_reaction_time, config->ego_deceleration,
+    return std::make_unique<KeepsSafeDistancePrecPredicate>(negated, obstacle_id, config->ego_length,
+                                                            config->ego_reaction_time, config->ego_deceleration,
                                                            config->vehicle_deceleration);
 }
