@@ -6,8 +6,8 @@
 
 void TestEnvironments::set_up_environments() {
     size_t id_l1 = 42;
-    auto left_border_l1 = std::vector<vertex>{{0, 4}, {10, 4}, {20, 4}, {30, 4}, {40, 4}, {50, 4}};
-    auto right_border_l1 = std::vector<vertex>{{0, 0}, {10, 0}, {20, 0}, {30, 0}, {40, 0}, {50, 0}};
+    auto left_border_l1 = std::vector<vertex>{{0, 2}, {10, 2}, {20, 2}, {30, 2}, {40, 2}, {50, 2}};
+    auto right_border_l1 = std::vector<vertex>{{0, -2}, {10, -2}, {20, -2}, {30, -2}, {40, -2}, {50, -2}};
     auto type_l1 = std::set<LaneletType>{};
     auto lanelet1 = std::make_shared<Lanelet>(Lanelet{id_l1, left_border_l1, right_border_l1, type_l1});
 
@@ -24,6 +24,7 @@ void TestEnvironments::set_up_environments() {
     world_one = std::make_shared<World>(time_step, road_network_one, std::vector<std::shared_ptr<Obstacle>>{},
                                         std::vector{obs1}, 0.1);
 
-    geometry::EigenPolyline ref_path_one{{0, 2}, {10, 2}, {20, 2}, {30, 2}, {40, 2}, {50, 2}};
+    // reference path aligned with cartesian axes so that CCS coordinates are equal to cartesian coordinates
+    geometry::EigenPolyline ref_path_one{{0, 0}, {10, 0}, {20, 0}, {30, 0}, {40, 0}, {50, 0}};
     ccs_one = std::make_shared<geometry::CurvilinearCoordinateSystem>(ref_path_one);
 }

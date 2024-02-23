@@ -3,9 +3,9 @@
 void LeftOfObstaclePredicateTest::SetUp() {
     test_envs.set_up_environments();
     positive_pred =
-        std::make_unique<semantic_reach::LeftOfObstaclePredicate>(false, TestEnvironments::id_obstacle_one, ego_length);
+        std::make_unique<semantic_reach::LeftOfObstaclePredicate>(false, TestEnvironments::id_obstacle_one, ego_width);
     negative_pred =
-        std::make_unique<semantic_reach::LeftOfObstaclePredicate>(true, TestEnvironments::id_obstacle_one, ego_length);
+        std::make_unique<semantic_reach::LeftOfObstaclePredicate>(true, TestEnvironments::id_obstacle_one, ego_width);
 
     reach_node_one = std::make_shared<reach::ReachNode>(
         TestEnvironments::time_step,
@@ -19,14 +19,14 @@ TEST_F(LeftOfObstaclePredicateTest, Positive) {
     // Splitting is not necessary for this predicate
     ASSERT_EQ(restricted.size(), 1);
     auto restricted_node = restricted.at(0);
-    // expect lon min set to obstacle front inflated by ego length
-    double expected_lon_min = 20.0 + (5.0 / 2.0) + ego_length / 2.0;
-    EXPECT_NEAR(restricted_node->p_lon_min(), expected_lon_min, tolerance);
+    // expect lat min set to obstacle left inflated by ego width
+    double expected_lat_min = 2.0 + (2.0 / 2.0) + ego_width / 2.0;
+    EXPECT_NEAR(restricted_node->p_lat_min(), expected_lat_min, tolerance);
     // expect other bounds to be unchanged
-    EXPECT_EQ(restricted_node->p_lon_max(), reach_node_one->p_lon_max());
-    EXPECT_EQ(restricted_node->v_lon_min(), reach_node_one->v_lon_min());
-    EXPECT_EQ(restricted_node->v_lon_max(), reach_node_one->v_lon_max());
-    EXPECT_EQ(restricted_node->box_lat(), reach_node_one->box_lat());
+    EXPECT_EQ(restricted_node->p_lat_max(), reach_node_one->p_lat_max());
+    EXPECT_EQ(restricted_node->v_lat_min(), reach_node_one->v_lat_min());
+    EXPECT_EQ(restricted_node->v_lat_max(), reach_node_one->v_lat_max());
+    EXPECT_EQ(restricted_node->box_lon(), reach_node_one->box_lon());
 }
 
 TEST_F(LeftOfObstaclePredicateTest, Negative) {
@@ -35,12 +35,12 @@ TEST_F(LeftOfObstaclePredicateTest, Negative) {
     // Splitting is not necessary for this predicate
     ASSERT_EQ(restricted.size(), 1);
     auto restricted_node = restricted.at(0);
-    // expect lon max set to obstacle front inflated by ego length
-    double expected_lon_max = 20.0 + (5.0 / 2.0) + ego_length / 2.0;
-    EXPECT_NEAR(restricted_node->p_lon_max(), expected_lon_max, tolerance);
+    // expect lat max set to obstacle left inflated by ego width
+    double expected_lat_max = 2.0 + (2.0 / 2.0) + ego_width / 2.0;
+    EXPECT_NEAR(restricted_node->p_lat_max(), expected_lat_max, tolerance);
     // expect other bounds to be unchanged
-    EXPECT_EQ(restricted_node->p_lon_min(), reach_node_one->p_lon_min());
-    EXPECT_EQ(restricted_node->v_lon_min(), reach_node_one->v_lon_min());
-    EXPECT_EQ(restricted_node->v_lon_max(), reach_node_one->v_lon_max());
-    EXPECT_EQ(restricted_node->box_lat(), reach_node_one->box_lat());
+    EXPECT_EQ(restricted_node->p_lat_min(), reach_node_one->p_lat_min());
+    EXPECT_EQ(restricted_node->v_lat_min(), reach_node_one->v_lat_min());
+    EXPECT_EQ(restricted_node->v_lat_max(), reach_node_one->v_lat_max());
+    EXPECT_EQ(restricted_node->box_lon(), reach_node_one->box_lon());
 }

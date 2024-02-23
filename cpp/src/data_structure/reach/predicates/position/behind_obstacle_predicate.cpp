@@ -53,5 +53,5 @@ BehindObstaclePredicate::_get_obstacle_behind(int step, const std::shared_ptr<Wo
     }
 
     // inflate by half the length of the ego vehicle, as we use the center for reference
-    return obstacle->rearS(step, ego_ccs) + ego_length / 2.0;
+    return obstacle->rearS(step, ego_ccs) - ego_length / 2.0;
 }

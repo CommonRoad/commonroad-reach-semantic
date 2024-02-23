@@ -1,10 +1,24 @@
-//
-// Created by tarabasz on 11/27/23.
-//
+#pragma once
 
-#ifndef SEMANTIC_REACH_TEST_RIGHT_OF_OBSTACLE_PREDICATE_HPP
-#define SEMANTIC_REACH_TEST_RIGHT_OF_OBSTACLE_PREDICATE_HPP
+#include "../predicate_test_setup.hpp"
+#include "reach_semantic/data_structure/reach/predicates/position/right_of_obstacle_predicate.hpp"
+#include "reachset/data_structure/reach/reach_node.hpp"
 
-class test_right_of_obstacle {};
+#include <gtest/gtest.h>
 
-#endif // SEMANTIC_REACH_TEST_RIGHT_OF_OBSTACLE_PREDICATE_HPP
+class RightOfObstaclePredicateTest : public testing::Test {
+  private:
+    void SetUp() override;
+
+  protected:
+    static constexpr double tolerance = 1e-6;
+
+    static constexpr double ego_width = 1.8;
+
+    TestEnvironments test_envs;
+
+    std::unique_ptr<semantic_reach::RightOfObstaclePredicate> positive_pred;
+    std::unique_ptr<semantic_reach::RightOfObstaclePredicate> negative_pred;
+
+    std::shared_ptr<reach::ReachNode> reach_node_one;
+};

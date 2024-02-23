@@ -13,7 +13,7 @@ class LeftOfObstaclePredicateTest : public testing::Test {
   protected:
     static constexpr double tolerance = 1e-6;
 
-    static constexpr double ego_length = 4.5;
+    static constexpr double ego_width = 1.8;
 
     TestEnvironments test_envs;
 
