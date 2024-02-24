@@ -25,7 +25,8 @@ sudo apt-get update
 sudo apt-get install libspot-dev
 ```
 
-* Install [CommonRoad-Reach](https://commonroad.in.tum.de/tools/commonroad-reach) **from source**.
+* Install [CommonRoad-Reach](https://commonroad.in.tum.de/tools/commonroad-reach) **from source** using the version
+  indicated by `GIT_TAG` in [ExternalReach.cmake](cmake/external/ExternalReach.cmake).
 Please refer to its [README](https://gitlab.lrz.de/cps/commonroad-reachable-set/-/blob/develop/README.md?ref_type=heads) for instructions.
 
 > **Note:** Currently there appears to be a bug with boost geometry and newer versions of GCC (this seems to start with version 11.4).
@@ -75,9 +76,14 @@ The scenarios themselves are located in the `./scenarios/` directory.
 * `ImportError: /.../commonroad_reach/pycrreach.cpython-310-x86_64-linux-gnu.so: undefined symbol: _ZN3fcl15CollisionObjectIdEdlEPv` when running the example script:
   This is most likely caused by using two different compiler versions for compiling `commonroad-reach` and `commonroad-reach-semantic`.
   Make sure that you use the same compiler version for both.
+  Also, ensure that you build everything completely from scratch:
+  * Uninstall the `commonroad-reach-semantic`, `commonroad-reach`, and `commonroad-drivability-checker` packages
+    via `pip`.
+  * Remove the `build` directory of `commonroad-reach-semantic` and `commonroad-reach`.
 * `terminate called without an active exception` when running the example script:
-  This is most likely caused by using two different compiler versions for compiling `commonroad-reach` and `commonroad-reach-semantic`.
-  Make sure that you use the same compiler version for both.
+  See above
+* `Segmentation fault` when running the example script:
+  See above
 
 ### Development
 
