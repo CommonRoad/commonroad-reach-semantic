@@ -3,7 +3,7 @@ include(FetchContent)
 FetchContent_Declare(
     crreach
     GIT_REPOSITORY  git@gitlab.lrz.de:cps/commonroad-reachable-set.git
-        GIT_TAG c69591ebc6da957d965eac0ad08340be88dbc935
+        GIT_TAG 9da18616b5c803e825248bc011847bbd22bde54d
 )
 
 FetchContent_MakeAvailable(crreach)
