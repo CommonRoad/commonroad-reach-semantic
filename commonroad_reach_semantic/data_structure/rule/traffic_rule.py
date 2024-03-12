@@ -228,7 +228,7 @@ def _concretize_entering_vehicles_rule(semantic_model: SemanticModel) -> List[st
 
     G (
         on_main_carriageway(ego) & in_front_of(ego, other) & on_access_ramp(other) & F on_main_carriageway(other) ->
-        !(!main_carriagway_right_lane(ego) & F main_carriagway_right_lane(ego))
+        !(!main_carriageway_right_lane(ego) & F main_carriageway_right_lane(ego))
     )
     joined by conjunction for all other vehicles
 
