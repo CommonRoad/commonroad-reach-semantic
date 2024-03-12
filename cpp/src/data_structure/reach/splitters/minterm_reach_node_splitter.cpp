@@ -15,7 +15,7 @@ MintermReachNodeSplitter::MintermReachNodeSplitter(SemanticModelPtr semantic_mod
     const auto &[obstacles, roadNetwork, scenario_dt] = InputUtils::getDataFromCommonRoad(
         config->config_general.path_scenarios + config->config_general.name_scenario + ".xml");
     resample_obstacle_states(obstacles, scenario_dt, config->config_planning.dt);
-    world = std::make_shared<World>(config->config_planning.step_start, roadNetwork,
+    world = std::make_shared<World>("mintermSplitterWorld", config->config_planning.step_start, roadNetwork,
                                     std::vector<std::shared_ptr<Obstacle>>{}, obstacles, config->config_planning.dt);
 
     auto config_ccs{config->config_planning.CLCS};
