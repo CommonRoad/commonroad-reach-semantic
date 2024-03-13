@@ -34,6 +34,9 @@ default:
 
 pycodestyle-commit:
   stage: static-check
+  image: python:3.10-slim-bullseye
+  before_script:
+    - apt-get update && apt-get install -y git
   script:
     - pip install pycodestyle
     - git diff ${CI_COMMIT_BEFORE_SHA}...${CI_COMMIT_SHA} -- '*.py' | pycodestyle --max-line-length=120 --diff
@@ -43,6 +46,9 @@ pycodestyle-commit:
 
 pycodestyle-merge-request:
   stage: static-check
+  image: python:3.10-slim-bullseye
+  before_script:
+    - apt-get update && apt-get install -y git
   script:
     - pip install pycodestyle
     - git diff ${CI_MERGE_REQUEST_TARGET_BRANCH_SHA}...${CI_MERGE_REQUEST_SOURCE_BRANCH_SHA} -- '*.py' | pycodestyle --max-line-length=120 --diff
