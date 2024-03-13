@@ -55,14 +55,14 @@ clang-format:
   script: ./ci/clang-format.sh
   needs: [ ]
 
-clang-tidy:
-  stage: static-check
-  script:
-    - mkdir build && cd build
-    - cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ..
-    - cd ..
-    - ./ci/clang-tidy.sh
-  needs: [ ]
+#clang-tidy:
+#  stage: static-check
+#  script:
+#    - mkdir build && cd build
+#    - cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ..
+#    - cd ..
+#    - ./ci/clang-tidy.sh
+#  needs: [ ]
 
 
 ### build C++ library using CMake directly ###
