@@ -12,21 +12,10 @@ stages:
   - compile
   - test
 
-variables:
-  CMAKE_VERSION: "3.27.8"
-
 default:
-  image: $CI_REGISTRY/cps/commonroad/commonroad-reach-semantic/ci:1.0
+  image: $CI_REGISTRY/cps/commonroad/commonroad-reach-semantic/ci:2.0
   before_script:
     - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.lrz.de/".insteadOf "git@gitlab.lrz.de:"
-    - rm -rf /opt/cmake
-    - wget "https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-Linux-x86_64.sh" -q -O /tmp/cmake-install.sh
-    - chmod u+x /tmp/cmake-install.sh && \
-    - mkdir /opt/cmake
-    - /tmp/cmake-install.sh --skip-license --prefix=/opt/cmake
-    - rm /tmp/cmake-install.sh
-    - apt-get remove -y libspdlog-dev
-
 
 .conda-init: &conda-init
   - conda init bash
@@ -75,55 +64,72 @@ clang-tidy:
 
 
 ### build C++ library using CMake directly ###
-compile-cpp:
-  stage: compile
-  script:
-    - *conda-init
-    - conda activate "$CONDA_ENV_PREFIX$PYTHON_VER"
-    - *python-prepare
-    - export PATH="/opt/cmake/bin:${PATH}"
-    - mkdir build-debug && cd build-debug
-    - cmake -GNinja -DCMAKE_BUILD_TYPE=Debug ..
-    - cmake --build . -t pycrreachs
-  parallel:
-    matrix:
-      - PYTHON_VER: *python-versions
-  artifacts:
+.cache-build-dir:
+  cache: &cache_dependency_archives
+    key: cache-dependency-archives
     paths:
-      - commonroad_reach_semantic/pycrreachs.*.so
-    expire_in: 30 minutes
+      - build/_deps/*-subbuild/*-populate-prefix/src/*.{tar*,zip}
+    policy: pull
+
+generate-cache:
+  stage: compile
+  cache:
+    <<: *cache_dependency_archives
+    policy: push
+  script:
+    - cmake -G "Ninja Multi-Config" -S . -B build -DFETCHCONTENT_QUIET:BOOL=OFF
   needs: [ ]
 
-### build and install C++ extension using pip ###
-compile-via-pip-install:
+build-gcc:
   stage: compile
+  cache:
+    <<: *cache_dependency_archives
+  variables:
+    CC: gcc
+    CXX: g++
+  script:
+    - cmake -G "Ninja Multi-Config" -S . -B build
+    - cmake --build build --config Release
+  needs: [ ]
+
+build-test:
+  stage: compile
+  cache:
+    <<: *cache_dependency_archives
+  script:
+    - cmake -G "Ninja Multi-Config" -S . -B build
+    - cmake --build build --config RelWithDebInfo --target crreachsem_test
+  needs: [ ]
+  artifacts:
+    paths:
+      - build/RelWithDebInfo/crreachsem_test
+      - build/**/*.so
+    expire_in: 30 minutes
+
+self-contained-build:
+  stage: compile
+  variables:
+    CIBUILDWHEEL: 1 # pretend that we are cibuildwheel to trigger self-contained builds
   script:
     - *conda-init
     - conda activate "$CONDA_ENV_PREFIX$PYTHON_VER"
     - *python-prepare
-    - export PATH="/opt/cmake/bin:${PATH}"
     - pip install -v .
   parallel:
     matrix:
       - PYTHON_VER: *python-versions
   needs: [ ]
 
-### compile C++ tests ###
-compile-cpp-tests:
-  stage: compile
+### tests ###
+run-gtest:
+  stage: test
   script:
-    - export PATH=/opt/cmake/bin:$PATH
-    - mkdir build-debug && cd build-debug
-    - cmake -GNinja -DCMAKE_BUILD_TYPE=Debug -DADD_TESTS=ON ..
-    - cmake --build . -t crreachs_test
-  artifacts:
-    paths:
-      - build-debug/cpp/tests/crreachs_test
-    expire_in: 30 minutes
-  needs: [ ]
+    - build/RelWithDebInfo/crreachsem_test
+  needs:
+    - job: build-test
+      artifacts: true
 
-### test Python ###
-test-python:
+run-pytest:
   stage: test
   script:
     - *conda-init
@@ -132,21 +138,12 @@ test-python:
     # FIXME: temporary workaround until we can compile against commonroad-reach from PyPI
     # this fix will no longer work once we start testing the C++ bindings from Python
     - pip install commonroad-reach>=2023.1.1
-    - cd tests
-    - pytest .
+    - pip install pip-tools
+    - pip-compile --extra=build -o requirements_build.txt pyproject.toml
+    - pip install -r requirements_build.txt
+    - pip install -v --no-build-isolation --config-settings=editable.rebuild=true -e .[test]
+    - pytest tests
   parallel:
     matrix:
       - PYTHON_VER: *python-versions
-  needs:
-    - job: compile-cpp
-      artifacts: true
-
-### test C++ ###
-test-cpp:
-  stage: test
-  script:
-    - cd build-debug
-    - ./cpp/tests/crreachs_test
-  needs:
-    - job: compile-cpp-tests
-      artifacts: true
+  needs: [ ]
