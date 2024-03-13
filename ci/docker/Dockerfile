@@ -20,6 +20,7 @@ RUN apt-get update && \
         libgtest-dev \
         librange-v3-dev \
         libgl1 \
+        libgtest-dev libgmock-dev \
         doctest-dev && \
     mkdir -p /etc/apt/keyrings && \
     wget -q -O - https://www.lrde.epita.fr/repo/debian.gpg | tee /etc/apt/keyrings/lrde-spot.gpg && \
