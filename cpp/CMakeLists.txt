@@ -92,8 +92,6 @@ endif ()
 # build position independent code so that we can link this in the Python bindings (builds shared lib)
 set_property(TARGET crreachsem PROPERTY POSITION_INDEPENDENT_CODE ON)
 
-# handle pybind11 warning "... declared with greater visibility than the type of its field ..."
-set_property(TARGET crreachsem PROPERTY CXX_VISIBILITY_PRESET hidden)
 
 target_include_directories(crreachsem
         PUBLIC

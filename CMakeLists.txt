@@ -260,6 +260,7 @@ endif ()
 
 # Add subdirectory for tests
 if (CRREACHSEM_BUILD_TESTS)
+    enable_testing()
     add_subdirectory(cpp/tests)
 endif ()
 

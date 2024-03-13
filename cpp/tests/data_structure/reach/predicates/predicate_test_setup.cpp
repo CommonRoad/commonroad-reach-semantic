@@ -21,8 +21,8 @@ void TestEnvironments::set_up_environments() {
     obs1->setCurrentState(state_obs1);
     obs1->setRectangleShape(5, 2);
 
-    world_one = std::make_shared<World>(time_step, road_network_one, std::vector<std::shared_ptr<Obstacle>>{},
-                                        std::vector{obs1}, 0.1);
+    world_one = std::make_shared<World>("testWorld", time_step, road_network_one,
+                                        std::vector<std::shared_ptr<Obstacle>>{}, std::vector{obs1}, 0.1);
 
     // reference path aligned with cartesian axes so that CCS coordinates are equal to cartesian coordinates
     geometry::EigenPolyline ref_path_one{{0, 0}, {10, 0}, {20, 0}, {30, 0}, {40, 0}, {50, 0}};
