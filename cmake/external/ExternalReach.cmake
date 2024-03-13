@@ -1,8 +1,8 @@
 include(FetchContent)
 
 FetchContent_Declare(
-    crreach
-    GIT_REPOSITORY  git@gitlab.lrz.de:cps/commonroad-reachable-set.git
+        crreach
+        GIT_REPOSITORY git@gitlab.lrz.de:cps/commonroad-reachable-set.git
         GIT_TAG sync-dependencies-with-env-model
         #    URL /home/lercher/tum/commonroad-reachable-set
 )

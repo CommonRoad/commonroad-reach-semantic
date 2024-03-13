@@ -14,7 +14,7 @@ from commonroad_reach.data_structure.configuration import Configuration, Configu
 from omegaconf import ListConfig, DictConfig
 
 import commonroad_reach_semantic.utility.vehicle as util_vehicle
-from commonroad_reach_semantic import pycrreachs
+from commonroad_reach_semantic import pycrreachsem
 from commonroad_reach_semantic.data_structure.config.outgoing_direction import OutgoingDirection
 
 logger = logging.getLogger(__name__)
@@ -87,13 +87,13 @@ class SemanticConfiguration(Configuration):
         for line in string.split("\n"):
             util_logger.print_and_log_info(logger, line)
 
-    def convert_to_cpp_configuration(self) -> pycrreachs.SemanticConfiguration:
+    def convert_to_cpp_configuration(self) -> pycrreachsem.SemanticConfiguration:
         """
         Converts to a configuration that is readable by the C++ binding code.
         """
         # TODO: could be nicer if we had a function like write_cpp_config(self, cpp_config) -> None instead
         # in this case we could reuse the superclass method
-        config = pycrreachs.SemanticConfiguration()
+        config = pycrreachsem.SemanticConfiguration()
 
         config.general.name_scenario = self.name_scenario
         config.general.path_scenarios = self.general.path_scenarios

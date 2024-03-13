@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 import seaborn as sns
-# from commonroad_reach_semantic import pycrreachs as reach
+# from commonroad_reach_semantic import pycrreachsem as reach
 from commonroad.geometry.shape import Polygon
 from commonroad.scenario.lanelet import LaneletNetwork
 from commonroad.visualization.draw_params import MPDrawParams

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "commonroad_cpp/world.h"
+#include "commonroad_cpp/obstacle/obstacle.h"
 
 namespace semantic_reach {
 /**

@@ -1,6 +1,6 @@
 #include "pybind.hpp"
 
-PYBIND11_MODULE(pycrreachs, module) {
+PYBIND11_MODULE(pycrreachsem, module) {
     module.doc() = "Pybind module for semantic reachable set.";
 
     export_data_structures(module);

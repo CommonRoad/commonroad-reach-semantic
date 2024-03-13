@@ -7,7 +7,7 @@ from commonroad_reach import pycrreach
 from commonroad_reach.data_structure.reach.reach_node import ReachNode
 from commonroad_reach.data_structure.reach.reach_polygon import ReachPolygon
 
-from commonroad_reach_semantic import pycrreachs
+from commonroad_reach_semantic import pycrreachsem
 from commonroad_reach_semantic.data_structure.environment_model.position_interval import PositionInterval
 from commonroad_reach_semantic.data_structure.environment_model.region import Region
 from commonroad_reach_semantic.data_structure.environment_model.semantic_model import SemanticModel
@@ -193,7 +193,7 @@ class ReachableSetLabeler:
         return [node for region, node in split_reachable_sets]
 
     def _update_propositions_with_region(self, propagated_set: Union[ReachNode, pycrreach.ReachNode],
-                                         region: Union[Region, pycrreachs.Region], step: int):
+                                         region: Union[Region, pycrreachsem.Region], step: int):
         """
         Updates the propositions of the propagated set with the proposition of the lanelet region.
 

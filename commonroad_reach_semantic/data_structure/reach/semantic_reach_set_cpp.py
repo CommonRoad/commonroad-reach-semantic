@@ -1,7 +1,7 @@
 import logging
 from abc import ABC
 
-from commonroad_reach_semantic import pycrreachs
+from commonroad_reach_semantic import pycrreachsem
 from commonroad_reach_semantic.data_structure.config.semantic_configuration import SemanticConfiguration
 from commonroad_reach_semantic.data_structure.environment_model.semantic_model import SemanticModel
 from commonroad_reach_semantic.data_structure.reach.semantic_reach_set import SemanticReachableSet
@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 class CppSemanticReachableSet(SemanticReachableSet, ABC):
     """Abstract base class for C++ implementations of semantic reachable set computation."""
 
-    _reach: pycrreachs.SemanticReachableSet
+    _reach: pycrreachsem.SemanticReachableSet
 
     def __init__(self, config: SemanticConfiguration, semantic_model: SemanticModel,
                  rule_interface: TrafficRuleInterface):

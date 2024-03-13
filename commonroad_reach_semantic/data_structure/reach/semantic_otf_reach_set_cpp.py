@@ -1,6 +1,6 @@
 import logging
 
-from commonroad_reach_semantic import pycrreachs
+from commonroad_reach_semantic import pycrreachsem
 from commonroad_reach_semantic.data_structure.config.semantic_configuration import SemanticConfiguration
 from commonroad_reach_semantic.data_structure.environment_model.semantic_model import SemanticModel
 from commonroad_reach_semantic.data_structure.reach.semantic_reach_set_cpp import CppSemanticReachableSet
@@ -16,10 +16,10 @@ class CppSemanticOTFReachableSet(CppSemanticReachableSet):
                  rule_interface: TrafficRuleInterface):
         super().__init__(config, semantic_model, rule_interface)
 
-        self._reach = pycrreachs.SemanticOTFReachableSet(self.config.convert_to_cpp_configuration(),
+        self._reach = pycrreachsem.SemanticOTFReachableSet(self.config.convert_to_cpp_configuration(),
                                                          self.collision_checker.cpp_collision_checker,
-                                                         pycrreachs.SemanticModel(semantic_model),
-                                                         pycrreachs.TrafficRuleInterface(rule_interface))
+                                                           pycrreachsem.SemanticModel(semantic_model),
+                                                           pycrreachsem.TrafficRuleInterface(rule_interface))
 
         logger.info("CppSemanticOTFReachableSet initialized.")
 

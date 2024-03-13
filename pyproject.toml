@@ -71,7 +71,7 @@ build-backend = "scikit_build_core.build"
 [tool.scikit-build]
 wheel.packages = ["commonroad_reach_semantic"]
 build-dir = "build/{build_type}_{wheel_tag}"
-cmake.targets = ["pycrreachs"]
+install.components = ["pycrreachsem"]
 
 minimum-version = "0.8"
 cmake.version = ">=3.24"
