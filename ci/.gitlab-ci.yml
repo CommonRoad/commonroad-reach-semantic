@@ -107,6 +107,7 @@ build-test:
     paths:
       - build/RelWithDebInfo/crreachsem_test
       - build/**/*.so
+      - build/**/*.so.*
     expire_in: 30 minutes
 
 ### tests ###
