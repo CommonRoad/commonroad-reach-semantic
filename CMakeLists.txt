@@ -63,6 +63,10 @@ set(CMAKE_CXX_STANDARD 17) # c++ standard
 set(CMAKE_CXX_STANDARD_REQUIRED ON) # c++ standard
 set(CMAKE_CXX_EXTENSIONS OFF) # turn off compiler extensions
 
+# This needs to be set here, as the environment model also writes it to the cache
+# Otherwise, we need to rebuild once, because then the value from the cache takes effect
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")
+
 # Necessary for Python modules: never build as shared library
 # IMPORTANT: This must be set before finding the necessary packages
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -102,13 +106,7 @@ find_package(OpenMP REQUIRED) # for parallel computation
 
 include(ExternalPybind)
 include(ExternalReach)
-
-# FIXME: This is a dirty hack to make the environment model believe that we never build the Python bindings.
-# Otherwise, it tries to install its own bindings, when we want to install ours.
-set(WAS_SKBUILD ${SKBUILD})
-set(SKBUILD OFF)
 include(ExternalEnvironmentModel)
-set(SKBUILD ${WAS_SKBUILD})
 
 # ========= add sub directories
 add_subdirectory(cpp) # semantic reachable set
