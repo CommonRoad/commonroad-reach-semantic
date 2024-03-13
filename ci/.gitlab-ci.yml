@@ -18,6 +18,9 @@ default:
     - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.lrz.de/".insteadOf "git@gitlab.lrz.de:"
 
 .conda-init: &conda-init
+  - wget https://repo.anaconda.com/miniconda/Miniconda3-${CONDA_VERSION}-Linux-x86_64.sh -q -O ~/miniconda.sh
+  - /bin/bash ~/miniconda.sh -b -p /opt/conda
+  - export PATH=/opt/conda/bin:$PATH
   - conda init bash
   - source ~/.bashrc
 
@@ -106,20 +109,6 @@ build-test:
       - build/**/*.so
     expire_in: 30 minutes
 
-self-contained-build:
-  stage: compile
-  variables:
-    CIBUILDWHEEL: 1 # pretend that we are cibuildwheel to trigger self-contained builds
-  script:
-    - *conda-init
-    - conda activate "$CONDA_ENV_PREFIX$PYTHON_VER"
-    - *python-prepare
-    - pip install -v .
-  parallel:
-    matrix:
-      - PYTHON_VER: *python-versions
-  needs: [ ]
-
 ### tests ###
 run-gtest:
   stage: test
@@ -131,8 +120,12 @@ run-gtest:
 
 run-pytest:
   stage: test
+  variables:
+    CONDA_ENV_PREFIX: "commonroad-py"
+    CONDA_VERSION: "py312_24.1.2-0"
   script:
     - *conda-init
+    - conda create -n "$CONDA_ENV_PREFIX$PYTHON_VER" python="$PYTHON_VER"
     - conda activate "$CONDA_ENV_PREFIX$PYTHON_VER"
     - *python-prepare
     # FIXME: temporary workaround until we can compile against commonroad-reach from PyPI
