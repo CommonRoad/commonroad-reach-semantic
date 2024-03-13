@@ -1,5 +1,8 @@
 include(FetchContent)
 
+# Force the environment model to always use the external drivability checker
+set(EXTERNAL_CRDC_FORCE ON)
+
 FetchContent_Declare(
         EnvironmentModel
         GIT_REPOSITORY git@gitlab.lrz.de:commonroad-traffic-rules/environment-model.git
