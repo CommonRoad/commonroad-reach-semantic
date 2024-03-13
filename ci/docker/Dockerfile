@@ -37,14 +37,3 @@ RUN wget "https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/c
     /tmp/cmake-install.sh --skip-license --prefix=/opt/cmake && \
     rm /tmp/cmake-install.sh
 ENV PATH="/opt/cmake/bin:${PATH}"
-
-# Install miniconda
-ARG CONDA_VERSION="py312_24.1.2-0"
-RUN wget https://repo.anaconda.com/miniconda/Miniconda3-${CONDA_VERSION}-Linux-x86_64.sh -q -O ~/miniconda.sh && \
-    /bin/bash ~/miniconda.sh -b -p /opt/conda
-ENV PATH="/opt/conda/bin:${PATH}"
-
-# Create conda environments for Python versions
-ARG PY_VERSIONS="3.10 3.11"
-ENV CONDA_ENV_PREFIX="commonroad-py"
-RUN for PY_VERSION in ${PY_VERSIONS}; do conda create -n "${CONDA_ENV_PREFIX}${PY_VERSION}" python=${PY_VERSION}; done
