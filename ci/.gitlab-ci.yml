@@ -60,7 +60,6 @@ clang-tidy:
   script:
     - mkdir build && cd build
     - cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ..
-    - cmake --build . --target commonroad_protobuf # FIXME: this is required to generate the protobuf files (there is probably a better way to do this)
     - cd ..
     - ./ci/clang-tidy.sh
   needs: [ ]
