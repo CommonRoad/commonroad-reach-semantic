@@ -782,7 +782,7 @@ class Vehicle:
             state_lon_ref = state_lat_ref = None
 
         else:
-            theta_at_s_ref = route_ref.orientation(s_ref)
+            theta_at_s_ref = np.interp(s_ref, route_ref.path_length_per_point, route_ref.path_orientation)
             theta_ref = orientation - theta_at_s_ref
             velocity_lon_ref = velocity * np.cos(theta_ref)
             if acceleration:

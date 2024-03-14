@@ -2,12 +2,10 @@ import logging
 from typing import Union, Optional, List
 
 import commonroad_reach.utility.logger as util_logger
-from commonroad.planning.goal import GoalRegion
 from commonroad.planning.planning_problem import PlanningProblemSet, PlanningProblem
 from commonroad.scenario.intersection import IntersectionIncomingElement
 from commonroad.scenario.lanelet import LaneletType
 from commonroad.scenario.scenario import Scenario
-from commonroad.scenario.state import State
 from commonroad_dc.pycrccosy import CurvilinearCoordinateSystem
 from commonroad_reach import pycrreach
 from commonroad_reach.data_structure.configuration import Configuration, ConfigurationBase, ReachableSetConfiguration
@@ -31,10 +29,8 @@ class SemanticConfiguration(Configuration):
 
     def update(self, scenario: Scenario = None, planning_problem_set: PlanningProblemSet = None,
                planning_problem: PlanningProblem = None, idx_planning_problem: int = 0,
-               state_initial: State = None, goal_region: GoalRegion = None,
                CLCS: CurvilinearCoordinateSystem = None, list_ids_lanelets: List[int] = None):
-        super().update(scenario, planning_problem_set, planning_problem, idx_planning_problem, state_initial,
-                       goal_region, CLCS, list_ids_lanelets)
+        super().update(scenario, planning_problem_set, planning_problem, idx_planning_problem, CLCS, list_ids_lanelets)
         self.semantic_model.update_configuration(self)
 
     def print_configuration_summary(self):
@@ -181,7 +177,7 @@ class SemanticConfiguration(Configuration):
 
         config.semantic_model.is_intersection = self.semantic_model.incoming_element_route is not None
         config.semantic_model.ego_radius_inflation = self.vehicle.ego.radius_inflation
-        config.semantic_model.vec_route_lanelet_ids = self.planning.route.list_ids_lanelets
+        config.semantic_model.vec_route_lanelet_ids = self.planning.route.lanelet_ids
 
         return config
 
@@ -235,8 +231,8 @@ class SemanticModelConfiguration(ConfigurationBase):
 
         # ==== intersection-related attributes for routes passing through an intersection
         id_lanelet_incoming = id_lanelet_successor = None
-        for id_lanelet_pre, id_lanelet_suc in zip(planning_config.route.list_ids_lanelets[:-1],
-                                                  planning_config.route.list_ids_lanelets[1:]):
+        for id_lanelet_pre, id_lanelet_suc in zip(planning_config.route.lanelet_ids[:-1],
+                                                  planning_config.route.lanelet_ids[1:]):
             lanelet_pre = config.scenario.lanelet_network.find_lanelet_by_id(id_lanelet_pre)
             lanelet_suc = config.scenario.lanelet_network.find_lanelet_by_id(id_lanelet_suc)
 

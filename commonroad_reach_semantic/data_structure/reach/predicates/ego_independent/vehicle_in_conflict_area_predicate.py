@@ -78,7 +78,7 @@ class VehicleInConflictAreaPredicate(predicate.Predicate):
     def _vehicle_intersects_with_route(self, step: int, semantic_model: SemanticModel) -> bool:
         if vehicle := semantic_model.vehicle_model.find_vehicle_by_id(self.vehicle_id):
             vehicle_lanelets = vehicle.lanelet_ids_at_step(step)
-            route_lanelets = semantic_model.config.planning.route.list_ids_lanelets
+            route_lanelets = semantic_model.config.planning.route.lanelet_ids
             for l_route, l_vehicle in itertools.product(route_lanelets, vehicle_lanelets):
                 intersecting = semantic_model.lanelet_model.dict_id_lanelet_to_set_ids_lanelets_intersecting[l_route]
                 if l_vehicle in intersecting:
