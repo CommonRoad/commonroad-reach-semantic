@@ -26,7 +26,6 @@ default:
 
 .python-prepare: &python-prepare
   - python -m pip install --upgrade pip
-  - pip install -r ./requirements.txt
   - conda install -c conda-forge spot
 
 .python-versions: &python-versions
