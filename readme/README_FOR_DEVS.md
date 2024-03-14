@@ -1,53 +1,76 @@
-## Setting up a Local Development Environment
+## Editable Install (experimental)
 
-### Working with the Python Code
+1. Install the C++ dependencies as described [above](#third-party-dependencies).
 
-1. Follow the instructions for building the C++ bindings in the [README](../README.md).
-2. If you are using Anaconda, make sure to select the correct Python environment in your IDE.
+2. Install the Python build dependencies (required to make `--no-build-isolation` work in the next step):
 
-### Working with the C++ Code
-
-For the following instructions, we assume that you are using an Anaconda environment named `commonroad` for
-CommonRoad-Reach-Semantic.
-
-* You can build the C++ code directly via CMake, which might be more convenient for local development.
-  To do so, run the following commands within your Anaconda environment:
 ```bash
-mkdir build && cd build
-cmake -DCMAKE_BUILD_TYPE=Debug ..
-cmake --build . -j $BUILD_JOBS
+pip install -r requirements_build.txt
 ```
 
-#### Building the C++ code from your IDE
-
-If you want to build the code from your IDE, extra steps are necessary to ensure that the build uses the Python version
-from your Anaconda environment.
-You need to pass the following flags to CMake:
-
-```
--DPYTHON_INCLUDE_DIR=/path/to/anaconda3/envs/commonroad/include/pythonX.Y
--DPYTHON_EXECUTABLE=/path/to/anaconda3/envs/commonroad/bin/python
+3. Build the package and install it in editable mode with automatic rebuilds.
+```bash
+pip install -v --no-build-isolation --config-settings=editable.rebuild=true -e .
 ```
 
-> **Hint:** You can find the path to the Python executable with `which python` and the path to the Python include
-> directory with `python -c "from distutils.sysconfig import get_python_inc; print(get_python_inc())"`.
+Note that this is considered experimental by `scikit-build-core` and is subject to change.
+For more information, please see
+the [documentation](https://scikit-build-core.readthedocs.io/en/latest/configuration.html#editable-installs)
+of `scikit-build-core`.
+Flags:
 
-To set this up in CLion, go to `Project settings > Build, Execution, Deployment > CMake` and add the flags
-to `CMake options`.
+- `-v` (verbose) prints information about the build progress
+- `--no-build-isolation` disables build isolation, which means the build runs in your local environment
+- `--config-settings=editable.rebuild=true` enables automatic rebuilds when the source code changes (see the caveats in
+  the documentation of `scikit-build-core`)
+- `-e` (editable) installs the package in editable mode
 
-#### Debugging the C++ code
+## Debugging the C++ Code
 
-To debug the C++ bindings that are called from Python, you can launch the Python interpreter under the C++ debugger.
-To set this up with CLion, follow the steps described
+1. Install the package in editable mode using a Debug build:
+
+```bash
+pip install -v --no-build-isolation --config-settings=editable.rebuild=true --config-settings=cmake.build-type="Debug" -e .
+```
+
+2. Launch the Python interpreter under a C++ debugger, for example with GDB:
+
+```bash
+gdb -ex r --args python main.py
+```
+
+You can also use your favorite IDE to debug the C++ code.
+
+### Debugging with CLion
+
+To set up a debugging configuration with CLion, follow the steps described
 under [option 2 here](https://www.jetbrains.com/help/clion/debugging-python-extensions.html#debug-custom-py).
-Again, make sure to use the Python version from your Anaconda environment.
+Make sure to use the Python and pip executables from your Anaconda environment.
 
-Below are screenshots of an example configuration.
-Note that we add `pycrreachs-run-dummy` in the `Before launch` section of `Python/C++ Debug` to trigger rebuilding the
-Python bindings.
+When setting up the external build tool in CLion, we recommend to choose a different build directory to avoid
+interference with your manual builds.
+You also have to make sure that CMake uses the correct compiler version (see the note at the very top of this document).
+Below, you find the pip arguments of an example configuration:
 
-![Custom Build Application](img/run_configuration.png)
+```
+install
+-v
+--no-build-isolation
+--config-settings=editable.rebuild=true
+--config-settings=cmake.build-type="Debug"
+--config-settings=cmake.define.CMAKE_CXX_COMPILER=/usr/bin/g++-10
+--config-settings=build-dir=build/CLion
+-e
+.
+```
 
-![Custom Build Target](img/custom_target.png)
+> **Note:** Do not disable the automatic rebuilds. Otherwise, CLion appears to not recognize the breakpoints you set.
+> It also appears that breakpoints are not recognized if you start debugging immediately after changing the code.
+> In this case, restarting the debugging session should help.
 
-![Dummy Run Configuration](img/dumy_run_configuration.png)
+Alternatively, you can omit the build step in the CLion configuration and just relay on the automatic rebuilds of your
+manual debug installation.
+With this, the breakpoints seem to work more reliably.
+To do so, edit your run configuration and remove "Build" from the "Before launch" section.
+
+If all else fails, uninstalling and reinstalling the package also seems to fix the breakpoint recognition.

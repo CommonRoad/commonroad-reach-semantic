@@ -4,13 +4,52 @@
 
 The software is written in Python 3.10, and was tested on Ubuntu 20.04 & 22.04.
 
-### Building the Code
+### Building from Source
 
-> **Note:** This repository contains [pybind11](https://github.com/pybind/pybind11) as a submodule, so don't forget to run `git submodule update --init --recursive` after cloning.
+> **Note:** Currently there appears to be a bug with boost geometry and newer versions of GCC (this seems to start with
+> version 11.4).
+> A workaround until this is fixed is to use an older version of GCC (we suggest GCC 10).
+> To do so, indicate the path to the older version of GCC in the `CXX` environment variable before building the code (
+> e.g. `export CXX=/usr/bin/g++-10`).
 
-* We strongly recommend using [Anaconda](https://www.anaconda.com/) to manage your virtual python environment.
+> **Note:** The build process automatically includes other internal repositories via Git.
+> Thus, an SSH key in your LRZ GitLab account is required.
+> See [here](https://docs.gitlab.com/ee/ssh/) for instructions on how to add an SSH key.
+
+#### Third-Party Dependencies
+
+While most of these dependencies are added automatically during the build process, you can install them manually via
+your package manager to speed up the build process.
+
+**Manual installation required:**
+
+- [OpenMP](https://www.openmp.org/)
+- [Spot](https://spot.lrde.epita.fr/)
+
+**Manual installation recommended to speed up the build:**
+
+- [Boost](https://www.boost.org/)
+
+**Manual installation optional:**
+
+- [CommonRoad-Reach](https://commonroad.in.tum.de/tools/commonroad-reach)
+- [Eigen3](https://eigen.tuxfamily.org/)
+- [yaml-cpp](https://github.com/jbeder/yaml-cpp)
+- [spdlog](https://github.com/gabime/spdlog)
+- [pybind11](https://github.com/pybind/pybind11)
+
+**Optional dependencies:**
+
+- [GTest](https://google.github.io/googletest/) (optional: for building unit tests)
+
+The additional Python dependencies are listed in `pyproject.toml`.
+
+#### Building the Code
+
+1. We strongly recommend using [Anaconda](https://www.anaconda.com/) to manage your virtual python environment.
 If you don't want to use Anaconda for space reasons, consider using [Miniconda](https://docs.conda.io/en/latest/miniconda.html).
-* Install [spot](https://spot.lre.epita.fr/) and its Python bindings.
+
+2. Install [spot](https://spot.lre.epita.fr/) and its Python bindings.
 If you are using Anaconda or Miniconda, you can install spot from conda forge with:
 ```bash
 conda install -c conda-forge spot
@@ -25,31 +64,43 @@ sudo apt-get update
 sudo apt-get install libspot-dev
 ```
 
-* Install [CommonRoad-Reach](https://commonroad.in.tum.de/tools/commonroad-reach) **from source** using the version
-  indicated by `GIT_TAG` in [ExternalReach.cmake](cmake/external/ExternalReach.cmake).
-Please refer to its [README](https://gitlab.lrz.de/cps/commonroad-reachable-set/-/blob/develop/README.md?ref_type=heads) for instructions.
+3. Install C++ dependencies:
 
-> **Note:** Currently there appears to be a bug with boost geometry and newer versions of GCC (this seems to start with version 11.4).
-> A workaround until this is fixed is to use an older version of GCC (we suggest GCC 10).
-> To do so, indicate the path to the older version of GCC in the `CXX` environment variable before building the code (e.g. `export CXX=/usr/bin/g++-10`).
-> **Important:** Make sure that you use the same compiler version for building CommonRoad-Reach and CommonRoad-Reach-Semantic.
+```bash
+sudo apt-get update
+sudo apt-get install libomp-dev libboost-all-dev libeigen3-dev libyaml-cpp-dev libspdlog-dev pybind11-dev libgtest-dev libgmock-dev
+```
+
+4. Install CommonRoad-Reach **from source** using the version indicated by `GIT_TAG`
+   in [ExternalReach.cmake](cmake/external/ExternalReach.cmake).
+Please refer to its [README](https://gitlab.lrz.de/cps/commonroad-reachable-set/-/blob/develop/README.md?ref_type=heads) for instructions.
 
 > **Note:** Using the pip package of CommonRoad-Reach does currently not work when using the C++ extensions, probably due to incompatible compiler versions.
 > We will have to check this again, once we release a new version of CommonRoad-Reach (> 2023.1.1).
 
-
-* Build the C++ extension and install the Python package:
+5. Build the C++ extension and install the Python package:
 ```bash
 pip install -v .
 ```
 
-> **Note**: The verbose flag (`-v`) prints detailed information about the C++ build progress.
+This will build the Python bindings (pycrreachsem) required for C++-boosted computations.
+
+> **Note**: The `-v` flag (verbose) prints information about the build progress
 
 **Optional:**
 
 - To build the code in Debug mode, add the flag `--config-settings=cmake.build-type="Debug"` to the `pip` command.
 - See [here](https://scikit-build-core.readthedocs.io/en/latest/configuration.html#configuring-cmake-arguments-and-defines) for further information on configuring CMake arguments via our build system (`scikit-build-core`).
 
+> **Note**: `scikit-build-core` uses `ninja` for building the C++ extension by default.
+> Thus, the build is automatically parallelized using all available CPU cores.
+> If you want to explicitly configure the number of build jobs, you can do so by passing the
+> flag `--config-settings=cmake.define.CMAKE_BUILD_PARALLEL_LEVEL=$BUILD_JOBS` to the `pip` command, where `$BUILD_JOBS`
+> is the number of parallel jobs to use.
+> See [here](https://scikit-build-core.readthedocs.io/en/latest/faqs.html#multithreaded-builds) for further details.
+
+> **Note**: Building the package in Debug mode (see above) significantly increases the computation time of the C++
+> backend. Please make sure you are building in Release mode (default setting) if you require fast computations.
 
 ### Running the Code
 
@@ -80,10 +131,6 @@ The scenarios themselves are located in the `./scenarios/` directory.
   * Uninstall the `commonroad-reach-semantic`, `commonroad-reach`, and `commonroad-drivability-checker` packages
     via `pip`.
   * Remove the `build` directory of `commonroad-reach-semantic` and `commonroad-reach`.
-* `terminate called without an active exception` when running the example script:
-  See above
-* `Segmentation fault` when running the example script:
-  See above
 
 ### Development
 
