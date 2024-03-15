@@ -8,6 +8,19 @@
 
 namespace semantic_reach {
 
+/// Struct storing general configurations.
+struct GeneralConfiguration {
+    std::string name_scenario{};
+    std::string path_scenarios{};
+    std::string path_scenario{};
+
+    GeneralConfiguration() = default;
+
+    [[nodiscard]] reach::GeneralConfiguration as_reach_config() const;
+
+    explicit GeneralConfiguration(YAML::Node const &node);
+};
+
 /// Struct storing traffic rule configurations.
 struct TrafficRuleConfiguration : reach::ReachableSetConfiguration {
     double distance_braking{};
@@ -32,13 +45,30 @@ struct SemanticModelConfiguration {
 };
 
 /// Struct storing all configurations.
-struct SemanticConfiguration : reach::Configuration {
+struct SemanticConfiguration {
+    GeneralConfiguration config_general{};
+    reach::VehicleConfiguration config_vehicle{};
+    reach::PlanningConfiguration config_planning{};
+    reach::ReachableSetConfiguration config_reachable_set{};
+    reach::DebugConfiguration config_debug{};
     TrafficRuleConfiguration config_traffic_rule{};
     SemanticModelConfiguration config_semantic_model{};
 
     SemanticConfiguration() = default;
 
+    [[nodiscard]] reach::ConfigurationPtr as_reach_config() const;
+
     explicit SemanticConfiguration(YAML::Node const &node);
+
+    inline GeneralConfiguration &general() { return config_general; };
+
+    inline reach::VehicleConfiguration &vehicle() { return config_vehicle; };
+
+    inline reach::PlanningConfiguration &planning() { return config_planning; };
+
+    inline reach::ReachableSetConfiguration &reachable_set() { return config_reachable_set; };
+
+    inline reach::DebugConfiguration &debug() { return config_debug; };
 
     inline SemanticModelConfiguration &semantic_model() { return config_semantic_model; };
 

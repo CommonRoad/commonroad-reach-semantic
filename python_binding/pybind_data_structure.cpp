@@ -63,12 +63,21 @@ void export_traffic_rule_interface(py::module &module) {
 
 void export_configuration(py::module &module) {
 
-    py::class_<SemanticConfiguration, shared_ptr<SemanticConfiguration>, reach::Configuration>(module,
-                                                                                               "SemanticConfiguration")
+    py::class_<SemanticConfiguration, shared_ptr<SemanticConfiguration>>(module, "SemanticConfiguration")
         .def(py::init<>())
+        .def_readwrite("general", &SemanticConfiguration::config_general)
+        .def_readwrite("vehicle", &SemanticConfiguration::config_vehicle)
+        .def_readwrite("planning", &SemanticConfiguration::config_planning)
         .def_readwrite("reachable_set", &SemanticConfiguration::config_reachable_set)
+        .def_readwrite("debug", &SemanticConfiguration::config_debug)
         .def_readwrite("traffic_rule", &SemanticConfiguration::config_traffic_rule)
         .def_readwrite("semantic_model", &SemanticConfiguration::config_semantic_model);
+
+    py::class_<GeneralConfiguration, shared_ptr<GeneralConfiguration>>(module, "GeneralConfiguration")
+        .def(py::init<>())
+        .def_readwrite("name_scenario", &GeneralConfiguration::name_scenario)
+        .def_readwrite("path_scenarios", &GeneralConfiguration::path_scenarios)
+        .def_readwrite("path_scenario", &GeneralConfiguration::path_scenario);
 
     py::class_<TrafficRuleConfiguration, shared_ptr<TrafficRuleConfiguration>>(module, "TrafficRuleConfiguration")
         .def(py::init<>())

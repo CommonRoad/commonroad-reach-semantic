@@ -30,11 +30,13 @@ void SemanticReachableSet::_initialize_zero_state_polygons() {
 }
 
 std::vector<reach::ReachNodePtr> SemanticReachableSet::_construct_initial_reachable_sets() {
+    auto reach_config = config->as_reach_config();
     // initial drivable area
-    auto tuple_vertices = generate_tuple_vertices_position_rectangle_initial(config);
+    auto tuple_vertices = generate_tuple_vertices_position_rectangle_initial(reach_config);
 
     // initial reachable set
-    auto [tuple_vertices_polygon_lon, tuple_vertices_polygon_lat] = generate_tuples_vertices_polygons_initial(config);
+    auto [tuple_vertices_polygon_lon, tuple_vertices_polygon_lat] =
+        generate_tuples_vertices_polygons_initial(reach_config);
     auto polygon_lon = make_shared<reach::ReachPolygon>(tuple_vertices_polygon_lon);
     auto polygon_lat = make_shared<reach::ReachPolygon>(tuple_vertices_polygon_lat);
     auto node = std::make_shared<reach::ReachNode>(step_start, polygon_lon, polygon_lat);
