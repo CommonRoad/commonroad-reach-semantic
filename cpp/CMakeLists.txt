@@ -63,6 +63,7 @@ set(CRREACHSEM_HDR_FILES
         include/reach_semantic/data_structure/environment_model/semantic_model.hpp
 
         include/reach_semantic/data_structure/semantic_configuration.hpp
+        include/reach_semantic/data_structure/proposition.hpp
         include/reach_semantic/data_structure/proposition_holder.hpp
         include/reach_semantic/data_structure/traffic_rule.hpp
         include/reach_semantic/data_structure/position_interval.hpp
