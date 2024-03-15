@@ -71,14 +71,7 @@ sudo apt-get update
 sudo apt-get install libomp-dev libboost-all-dev libeigen3-dev libyaml-cpp-dev libspdlog-dev pybind11-dev libgtest-dev libgmock-dev
 ```
 
-4. Install CommonRoad-Reach **from source** using the version indicated by `GIT_TAG`
-   in [ExternalReach.cmake](cmake/external/ExternalReach.cmake).
-Please refer to its [README](https://gitlab.lrz.de/cps/commonroad-reachable-set/-/blob/develop/README.md?ref_type=heads) for instructions.
-
-> **Note:** Using the pip package of CommonRoad-Reach does currently not work when using the C++ extensions, probably due to incompatible compiler versions.
-> We will have to check this again, once we release a new version of CommonRoad-Reach (> 2023.1.1).
-
-5. Build the C++ extension and install the Python package:
+4. Build the C++ extension and install the Python package:
 ```bash
 pip install -v .
 ```
