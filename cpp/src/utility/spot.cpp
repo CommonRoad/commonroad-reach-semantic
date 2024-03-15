@@ -3,7 +3,7 @@
 std::vector<spot::formula> util_spot::conjuncts(const spot::formula &formula) {
     if (formula.is(spot::op::And)) {
         std::vector<spot::formula> result{};
-        for (const auto &child: formula) {
+        for (const auto &child : formula) {
             result.emplace_back(child);
         }
         return result;
@@ -15,7 +15,7 @@ std::vector<spot::formula> util_spot::conjuncts(const spot::formula &formula) {
 std::vector<spot::formula> util_spot::disjuncts(const spot::formula &formula) {
     if (formula.is(spot::op::Or)) {
         std::vector<spot::formula> result{};
-        for (const auto &child: formula) {
+        for (const auto &child : formula) {
             result.emplace_back(child);
         }
         return result;
@@ -24,7 +24,7 @@ std::vector<spot::formula> util_spot::disjuncts(const spot::formula &formula) {
     }
 }
 
-std::pair<std::string, bool> util_spot::extract_atomic_proposition(const spot::formula &literal) {
+semantic_reach::Literal util_spot::extract_atomic_proposition(const spot::formula &literal) {
     if (literal.is(spot::op::Not) && literal[0].is(spot::op::ap)) {
         return {literal[0].ap_name(), true};
     } else if (literal.is(spot::op::ap)) {
@@ -34,8 +34,7 @@ std::pair<std::string, bool> util_spot::extract_atomic_proposition(const spot::f
     }
 }
 
-std::vector<std::set<std::pair<std::string, bool>>>
-util_spot::extract_minterms_from_dnf(const spot::formula &formula_dnf) {
+std::vector<semantic_reach::Minterm> util_spot::extract_minterms_from_dnf(const spot::formula &formula_dnf) {
     // We need to handle true and false separately, because they contain no literals we could extract
     if (formula_dnf.is(spot::op::tt)) {
         // true is trivially satisfied, so we return an empty minterm
@@ -45,10 +44,10 @@ util_spot::extract_minterms_from_dnf(const spot::formula &formula_dnf) {
         return {};
     } else {
         try {
-            std::vector<std::set<std::pair<std::string, bool>>> minterms{};
-            for (const auto &disjunct: disjuncts(formula_dnf)) {
-                std::set<std::pair<std::string, bool>> minterm{};
-                for (const auto &conjunct: conjuncts(disjunct)) {
+            std::vector<semantic_reach::Minterm> minterms{};
+            for (const auto &disjunct : disjuncts(formula_dnf)) {
+                semantic_reach::Minterm minterm{};
+                for (const auto &conjunct : conjuncts(disjunct)) {
                     minterm.emplace(extract_atomic_proposition(conjunct));
                 }
                 minterms.emplace_back(minterm);

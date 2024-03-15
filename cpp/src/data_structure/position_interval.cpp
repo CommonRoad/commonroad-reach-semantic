@@ -3,8 +3,8 @@
 
 using namespace semantic_reach;
 
-PositionInterval::PositionInterval(double const& p_min, double const& p_max, set<std::string> const& set_propositions) :
-        p_min(p_min), p_max(p_max), set_propositions(set_propositions) {}
+PositionInterval::PositionInterval(double const &p_min, double const &p_max, set<std::string> const &set_propositions)
+    : p_min(p_min), p_max(p_max), set_propositions(set_propositions) {}
 
 PositionInterval::PositionInterval(py::handle obj_position_interval_py) {
     p_min = obj_position_interval_py.attr("p_min").cast<double>();
@@ -12,6 +12,6 @@ PositionInterval::PositionInterval(py::handle obj_position_interval_py) {
     set_propositions = obj_position_interval_py.attr("set_propositions").cast<set<string>>();
 }
 
-bool PositionInterval::intersects(double const& p_min, double const& p_max) const {
+bool PositionInterval::intersects(double const &p_min, double const &p_max) const {
     return not(p_min > this->p_max or p_max < this->p_min);
 }

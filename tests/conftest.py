@@ -10,7 +10,7 @@ from commonroad_reach_semantic.data_structure.config.semantic_configuration_buil
 from commonroad_reach_semantic.data_structure.environment_model.semantic_model import SemanticModel
 from commonroad_reach_semantic.data_structure.reach.reachable_set_labeler import ReachableSetLabeler
 from commonroad_reach_semantic.data_structure.reach.semantic_labeling_reach_set_py import PySemanticLabelingReachableSet
-from commonroad_reach_semantic.data_structure.reach.semantic_splitting_otf_reach_set_py import PySemanticSplittingOTFReachableSet
+from commonroad_reach_semantic.data_structure.reach.semantic_otf_reach_set_py import PySemanticOTFReachableSet
 from commonroad_reach_semantic.data_structure.rule import priorities
 from commonroad_reach_semantic.data_structure.rule.traffic_rule_interface import TrafficRuleInterface
 
@@ -20,7 +20,7 @@ sys.path.append(os.getcwd())
 @pytest.fixture
 def config() -> SemanticConfiguration:
     path_root = str(pathlib.Path(__file__).parent.resolve())
-    config = SemanticConfigurationBuilder.build_configuration("ZAM_Merge-1_1_T-1", path_root)
+    config = SemanticConfigurationBuilder(path_root=path_root).build_configuration("ZAM_Merge-1_1_T-1")
     config.update()
     return config
 
@@ -28,7 +28,6 @@ def config() -> SemanticConfiguration:
 @pytest.fixture
 def semantic_model(config: SemanticConfiguration) -> SemanticModel:
     semantic_model = SemanticModel(config)
-    semantic_model.determine_traffic_priorities(priorities.dict_traffic_sign_to_priorities)
     return semantic_model
 
 
@@ -41,13 +40,14 @@ def rule_interface(config: SemanticConfiguration, semantic_model: SemanticModel)
 def reachable_set_labeler(semantic_model: SemanticModel) -> ReachableSetLabeler:
     return ReachableSetLabeler(semantic_model)
 
+
 @pytest.fixture
-def semantic_otf_reachable_set_py(config: SemanticConfiguration, semantic_model: SemanticModel,
-                                  rule_interface: TrafficRuleInterface) -> PySemanticLabelingReachableSet:
+def semantic_labeling_reachable_set_py(config: SemanticConfiguration, semantic_model: SemanticModel,
+                                       rule_interface: TrafficRuleInterface) -> PySemanticLabelingReachableSet:
     return PySemanticLabelingReachableSet(config, semantic_model, rule_interface)
 
 
 @pytest.fixture
-def semantic_splitting_otf_reachable_set_py(config: SemanticConfiguration, semantic_model: SemanticModel,
-                                            rule_interface: TrafficRuleInterface) -> PySemanticSplittingOTFReachableSet:
-    return PySemanticSplittingOTFReachableSet(config, semantic_model, rule_interface)
+def semantic_otf_reachable_set_py(config: SemanticConfiguration, semantic_model: SemanticModel,
+                                  rule_interface: TrafficRuleInterface) -> PySemanticOTFReachableSet:
+    return PySemanticOTFReachableSet(config, semantic_model, rule_interface)

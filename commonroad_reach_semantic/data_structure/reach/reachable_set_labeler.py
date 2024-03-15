@@ -1,16 +1,17 @@
 import itertools
-import more_itertools
 from collections import defaultdict
 from typing import Union, List, Dict, FrozenSet
 
+import more_itertools
 from commonroad_reach import pycrreach
 from commonroad_reach.data_structure.reach.reach_node import ReachNode
 from commonroad_reach.data_structure.reach.reach_polygon import ReachPolygon
 
-from commonroad_reach_semantic import pycrreachs
+from commonroad_reach_semantic import pycrreachsem
 from commonroad_reach_semantic.data_structure.environment_model.position_interval import PositionInterval
 from commonroad_reach_semantic.data_structure.environment_model.region import Region
 from commonroad_reach_semantic.data_structure.environment_model.semantic_model import SemanticModel
+from commonroad_reach_semantic.data_structure.reach.splitters.region_reach_node_splitter import RegionReachNodeSplitter
 from commonroad_reach_semantic.data_structure.rule.proposition import Proposition as Prop
 from commonroad_reach_semantic.data_structure.rule.proposition import PropositionGroup as PropGroup
 from commonroad_reach_semantic.data_structure.rule.proposition_holder import PropositionHolder
@@ -20,11 +21,13 @@ from commonroad_reach_semantic.utility import reach_operation
 class ReachableSetLabeler:
     """Splits reachable sets and labels the parts according to the semantic model."""
     semantic_model: SemanticModel
+    region_splitter: RegionReachNodeSplitter
     reachable_set_to_propositions: Dict[ReachNode, PropositionHolder]
     reachable_set_to_lanelet_ids: Dict[ReachNode, FrozenSet[int]]
 
     def __init__(self, semantic_model: SemanticModel):
         self.semantic_model = semantic_model
+        self.region_splitter = RegionReachNodeSplitter(semantic_model)
         self.reachable_set_to_propositions = defaultdict(PropositionHolder)
         self.reachable_set_to_lanelet_ids = dict()
 
@@ -146,7 +149,7 @@ class ReachableSetLabeler:
 
                 # iterate through lanelet ids of the route and lanelet ids of the vehicle
                 for id_lanelet_route, id_lanelet_vehicle in itertools.product(
-                        self.semantic_model.config.planning.route.list_ids_lanelets, vehicle.lanelet_ids_at_step(step)):
+                        self.semantic_model.config.planning.route.lanelet_ids, vehicle.lanelet_ids_at_step(step)):
                     if id_lanelet_vehicle in \
                             self.semantic_model.lanelet_model.dict_id_lanelet_to_set_ids_lanelets_intersecting[
                                 id_lanelet_route]:
@@ -180,45 +183,17 @@ class ReachableSetLabeler:
     def split_wrt_regions(self, step: int, reachable_set: ReachNode) -> List[ReachNode]:
         """
         Splits a reachable set w.r.t lanelet regions.
-
-        Steps:
-            1. Intersect reachable set in the position domain with lanelet regions
-            2. Over-approximate and restore to axis-aligned rectangles
         """
-        list_sets_split = []
-        # iterate through regions intersecting with the reachable set
-        for region in self.semantic_model.region_model.list_regions:
-            # first compute intersection with bounding box
-            # --> exact intersection is more expensive, so we only want to compute it if necessary?
-            # there is no possibility of intersection
-            if not region.intersects(reachable_set.position_rectangle.bounds, coordinate_system="CVLN"):
-                continue
-
-            # there is a possibility of intersection
-            # TODO: Find out, why there was a try-except for Exception here
-            polygon_intersection = region.polygon_cvln.intersection(reachable_set.position_rectangle)
-
-            # empty intersection
-            if not polygon_intersection or polygon_intersection.is_empty:
-                continue
-
-            # over-approximate by restoring the intersected polygon to axis-aligned rectangle
-            bounds_polygon_intersection = polygon_intersection.bounds
-
-            # clone the propagated set and split in the position domain, update the propositions
-            # TODO: Find out, why there was a try-except for AttributeError here
-            reachable_set_new = reachable_set.clone()
-            self.reachable_set_to_propositions[reachable_set_new] = self.reachable_set_to_propositions[
+        split_reachable_sets = self.region_splitter.split_wrt_regions(reachable_set)
+        for region, node in split_reachable_sets:
+            self.reachable_set_to_propositions[node] = self.reachable_set_to_propositions[
                 reachable_set].clone()
-            reachable_set_new.intersect_in_position_domain(*bounds_polygon_intersection)
-            reachable_set_new = self._update_propositions_with_region(reachable_set_new, region, step)
+            self._update_propositions_with_region(node, region, step)
 
-            list_sets_split.append(reachable_set_new)
-
-        return list_sets_split
+        return [node for region, node in split_reachable_sets]
 
     def _update_propositions_with_region(self, propagated_set: Union[ReachNode, pycrreach.ReachNode],
-                                         region: Union[Region, pycrreachs.Region], step: int):
+                                         region: Union[Region, pycrreachsem.Region], step: int):
         """
         Updates the propositions of the propagated set with the proposition of the lanelet region.
 
@@ -241,8 +216,6 @@ class ReachableSetLabeler:
         # add lanelet transition as temporary propositions
         set_propositions = self._obtain_lanelet_transition_propositions(propagated_set)
         self.reachable_set_to_propositions[propagated_set].add_propositions(set_propositions, PropGroup.TEMPORARY)
-
-        return propagated_set
 
     def split_wrt_position_intervals(self, step: int,
                                      reachable_set: ReachNode) -> List[ReachNode]:

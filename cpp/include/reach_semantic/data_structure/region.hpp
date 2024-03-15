@@ -1,13 +1,14 @@
 #pragma once
 
+#include "reach_semantic/data_structure/proposition_holder.hpp"
 #include "reach_semantic/utility/shared_include.hpp"
 #include "reachset/data_structure/reach/reach_polygon.hpp"
-#include "reach_semantic/data_structure/proposition_holder.hpp"
+#include <reachset/data_structure/reach/reach_node.hpp>
 
 namespace semantic_reach {
 /// Class to represent a lanelet region in the scenario.
 class Region {
-public:
+  public:
     int step_end{};
     std::set<int> set_ids_lanelets{};
     reach::ReachPolygonPtr polygon_cart;
@@ -16,19 +17,24 @@ public:
 
     Region() = default;
 
-    explicit Region(py::handle const& obj_region_py);
+    explicit Region(py::handle const &obj_region_py);
 
-    /// Returns true if the input box intersects with the bounding box.
-    bool intersects(reach::ReachPolygonPtr const& coordinates_box, std::string const& coordinate_system = "CVLN") const;
+    /**
+     * Check whether the bounding box of the reach node intersects with the bounding box of the region.
+     *
+     * @param reach_node The reach node.
+     * @param coordinate_system The coordinate system used by the reach node (Possible values are "CART" and "CVLN").
+     * @returns true if and only if the bounding boxes intersect.
+     */
+    bool bounding_box_intersects(const reach::ReachNodePtr &reach_node,
+                                 const std::string &coordinate_system = "CVLN") const;
 
-    inline auto propositions_at_step(int const& step){
-        return proposition_holder->propositions_at_step(step);
-    }
+    inline auto propositions_at_step(int const &step) { return proposition_holder->propositions_at_step(step); }
 
-    inline auto map_group_to_propositions_at_step(int const& step) {
+    inline auto map_group_to_propositions_at_step(int const &step) {
         return proposition_holder->map_group_to_propositions_at_step(step);
     }
 };
 
 using RegionPtr = std::shared_ptr<Region>;
-}
+} // namespace semantic_reach

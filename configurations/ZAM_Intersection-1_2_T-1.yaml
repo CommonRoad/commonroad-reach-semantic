@@ -13,7 +13,7 @@ planning:
 #  reference_point: REAR  # used for figures in Edmond's paper
 
 reachable_set:
-  mode_computation: 1
+  mode_computation: 8
 #  mode_repartition: 3
   size_grid: 0.251
   size_grid_2nd: 0.1

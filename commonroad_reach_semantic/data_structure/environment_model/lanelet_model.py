@@ -76,7 +76,7 @@ class LaneletModel:
 
         We first obtain the list of lanelets of the route, then iteratively add their adjacent lanelets.
         """
-        set_ids_lanelets = set(self.config.planning.route.list_ids_lanelets)
+        set_ids_lanelets = set(self.config.planning.route.lanelet_ids)
 
         # obtain lanelets in the same direction as the route
         self._explore_lanelets(set_ids_lanelets, condition_left=lambda lanelet: lanelet.adj_left_same_direction,
@@ -135,7 +135,7 @@ class LaneletModel:
 
     def _obtain_lanelets_in_proximity_of_route(self) -> Set[Lanelet]:
         list_lanelets_route = [self.config.scenario.lanelet_network.find_lanelet_by_id(id_lanelet)
-                               for id_lanelet in self.config.planning.route.list_ids_lanelets]
+                               for id_lanelet in self.config.planning.route.lanelet_ids]
         # get the coordinates of the bounding box
         list_vertices = [vertex for lanelet in list_lanelets_route for vertex in lanelet.center_vertices]
 
@@ -189,6 +189,15 @@ class LaneletModel:
     def main_carriageway_lanelet_ids(self) -> Set[int]:
         """Lanelet IDs of the main carriageway."""
         return self._lanelet_ids_by_type(LaneletType.MAIN_CARRIAGE_WAY)
+
+    @property
+    @functools.lru_cache(maxsize=1)
+    def stop_line_lanelet_ids(self) -> Set[int]:
+        """Lanelet IDs of the stop lines."""
+        return {
+            lanelet.lanelet_id for lanelet in self.local_lanelet_network.lanelets
+            if lanelet.stop_line
+        }
 
     @property
     @functools.lru_cache(maxsize=1)

@@ -1,39 +1,85 @@
 #pragma once
 
-#include "reach_semantic/data_structure/reach/semantic_reach_set.hpp"
 #include "reach_semantic/data_structure/model_checking/finite_automaton.hpp"
+#include "reach_semantic/data_structure/reach/predicates/predicate_factory.hpp"
+#include "reach_semantic/data_structure/reach/semantic_reach_set.hpp"
+#include "reach_semantic/data_structure/reach/splitters/minterm_reach_node_splitter.hpp"
+
+namespace std {
+template <> struct hash<std::pair<semantic_reach::StateSet, semantic_reach::StateSet>> {
+    size_t operator()(const std::pair<semantic_reach::StateSet, semantic_reach::StateSet> &state_set_pair) const {
+        size_t seed = state_set_pair.first.size() + state_set_pair.second.size();
+        for (const auto &state : state_set_pair.first) {
+            seed ^= boost::hash_value(state);
+        }
+        for (const auto &state : state_set_pair.second) {
+            seed ^= boost::hash_value(state);
+        }
+        return seed;
+    }
+};
+} // namespace std
 
 namespace semantic_reach {
-    class SemanticOTFReachableSet : public SemanticReachableSet {
-    private:
-        void _compute_drivable_area_at_step(int const &step) override;
+class SemanticOTFReachableSet : public SemanticReachableSet {
+  private:
+    std::unique_ptr<FiniteAutomaton> automaton;
+    std::unique_ptr<MintermReachNodeSplitter> splitter;
 
-        void _compute_reachable_set_at_step(int const &step) override;
+    std::unordered_map<int, std::unordered_map<std::pair<StateSet, StateSet>, std::vector<reach::ReachPolygonPtr>>>
+        step_to_states_to_drivable_area{};
+    std::unordered_map<int, std::unordered_map<std::pair<StateSet, StateSet>, std::vector<reach::ReachNodePtr>>>
+        step_to_states_to_propagated_set{};
 
-        std::map<int, std::map<std::pair<std::set<unsigned int>, std::set<unsigned int>>, std::vector<reach::ReachPolygonPtr>>> map_step_to_states_to_drivable_area{};
-        std::map<int, std::map<std::pair<std::set<unsigned int>, std::set<unsigned int>>, std::vector<reach::ReachNodePtr>>> map_step_to_states_to_propagated_set{};
-        std::unique_ptr<FiniteAutomaton> automaton;
+    void _compute_drivable_area_at_step(int const &step) override;
 
-        void _label_reachable_sets_with_automaton_states(std::vector<reach::ReachNodePtr> &reachable_sets,
-                                                         bool initial_step = false);
+    void _compute_reachable_set_at_step(int const &step) override;
 
-        /// Label the reachable set with the automaton states that are reachable given its propositions.
-        void _label_automaton_states(const reach::ReachNodePtr &reachable_set, unsigned int current_state);
+    /**
+     * Split the given reachable set along the transitions of the automaton states of its propagation source.
+     * For this, consider the outgoing transitions of all automaton states in the labels of the propagation source.
+     * We then split and cut the reachable set along the conditions of these transitions.
+     *
+     * @param step Current step of the reachability analysis.
+     * @param reachable_set The reachable set to split.
+     * @return List of reachable sets so that each is a subset of the given reachable set, and satisfies the condition
+     * of at least one transition (up to overapproximation).
+     */
+    std::vector<reach::ReachNodePtr> _split_reachable_set(int step, const reach::ReachNodePtr &reachable_set);
 
-        /// Filter reachable sets that cannot be part of an accepting run of the automaton.
-        void _filter_reachable_sets(std::vector<reach::ReachNodePtr> &reachable_sets,
-                                    int step);
+    /**
+     * Filter reachable sets that cannot be part of an accepting run of the automaton.
+     *
+     * This means they are labeled with at least one state.
+     * In the final step, we also require the reachable sets to have at least one accepting state.
+     *
+     * @param reachable_sets List of reachable sets to filter.
+     * @param step Current step of the reachability analysis.
+     * @returns List of reachable sets that can be part of an accepting run of the automaton.
+     */
+    void _filter_reachable_sets(std::vector<reach::ReachNodePtr> &reachable_sets, int step);
 
-        bool _has_accepting_state(const reach::ReachNodePtr &reachable_set);
+    /**
+     * Check if the given reachable set has an accepting state.
+     *
+     * @param reachable_set The reachable set to check.
+     * @returns True if and only if the reachable set is labeled with at least one accepting state.
+     */
+    bool _has_accepting_state(const reach::ReachNodePtr &reachable_set);
 
-    public:
-        SemanticOTFReachableSet(SemanticConfigurationPtr config,
-                                collision::CollisionCheckerPtr collision_checker,
-                                SemanticModelPtr semantic_model,
-                                TrafficRuleInterfacePtr traffic_rule_interface);
+    /**
+     * Deduplicate reachable sets and merge labels of duplicates.
+     *
+     * @param reachable_sets List of reachable sets with possible duplicates.
+     * @returns List of reachable sets without duplicates.
+     */
+    std::vector<reach::ReachNodePtr>
+    _deduplicate_reachable_sets(const std::vector<reach::ReachNodePtr> &reachable_sets);
 
-        std::map<reach::ReachNodePtr, std::set<unsigned int>> reachable_set_to_label{};
-    };
+  public:
+    SemanticOTFReachableSet(SemanticConfigurationPtr config, collision::CollisionCheckerPtr collision_checker,
+                            SemanticModelPtr semantic_model, TrafficRuleInterfacePtr traffic_rule_interface);
 
-    using SemanticOTFReachableSetPtr = std::shared_ptr<SemanticOTFReachableSet>;
-}
+    std::map<reach::ReachNodePtr, StateSet> reachable_set_to_label{};
+};
+} // namespace semantic_reach

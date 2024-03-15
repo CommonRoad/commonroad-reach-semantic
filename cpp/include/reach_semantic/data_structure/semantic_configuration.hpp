@@ -2,22 +2,23 @@
 
 #include <yaml-cpp/yaml.h>
 
-#include "reachset/data_structure/configuration.hpp"
 #include "reach_semantic/utility/shared_include.hpp"
+#include "reachset/data_structure/configuration.hpp"
 #include "reachset/utility/shared_using.hpp"
 
 namespace semantic_reach {
 
-/// Struct storing reachable set configurations.
-struct SemanticReachableSetConfiguration : reach::ReachableSetConfiguration {
-    //whether to discard small nodes (i.e., those with length smaller than length_edge_node_min)
-    bool discard_small_nodes{};
-    // shortest length the edges of a reachable node should possess for it to be kept when discarding small nodes
-    double length_edge_node_min{};
+/// Struct storing general configurations.
+struct GeneralConfiguration {
+    std::string name_scenario{};
+    std::string path_scenarios{};
+    std::string path_scenario{};
 
-    SemanticReachableSetConfiguration() = default;
+    GeneralConfiguration() = default;
 
-    explicit SemanticReachableSetConfiguration(YAML::Node const& node);
+    [[nodiscard]] reach::GeneralConfiguration as_reach_config() const;
+
+    explicit GeneralConfiguration(YAML::Node const &node);
 };
 
 /// Struct storing traffic rule configurations.
@@ -25,13 +26,14 @@ struct TrafficRuleConfiguration : reach::ReachableSetConfiguration {
     double distance_braking{};
     double acceleration_braking_hard{};
     double backward_driving_v_err{};
+    double dis_stop_line{};
     std::vector<std::string> activated_rules{};
     int mode_spot{};
     int mode_automata{};
 
     TrafficRuleConfiguration() = default;
 
-    explicit TrafficRuleConfiguration(YAML::Node const& node);
+    explicit TrafficRuleConfiguration(YAML::Node const &node);
 };
 
 struct SemanticModelConfiguration {
@@ -43,22 +45,36 @@ struct SemanticModelConfiguration {
 };
 
 /// Struct storing all configurations.
-struct SemanticConfiguration : reach::Configuration {
-    SemanticReachableSetConfiguration config_reachable_set{};
+struct SemanticConfiguration {
+    GeneralConfiguration config_general{};
+    reach::VehicleConfiguration config_vehicle{};
+    reach::PlanningConfiguration config_planning{};
+    reach::ReachableSetConfiguration config_reachable_set{};
+    reach::DebugConfiguration config_debug{};
     TrafficRuleConfiguration config_traffic_rule{};
     SemanticModelConfiguration config_semantic_model{};
 
     SemanticConfiguration() = default;
 
-    explicit SemanticConfiguration(YAML::Node const& node);
+    [[nodiscard]] reach::ConfigurationPtr as_reach_config() const;
 
-    inline SemanticReachableSetConfiguration& reachable_set() { return config_reachable_set; };
-    inline SemanticModelConfiguration& semantic_model() { return config_semantic_model; };
+    explicit SemanticConfiguration(YAML::Node const &node);
+
+    inline GeneralConfiguration &general() { return config_general; };
+
+    inline reach::VehicleConfiguration &vehicle() { return config_vehicle; };
+
+    inline reach::PlanningConfiguration &planning() { return config_planning; };
+
+    inline reach::ReachableSetConfiguration &reachable_set() { return config_reachable_set; };
+
+    inline reach::DebugConfiguration &debug() { return config_debug; };
+
+    inline SemanticModelConfiguration &semantic_model() { return config_semantic_model; };
 
     /// Loads configuration from the given yaml file.
-    static std::shared_ptr<SemanticConfiguration> load_configuration(std::string const& file_yaml);
+    static std::shared_ptr<SemanticConfiguration> load_configuration(std::string const &file_yaml);
 };
 
 using SemanticConfigurationPtr = std::shared_ptr<SemanticConfiguration>;
-}
-
+} // namespace semantic_reach

@@ -3,6 +3,7 @@ from typing import Dict
 
 import commonroad_reach.utility.logger as util_logger
 
+import commonroad_reach_semantic.data_structure.rule.priorities as priorities
 from commonroad_reach_semantic.data_structure.config.semantic_configuration import SemanticConfiguration
 from commonroad_reach_semantic.data_structure.environment_model.lanelet_model import LaneletModel
 from commonroad_reach_semantic.data_structure.environment_model.region_model import RegionModel
@@ -37,6 +38,8 @@ class SemanticModel:
         self.region_model = RegionModel(self.config, self.lanelet_model, self.vehicle_model)
         self.traffic_status_model = TrafficStatusModel(self.config, self.lanelet_model, self.vehicle_model)
 
+        self._determine_traffic_priorities(priorities.dict_traffic_sign_to_priorities)
+
         logger.info("SemanticModel created.")
         self.print_summary()
 
@@ -50,10 +53,8 @@ class SemanticModel:
         for line in string.split("\n"):
             util_logger.print_and_log_info(logger, line)
 
-    def determine_traffic_priorities(self, dict_traffic_sign_to_priorities: Dict):
-        """
-        Determines the traffic priorities for regions and vehicles.
-        """
+    def _determine_traffic_priorities(self, dict_traffic_sign_to_priorities: Dict):
+        """Determines the traffic priorities for regions and vehicles."""
         if self.config.semantic_model.incoming_element_route:
             # vehicles
             self.vehicle_model.determine_traffic_priorities(dict_traffic_sign_to_priorities)
@@ -62,10 +63,3 @@ class SemanticModel:
             self.region_model.determine_traffic_priorities(dict_traffic_sign_to_priorities)
 
             logger.info("Traffic priorities determined.")
-
-    @staticmethod
-    def call_python_dummy(step, node):
-        """
-        Dummy function to be called from C++.
-        """
-        return node

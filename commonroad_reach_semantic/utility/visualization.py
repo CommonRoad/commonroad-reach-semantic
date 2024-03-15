@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 import seaborn as sns
-# from commonroad_reach_semantic import pycrreachs as reach
+# from commonroad_reach_semantic import pycrreachsem as reach
 from commonroad.geometry.shape import Polygon
 from commonroad.scenario.lanelet import LaneletNetwork
 from commonroad.visualization.draw_params import MPDrawParams
@@ -24,7 +24,7 @@ import commonroad_reach_semantic.utility.graph as util_graph
 from commonroad_reach_semantic.data_structure.config.semantic_configuration import SemanticConfiguration
 from commonroad_reach_semantic.data_structure.driving_corridor_extractor import DrivingCorridor
 from commonroad_reach_semantic.data_structure.environment_model.semantic_model import SemanticModel
-from commonroad_reach_semantic.data_structure.model_checking.kripke import KripkeNode
+from commonroad_reach_semantic.data_structure.model_checking.kripke_node import KripkeNode
 from commonroad_reach_semantic.data_structure.model_checking.spot_interface import SpotInterface
 from commonroad_reach_semantic.data_structure.rule.proposition_holder import PropositionHolder
 

@@ -4,10 +4,11 @@ from collections import defaultdict
 from typing import List, Dict, Set, Union
 
 import spot
-
-from commonroad_reach_semantic.data_structure.model_checking.kripke import KripkeStructure, KripkeNode
-from commonroad_reach_semantic.utility import reach_operation as util_reach
 from commonroad_reach.utility import logger as util_logger
+
+from commonroad_reach_semantic.data_structure.model_checking.kripke_node import KripkeNode
+from commonroad_reach_semantic.data_structure.model_checking.kripke_structure import KripkeStructure
+from commonroad_reach_semantic.utility import reach_operation as util_reach
 
 logger = logging.getLogger(__name__)
 

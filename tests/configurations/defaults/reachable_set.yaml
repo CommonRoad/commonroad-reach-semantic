@@ -22,8 +22,6 @@ size_grid: 0.2
 size_grid_2nd: 0.05
 # threshold for terminating the split of drivable areas in collision checks
 radius_terminal_split: 0.7
-# shortest length the edges of a reachable node should possess for it to be kept
-length_edge_node_min: 0.05
 # if set to false, static and dynamic obstacles will be omitted
 consider_traffic: true
 # rasterize obstacles when using the CVLN frame (reduces over-approximation of obstacles after conversion to CVLN)

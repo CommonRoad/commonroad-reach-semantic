@@ -1,0 +1,145 @@
+# Authors: Florian Lercher, Gerald Würsching, Tobias Mascetta. Cyber-Physical Systems Group, TUM
+
+
+# --------------- Gitlab Internal Variables ------------------------
+# Predefined internal variables from gitlab ci: see https://docs.gitlab.com/ee/ci/variables/predefined_variables.html
+# CI_REGISTRY: Gitlab Container Registry with Docker container for project
+# CI_JOB_TOKEN: Token, valid as long as the job is running
+# CI_PROJECT_DIR: path where project is cloned to and gitlab job runs from
+
+stages:
+  - static-check
+  - compile
+  - test
+
+default:
+  image: $CI_REGISTRY/cps/commonroad/commonroad-reach-semantic/ci:2.0
+  before_script:
+    - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.lrz.de/".insteadOf "git@gitlab.lrz.de:"
+
+.conda-init: &conda-init
+  - wget https://repo.anaconda.com/miniconda/Miniconda3-${CONDA_VERSION}-Linux-x86_64.sh -q -O ~/miniconda.sh
+  - /bin/bash ~/miniconda.sh -b -p /opt/conda
+  - export PATH=/opt/conda/bin:$PATH
+  - conda init bash
+  - source ~/.bashrc
+
+.python-prepare: &python-prepare
+  - python -m pip install --upgrade pip
+  - conda install -c conda-forge spot
+
+.python-versions: &python-versions
+  - "3.10"
+
+pycodestyle-commit:
+  stage: static-check
+  image: python:3.10-slim-bullseye
+  before_script:
+    - apt-get update && apt-get install -y git
+  script:
+    - pip install pycodestyle
+    - git diff ${CI_COMMIT_BEFORE_SHA}...${CI_COMMIT_SHA} -- '*.py' | pycodestyle --max-line-length=120 --diff
+  except:
+    - merge_requests
+  allow_failure: true
+
+pycodestyle-merge-request:
+  stage: static-check
+  image: python:3.10-slim-bullseye
+  before_script:
+    - apt-get update && apt-get install -y git
+  script:
+    - pip install pycodestyle
+    - git diff ${CI_MERGE_REQUEST_TARGET_BRANCH_SHA}...${CI_MERGE_REQUEST_SOURCE_BRANCH_SHA} -- '*.py' | pycodestyle --max-line-length=120 --diff
+  only:
+    - merge_requests
+  allow_failure: true
+
+clang-format:
+  stage: static-check
+  script: ./ci/clang-format.sh
+  needs: [ ]
+
+#clang-tidy:
+#  stage: static-check
+#  script:
+#    - mkdir build && cd build
+#    - cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ..
+#    - cd ..
+#    - ./ci/clang-tidy.sh
+#  needs: [ ]
+
+
+### build C++ library using CMake directly ###
+.cache-build-dir:
+  cache: &cache_dependency_archives
+    key: cache-dependency-archives
+    paths:
+      - build/_deps/*-subbuild/*-populate-prefix/src/*.{tar*,zip}
+    policy: pull
+
+generate-cache:
+  stage: compile
+  cache:
+    <<: *cache_dependency_archives
+    policy: push
+  script:
+    - cmake -G "Ninja Multi-Config" -S . -B build -DFETCHCONTENT_QUIET:BOOL=OFF
+  needs: [ ]
+
+build-gcc:
+  stage: compile
+  cache:
+    <<: *cache_dependency_archives
+  variables:
+    CC: gcc
+    CXX: g++
+  script:
+    - cmake -G "Ninja Multi-Config" -S . -B build
+    - cmake --build build --config Release
+  needs: [ ]
+
+build-test:
+  stage: compile
+  cache:
+    <<: *cache_dependency_archives
+  script:
+    - cmake -G "Ninja Multi-Config" -S . -B build
+    - cmake --build build --config RelWithDebInfo --target crreachsem_test
+  needs: [ ]
+  artifacts:
+    paths:
+      - build/RelWithDebInfo/crreachsem_test
+      - build/**/*.so
+      - build/**/*.so.*
+    expire_in: 30 minutes
+
+### tests ###
+run-gtest:
+  stage: test
+  script:
+    - build/RelWithDebInfo/crreachsem_test
+  needs:
+    - job: build-test
+      artifacts: true
+
+run-pytest:
+  stage: test
+  variables:
+    CONDA_ENV_PREFIX: "commonroad-py"
+    CONDA_VERSION: "py312_24.1.2-0"
+  script:
+    - *conda-init
+    - conda create -n "$CONDA_ENV_PREFIX$PYTHON_VER" python="$PYTHON_VER"
+    - conda activate "$CONDA_ENV_PREFIX$PYTHON_VER"
+    - *python-prepare
+    - pip install pip-tools
+    - pip-compile --extra=build -o requirements_build.txt pyproject.toml
+    - pip install -r requirements_build.txt
+    - pip install -v --no-build-isolation --config-settings=editable.rebuild=true -e .[test]
+    - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/conda/lib  # also search conda libs, otherwise libyaml is not found
+    - pytest tests
+  parallel:
+    matrix:
+      - PYTHON_VER: *python-versions
+  needs: [ ]

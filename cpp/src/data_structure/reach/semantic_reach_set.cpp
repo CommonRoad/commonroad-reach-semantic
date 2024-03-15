@@ -1,18 +1,19 @@
 #include "reach_semantic/data_structure/reach/semantic_reach_set.hpp"
 
+#include "reachset/utility/reach_operation.hpp"
+#include "reachset/utility/shared_using.hpp"
+
 #include <chrono>
 #include <utility>
-#include "reachset/utility/shared_using.hpp"
-#include "reachset/utility/reach_operation.hpp"
-#include "reach_semantic/utility/reach_operation.hpp"
 
 using namespace semantic_reach;
 
 SemanticReachableSet::SemanticReachableSet(SemanticConfigurationPtr config, CollisionCheckerPtr collision_checker,
-                                           SemanticModelPtr semantic_model, TrafficRuleInterfacePtr traffic_rule_interface) :
-        config(std::move(config)), collision_checker(std::move(collision_checker)),
-        semantic_model(std::move(semantic_model)), rule_interface(std::move(traffic_rule_interface)) {
-    labeler = std::make_shared<ReachableSetLabeler>(this->semantic_model, this->config);
+                                           SemanticModelPtr semantic_model,
+                                           TrafficRuleInterfacePtr traffic_rule_interface)
+    : config(std::move(config)), collision_checker(std::move(collision_checker)),
+      semantic_model(std::move(semantic_model)), rule_interface(std::move(traffic_rule_interface)) {
+    _initialize_zero_state_polygons();
 
     step_start = this->config->planning().step_start;
     step_end = step_start + this->config->planning().steps_computation;
@@ -20,33 +21,35 @@ SemanticReachableSet::SemanticReachableSet(SemanticConfigurationPtr config, Coll
 
 /// @note Computation of the reachable set of an LTI system requires the zero-state response of the system.
 void SemanticReachableSet::_initialize_zero_state_polygons() {
-    polygon_zero_state_lon = create_zero_state_polygon(config->planning().dt,
-                                                       config->vehicle().ego.a_lon_min,
+    polygon_zero_state_lon = create_zero_state_polygon(config->planning().dt, config->vehicle().ego.a_lon_min,
                                                        config->vehicle().ego.a_lon_max);
 
-    polygon_zero_state_lat = create_zero_state_polygon(config->planning().dt,
-                                                       config->vehicle().ego.a_lat_min,
+    polygon_zero_state_lat = create_zero_state_polygon(config->planning().dt, config->vehicle().ego.a_lat_min,
                                                        config->vehicle().ego.a_lat_max);
 }
 
 std::vector<reach::ReachNodePtr> SemanticReachableSet::_construct_initial_reachable_sets() {
+    auto reach_config = config->as_reach_config();
     // initial drivable area
-    auto tuple_vertices = generate_tuple_vertices_position_rectangle_initial(config);
+    auto tuple_vertices = generate_tuple_vertices_position_rectangle_initial(reach_config);
 
     // initial reachable set
     auto [tuple_vertices_polygon_lon, tuple_vertices_polygon_lat] =
-            generate_tuples_vertices_polygons_initial(config);
+        generate_tuples_vertices_polygons_initial(reach_config);
     auto polygon_lon = make_shared<reach::ReachPolygon>(tuple_vertices_polygon_lon);
     auto polygon_lat = make_shared<reach::ReachPolygon>(tuple_vertices_polygon_lat);
     auto node = std::make_shared<reach::ReachNode>(step_start, polygon_lon, polygon_lat);
-    // set source propagation to vector containing nullptr as first element, as the vector is expected to be non-empty by subsequent methods
+    // set source propagation to vector containing nullptr as first element, as the vector is expected to be non-empty
+    // by subsequent methods
     node->vec_nodes_source = {nullptr};
     return {node};
 }
 
 void SemanticReachableSet::compute(int step_start, int step_end) {
-    if (step_start == 0) step_start = this->step_start + 1;
-    if (step_end == 0) step_end = this->step_end;
+    if (step_start == 0)
+        step_start = this->step_start + 1;
+    if (step_end == 0)
+        step_end = this->step_end;
 
     for (auto step = step_start; step < step_end + 1; step++) {
         _compute_drivable_area_at_step(step);
@@ -54,43 +57,38 @@ void SemanticReachableSet::compute(int step_start, int step_end) {
         _vec_steps_computed.emplace_back(step);
     }
 
-    //if (step_start != step_end and config->reachable_set().prune_nodes) {
-    //    prune_nodes_not_reaching_final_step();
-    //}
+    // if (step_start != step_end and config->reachable_set().prune_nodes) {
+    //     prune_nodes_not_reaching_final_step();
+    // }
 }
 
-vector<reach::ReachNodePtr> SemanticReachableSet::_propagate_reachable_set(vector<reach::ReachNodePtr> const& vec_nodes) {
+vector<reach::ReachNodePtr>
+SemanticReachableSet::_propagate_reachable_set(vector<reach::ReachNodePtr> const &vec_nodes) {
     vector<reach::ReachNodePtr> vec_base_sets_propagated;
     vec_base_sets_propagated.reserve(vec_nodes.size());
 
-#pragma omp parallel num_threads(config->reachable_set().num_threads) \
-default(none) shared(vec_nodes, vec_base_sets_propagated)
+#pragma omp parallel num_threads(config->reachable_set().num_threads) default(none)                                    \
+    shared(vec_nodes, vec_base_sets_propagated)
     {
         vector<reach::ReachNodePtr> vec_base_sets_propagated_thread;
         vec_base_sets_propagated_thread.reserve(vec_nodes.size());
 
 #pragma omp for nowait
-        for (auto const& node: vec_nodes) {
+        for (auto const &node : vec_nodes) {
             try {
-                auto polygon_lon_propagated = propagate_polygon(node->polygon_lon,
-                                                                polygon_zero_state_lon,
-                                                                config->planning().dt,
-                                                                config->vehicle().ego.v_lon_min,
-                                                                config->vehicle().ego.v_lon_max);
+                auto polygon_lon_propagated =
+                    propagate_polygon(node->polygon_lon, polygon_zero_state_lon, config->planning().dt,
+                                      config->vehicle().ego.v_lon_min, config->vehicle().ego.v_lon_max);
 
-                auto polygon_lat_propagated = propagate_polygon(node->polygon_lat,
-                                                                polygon_zero_state_lat,
-                                                                config->planning().dt,
-                                                                config->vehicle().ego.v_lat_min,
-                                                                config->vehicle().ego.v_lat_max);
+                auto polygon_lat_propagated =
+                    propagate_polygon(node->polygon_lat, polygon_zero_state_lat, config->planning().dt,
+                                      config->vehicle().ego.v_lat_min, config->vehicle().ego.v_lat_max);
 
-                auto propagated_set = make_shared<reach::ReachNode>(node->step,
-                                                             polygon_lon_propagated,
-                                                             polygon_lat_propagated);
+                auto propagated_set =
+                    make_shared<reach::ReachNode>(node->step, polygon_lon_propagated, polygon_lat_propagated);
                 propagated_set->vec_nodes_source.emplace_back(node);
                 vec_base_sets_propagated_thread.emplace_back(propagated_set);
-            }
-            catch (std::exception& e) {
+            } catch (std::exception &e) {
                 continue;
             }
         }
@@ -103,7 +101,8 @@ default(none) shared(vec_nodes, vec_base_sets_propagated)
 }
 
 std::vector<reach::ReachPolygonPtr>
-SemanticReachableSet::_collision_check_and_repartition(std::vector<reach::ReachPolygonPtr> rectangles, int const &step) {
+SemanticReachableSet::_collision_check_and_repartition(const std::vector<reach::ReachPolygonPtr> &rectangles,
+                                                       int const &step) {
     auto mode_repartition = config->reachable_set().mode_repartition;
     auto size_grid = config->reachable_set().size_grid;
     auto size_grid_2nd = config->reachable_set().size_grid_2nd;
@@ -116,32 +115,36 @@ SemanticReachableSet::_collision_check_and_repartition(std::vector<reach::ReachP
         auto time_start = std::chrono::high_resolution_clock::now();
         auto vec_rectangles_repartitioned = create_repartitioned_rectangles(rectangles, size_grid);
         benchmark_result.computation_times_per_step[step].merge +=
-                std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - time_start).count();
+            std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() -
+                                                                  time_start)
+                .count();
 
         time_start = std::chrono::high_resolution_clock::now();
-        drivable_area = check_collision_and_split_rectangles(step, collision_checker,
-                                                             vec_rectangles_repartitioned,
-                                                             radius_terminal_split,
-                                                             config->reachable_set().num_threads);
+        drivable_area =
+            check_collision_and_split_rectangles(step, collision_checker, vec_rectangles_repartitioned,
+                                                 radius_terminal_split, config->reachable_set().num_threads);
         benchmark_result.computation_times_per_step[step].collision_check +=
-                std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - time_start).count();
+            std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() -
+                                                                  time_start)
+                .count();
     }
 
     // collision check, then repartition
     else if (mode_repartition == 2) {
         auto time_start = std::chrono::high_resolution_clock::now();
-        auto vec_rectangles_collision_free = \
-                    check_collision_and_split_rectangles(step, collision_checker,
-                                                         rectangles,
-                                                         radius_terminal_split,
-                                                         config->reachable_set().num_threads);
+        auto vec_rectangles_collision_free = check_collision_and_split_rectangles(
+            step, collision_checker, rectangles, radius_terminal_split, config->reachable_set().num_threads);
         benchmark_result.computation_times_per_step[step].collision_check +=
-                std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - time_start).count();
+            std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() -
+                                                                  time_start)
+                .count();
 
         time_start = std::chrono::high_resolution_clock::now();
         drivable_area = create_repartitioned_rectangles(vec_rectangles_collision_free, size_grid);
         benchmark_result.computation_times_per_step[step].merge +=
-                std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - time_start).count();
+            std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() -
+                                                                  time_start)
+                .count();
     }
 
     // repartition, collision check, then repartition again
@@ -149,24 +152,27 @@ SemanticReachableSet::_collision_check_and_repartition(std::vector<reach::ReachP
         auto time_start = std::chrono::high_resolution_clock::now();
         auto vec_rectangles_repartitioned = create_repartitioned_rectangles(rectangles, size_grid);
         benchmark_result.computation_times_per_step[step].merge +=
-                std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - time_start).count();
+            std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() -
+                                                                  time_start)
+                .count();
 
         time_start = std::chrono::high_resolution_clock::now();
-        auto vec_rectangles_collision_free = \
-                    check_collision_and_split_rectangles(step, collision_checker,
-                                                         vec_rectangles_repartitioned,
-                                                         radius_terminal_split,
-                                                         config->reachable_set().num_threads);
+        auto vec_rectangles_collision_free =
+            check_collision_and_split_rectangles(step, collision_checker, vec_rectangles_repartitioned,
+                                                 radius_terminal_split, config->reachable_set().num_threads);
         benchmark_result.computation_times_per_step[step].collision_check +=
-                std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - time_start).count();
+            std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() -
+                                                                  time_start)
+                .count();
 
         time_start = std::chrono::high_resolution_clock::now();
-        drivable_area = create_repartitioned_rectangles(vec_rectangles_collision_free,
-                                                        size_grid_2nd);
+        drivable_area = create_repartitioned_rectangles(vec_rectangles_collision_free, size_grid_2nd);
         benchmark_result.computation_times_per_step[step].merge +=
-                std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - time_start).count();
+            std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() -
+                                                                  time_start)
+                .count();
     } else {
-        throw (std::logic_error("Invalid mode for repartition."));
+        throw(std::logic_error("Invalid mode for repartition."));
     }
 
     return drivable_area;
@@ -188,7 +194,7 @@ void SemanticReachableSet::prune_nodes_not_reaching_final_step() {
             if (node->vec_nodes_child().empty()) {
                 vec_idx_nodes_to_be_deleted.push_back(idx_node);
                 // iterate through its parent nodes and disconnect them
-                for (auto const& node_parent: node->vec_nodes_parent()) {
+                for (auto const &node_parent : node->vec_nodes_parent()) {
                     node_parent->remove_child_node(node);
                 }
             }
@@ -197,9 +203,8 @@ void SemanticReachableSet::prune_nodes_not_reaching_final_step() {
         vector<reach::ReachPolygonPtr> vec_drivable_area_updated{};
         vector<reach::ReachNodePtr> vec_reachable_set_updated{};
         for (int idx_node = 0; idx_node < vec_nodes.size(); idx_node++) {
-            auto result = std::find(vec_idx_nodes_to_be_deleted.begin(),
-                                    vec_idx_nodes_to_be_deleted.end(),
-                                    idx_node) != vec_idx_nodes_to_be_deleted.end();
+            auto result = std::find(vec_idx_nodes_to_be_deleted.begin(), vec_idx_nodes_to_be_deleted.end(), idx_node) !=
+                          vec_idx_nodes_to_be_deleted.end();
 
             if (not result) {
                 auto node = vec_nodes[idx_node];
@@ -219,6 +224,6 @@ void SemanticReachableSet::prune_nodes_not_reaching_final_step() {
     benchmark_result.cnt_nodes_before_pruning = static_cast<int>(cnt_nodes_before_pruning);
     benchmark_result.cnt_nodes_after_pruning = static_cast<int>(cnt_nodes_after_pruning);
 
-     std::cout << "\t#Nodes before pruning: \t" << cnt_nodes_before_pruning << endl;
-     std::cout << "\t#Nodes after pruning: \t" << cnt_nodes_after_pruning << endl;
+    std::cout << "\t#Nodes before pruning: \t" << cnt_nodes_before_pruning << endl;
+    std::cout << "\t#Nodes after pruning: \t" << cnt_nodes_after_pruning << endl;
 }

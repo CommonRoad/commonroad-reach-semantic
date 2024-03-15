@@ -1,100 +1,139 @@
-# set include & library paths variables for external commonroad libraries
-set(CRDC_INCLUDE
-        ${CRDC_DIR}/cpp/collision/include # drivability checker
-        ${CRDC_DIR}/cpp/geometry/include) # curvilinear collision checker
+set(CRREACHSEM_SRC_FILES
+        src/data_structure/reach/reachable_set_labeler.cpp
+        src/data_structure/reach/semantic_reach_set.cpp
+        src/data_structure/reach/semantic_labeling_reach_set.cpp
+        src/data_structure/reach/semantic_otf_reach_set.cpp
 
-set(CRDC_LIBRARY
-        ${CRDC_DIR}/commonroad_dc/libcrcc.a # drivability checker
-        ${CRDC_DIR}/commonroad_dc/libcrccosy.a # curvilinear collision checker
-        ${CRDC_DIR}/commonroad_dc/libgpc.a # curvilinear collision checker
-        CACHE STRING "" FORCE)
+        src/data_structure/reach/predicates/predicate.cpp
+        src/data_structure/reach/predicates/predicate_config.cpp
+        src/data_structure/reach/predicates/predicate_factory.cpp
+        src/data_structure/reach/predicates/cpp_predicate.cpp
+        src/data_structure/reach/predicates/py_predicate.cpp
 
-set(CRREACH_INCLUDE ${CRREACH_DIR}/cpp/include)
-set(CRREACH_LIBRARY ${CRREACH_DIR}/build/temp.linux-x86_64-cpython-${PYTHON_VER}/cpp/libcrreach.a)
+        src/data_structure/reach/predicates/position/in_front_of_obstacle_predicate.cpp
+        src/data_structure/reach/predicates/position/behind_obstacle_predicate.cpp
+        src/data_structure/reach/predicates/position/left_of_obstacle_predicate.cpp
+        src/data_structure/reach/predicates/position/right_of_obstacle_predicate.cpp
+        src/data_structure/reach/predicates/braking/keeps_safe_distance_prec_predicate.cpp
 
-# set a variable to hold all relevant include directories
-set(REACH_INCLUDE_DIR
-        ${CMAKE_CURRENT_LIST_DIR}/include
-        ${CRDC_INCLUDE}
-        ${CRREACH_INCLUDE}
-        ${EIGEN3_INCLUDE_DIR}
-        CACHE STRING "" FORCE)
+        src/data_structure/reach/predicates/braking/keeps_safe_distance_prec_predicate.cpp
 
-# set a variable to hold all relevant cpp source files of reachable sets
-set(REACH_SOURCE
-        ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/reachable_set_labeler.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/semantic_reach_set.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/semantic_labeling_reach_set.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/semantic_otf_reach_set.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/semantic_splitting_otf_reach_set.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/reach/predicates/predicate.cpp
+        src/data_structure/reach/splitters/minterm_reach_node_splitter.cpp
+        src/data_structure/reach/splitters/region_reach_node_splitter.cpp
 
-        ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/model_checking/finite_automaton.cpp
+        src/data_structure/model_checking/finite_automaton.cpp
 
-        ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/semantic_configuration.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/proposition_holder.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/semantic_model.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/traffic_rule.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/position_interval.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/region.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/data_structure/vehicle.cpp
+        src/data_structure/environment_model/semantic_model.cpp
 
-        ${CMAKE_CURRENT_LIST_DIR}/src/utility/reach_operation.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/utility/spot.cpp
+        src/data_structure/semantic_configuration.cpp
+        src/data_structure/proposition_holder.cpp
+        src/data_structure/traffic_rule.cpp
+        src/data_structure/position_interval.cpp
+        src/data_structure/region.cpp
+        src/data_structure/vehicle.cpp
 
-        CACHE STRING "" FORCE)
+        src/utility/environment_model.cpp
+        src/utility/reach_operation.cpp
+        src/utility/spot.cpp
+)
 
-# ========= building library
-# 1. create library from source files above
-add_library(crreachs STATIC ${REACH_SOURCE})
+set(CRREACHSEM_HDR_FILES
+        include/reach_semantic/data_structure/reach/reachable_set_labeler.hpp
+        include/reach_semantic/data_structure/reach/semantic_reach_set.hpp
+        include/reach_semantic/data_structure/reach/semantic_labeling_reach_set.hpp
+        include/reach_semantic/data_structure/reach/semantic_otf_reach_set.hpp
+
+        include/reach_semantic/data_structure/reach/predicates/predicate.hpp
+        include/reach_semantic/data_structure/reach/predicates/predicate_config.hpp
+        include/reach_semantic/data_structure/reach/predicates/predicate_factory.hpp
+        include/reach_semantic/data_structure/reach/predicates/cpp_predicate.hpp
+        include/reach_semantic/data_structure/reach/predicates/py_predicate.hpp
+
+        include/reach_semantic/data_structure/reach/predicates/position/in_front_of_obstacle_predicate.hpp
+        include/reach_semantic/data_structure/reach/predicates/position/behind_obstacle_predicate.hpp
+        include/reach_semantic/data_structure/reach/predicates/position/left_of_obstacle_predicate.hpp
+        include/reach_semantic/data_structure/reach/predicates/position/right_of_obstacle_predicate.hpp
+        include/reach_semantic/data_structure/reach/predicates/braking/keeps_safe_distance_prec_predicate.hpp
+
+        include/reach_semantic/data_structure/reach/splitters/minterm_reach_node_splitter.hpp
+        include/reach_semantic/data_structure/reach/splitters/region_reach_node_splitter.hpp
+
+        include/reach_semantic/data_structure/model_checking/finite_automaton.hpp
+
+        include/reach_semantic/data_structure/environment_model/semantic_model.hpp
+
+        include/reach_semantic/data_structure/semantic_configuration.hpp
+        include/reach_semantic/data_structure/proposition.hpp
+        include/reach_semantic/data_structure/proposition_holder.hpp
+        include/reach_semantic/data_structure/traffic_rule.hpp
+        include/reach_semantic/data_structure/position_interval.hpp
+        include/reach_semantic/data_structure/region.hpp
+        include/reach_semantic/data_structure/vehicle.hpp
+
+        include/reach_semantic/utility/environment_model.hpp
+        include/reach_semantic/utility/pybind_includes.hpp
+        include/reach_semantic/utility/reach_operation.hpp
+        include/reach_semantic/utility/shared_include.hpp
+        include/reach_semantic/utility/spot.hpp
+)
+
+add_library(crreachsem ${CRREACHSEM_SRC_FILES})
+
+target_sources(crreachsem PRIVATE ${CRREACHSEM_HDR_FILES})
+
+if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.23.0)
+    target_sources(crreachsem
+            INTERFACE
+            FILE_SET crreachsem_headers
+            TYPE HEADERS
+            BASE_DIRS include
+            FILES ${CRREACHSEM_HDR_FILES})
+endif ()
+
 # build position independent code so that we can link this in the Python bindings (builds shared lib)
-set_property(TARGET crreachs PROPERTY POSITION_INDEPENDENT_CODE ON)
-# 2. include directories
-target_include_directories(crreachs PUBLIC
-        ${REACH_INCLUDE_DIR})
-# 3. link to external libraries
-target_link_libraries(crreachs PUBLIC
-        ${CRREACH_LIBRARY}
-        ${CRDC_LIBRARY}
-        fcl
-        ccd
-        yaml-cpp
-        spot
-        bddx)
-target_link_libraries(crreachs PRIVATE pybind11::embed)
+set_property(TARGET crreachsem PROPERTY POSITION_INDEPENDENT_CODE ON)
 
-# ====
-# 1. create executables which uses the source files set above
-add_executable(playground_semantic
-        ${CMAKE_CURRENT_LIST_DIR}/src/playground_semantic.cpp)
-# 2. link to external libraries
-target_link_libraries(playground_semantic PRIVATE
-        crreachs
-        pybind11::embed)
 
-## ==== unit tests using Doctest
-## 1. create target
-#add_executable(doctest_runner
-#        ${REACH_SOURCE}
-#        ${CMAKE_CURRENT_LIST_DIR}/tests/test_utility.cpp
-#        ${CMAKE_CURRENT_LIST_DIR}/tests/data_structure/test_reach_polygon.cpp
-#        ${CMAKE_CURRENT_LIST_DIR}/tests/data_structure/test_reach_base_set.cpp
-#        ${CMAKE_CURRENT_LIST_DIR}/tests/data_structure/test_reach_node.cpp
-#        ${CMAKE_CURRENT_LIST_DIR}/tests/data_structure/test_segment_tree.cpp
-#        ${CMAKE_CURRENT_LIST_DIR}/tests/utility/test_reach_operation.cpp
-#        ${CMAKE_CURRENT_LIST_DIR}/tests/utility/test_minkowski.cpp
-#        ${CMAKE_CURRENT_LIST_DIR}/tests/utility/test_sweep_line.cpp
-#        ${CMAKE_CURRENT_LIST_DIR}/tests/utility/test_collision_checker.cpp
-#        ${CMAKE_CURRENT_LIST_DIR}/tests/common/test_reachable_set_interface.cpp
-#        ${CMAKE_CURRENT_LIST_DIR}/tests/continuous/test_continuous_reachability_analysis.cpp)
-## 2. include directories
-#target_include_directories(doctest_runner PRIVATE
-#        ${REACH_INCLUDE_DIR}
-#        ${CMAKE_CURRENT_LIST_DIR}/tests/)
-## 3. link to external libraries
-#target_link_libraries(doctest_runner
-#        yaml-cpp
-#        ${CRDC_LIBRARY}
-#        ${CRCCOSY_LIBRARY}
-#        fcl
-#        ccd)
+target_include_directories(crreachsem
+        PUBLIC
+        $<INSTALL_INTERFACE:include>
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/cpp/include>
+)
+
+target_link_libraries(crreachsem
+        PRIVATE
+        spdlog::spdlog
+        OpenMP::OpenMP_CXX
+)
+
+# Add spot libraries as imported targets, so that we can link against them with CMAKE_LINK_LIBRARIES_ONLY_TARGETS enabled
+# TODO: Check if there is a better way to import spot in CMake projects
+add_library(spot::spot INTERFACE IMPORTED)
+set_property(TARGET spot::spot PROPERTY IMPORTED_LIBNAME "spot")
+add_library(spot::bddx INTERFACE IMPORTED)
+set_property(TARGET spot::bddx PROPERTY IMPORTED_LIBNAME "bddx")
+
+target_link_libraries(crreachsem
+        PUBLIC
+        CommonRoadReach::crreach
+        Boost::headers
+        EnvironmentModel::env_model
+        yaml-cpp::yaml-cpp
+        spot::spot
+        spot::bddx
+        pybind11::embed
+)
+
+add_library(CommonRoadReachSemantic::crreachsem ALIAS crreachsem)
+
+foreach (target IN ITEMS crreachsem)
+    # this adds many warnings to the build. They usually help to find some bugs
+    # TODO: Check whether each warning flag is actually supported by the compiler before adding it
+    if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang|AppleClang")
+        target_compile_options(${target} PRIVATE -Wall -Wextra -Wconversion
+                -pedantic -Wfatal-errors -Wno-unused-parameter)
+    endif ()
+    if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+        target_compile_options(${target} PRIVATE /W3)
+    endif ()
+endforeach ()

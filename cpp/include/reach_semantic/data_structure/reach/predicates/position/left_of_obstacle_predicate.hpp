@@ -1,0 +1,29 @@
+#pragma once
+
+#include "reach_semantic/data_structure/reach/predicates/cpp_predicate.hpp"
+
+using geometry::CurvilinearCoordinateSystem;
+
+namespace semantic_reach {
+
+class LeftOfObstaclePredicate : public CppPredicate {
+  private:
+    size_t obstacle_id;
+    double ego_width;
+
+    [[nodiscard]] std::optional<double>
+    _get_obstacle_left(int step, const std::shared_ptr<World> &world,
+                       const std::shared_ptr<geometry::CurvilinearCoordinateSystem> &ego_ccs) const;
+
+    [[nodiscard]] std::vector<reach::ReachNodePtr> _restrict_reach_node_mandatory(
+        int step, const reach::ReachNodePtr &reach_node, const std::shared_ptr<World> &world,
+        const std::shared_ptr<geometry::CurvilinearCoordinateSystem> &ego_ccs) const override;
+
+    [[nodiscard]] std::vector<reach::ReachNodePtr> _restrict_reach_node_forbidden(
+        int step, const reach::ReachNodePtr &reach_node, const std::shared_ptr<World> &world,
+        const std::shared_ptr<geometry::CurvilinearCoordinateSystem> &ego_ccs) const override;
+
+  public:
+    LeftOfObstaclePredicate(bool negated, size_t obstacle_id, double ego_width);
+};
+} // namespace semantic_reach
