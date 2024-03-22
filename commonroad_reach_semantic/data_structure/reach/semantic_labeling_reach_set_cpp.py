@@ -22,3 +22,7 @@ class CppSemanticLabelingReachableSet(CppSemanticReachableSet):
                                                                 pycrreachsem.TrafficRuleInterface(rule_interface))
 
         logger.info("CppSemanticLabelingReachableSet initialized.")
+
+    @property
+    def labeler(self):
+        return self._reach.labeler

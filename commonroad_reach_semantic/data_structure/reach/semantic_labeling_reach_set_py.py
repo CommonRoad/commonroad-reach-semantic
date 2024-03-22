@@ -33,6 +33,9 @@ class PySemanticLabelingReachableSet(PySemanticReachableSet):
             self.dict_step_to_reachable_set[self.step_start])
         self.benchmark_result.computation_times_per_step[self.step_start].collision_check = time.perf_counter() - time_start
 
+        self.dict_step_to_propositions_to_drivable_area = dict()
+        self.dict_step_to_propositions_to_propagated_set = dict()
+
         time_start = time.perf_counter()
         self.labeler.label_initial_state(self.dict_step_to_reachable_set[self.step_start], self.step_start)
         self.benchmark_result.computation_times_per_step[self.step_start].splitting = time.perf_counter() - time_start

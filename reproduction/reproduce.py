@@ -89,7 +89,7 @@ def reproduce_table_1(regenerate_data: bool = False):
 
     if not regenerate_data and (not os.path.exists(os.path.join(this_dir(), cpp_output_dir)) or not os.path.exists(
             os.path.join(this_dir(), python_output_dir))):
-        print(f"No data for Table 3 found. Regenerating data...")
+        print(f"No data for Table 1 found. Regenerating data...")
         regenerate_data = True
 
     if regenerate_data:
@@ -266,7 +266,7 @@ def delete_output_dir_if_exists(output_dir: str) -> bool:
     if os.path.exists(os.path.join(this_dir(), output_dir)):
         print(f"WARNING: Output directory {output_dir} already exists.")
         return interactive_delete(os.path.join(this_dir(), output_dir))
-    return False
+    return True
 
 
 def interactive_delete(path: str) -> bool:

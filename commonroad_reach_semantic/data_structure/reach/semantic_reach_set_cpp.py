@@ -71,7 +71,3 @@ class CppSemanticReachableSet(SemanticReachableSet, ABC):
         time_start = time.perf_counter()
         self._reach.prune_nodes_not_reaching_final_step()
         self.benchmark_result.pruning_time = time.perf_counter() - time_start
-
-    @property
-    def labeler(self):
-        return self._reach.labeler

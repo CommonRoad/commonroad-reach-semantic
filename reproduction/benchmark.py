@@ -7,20 +7,12 @@ import commonroad_reach.utility.logger as util_logger
 import yaml
 from alive_progress import alive_bar
 
-import commonroad_reach_semantic.data_structure.rule.priorities as priorities
 from commonroad_reach_semantic.benchmark.benchmark_result import ReachBenchmarkResults
 from commonroad_reach_semantic.data_structure.config.semantic_configuration import SemanticConfiguration
 from commonroad_reach_semantic.data_structure.config.semantic_configuration_builder import SemanticConfigurationBuilder
 from commonroad_reach_semantic.data_structure.environment_model.semantic_model import SemanticModel
 from commonroad_reach_semantic.data_structure.model_checking.spot_interface import SpotInterface
-from commonroad_reach_semantic.data_structure.reach.semantic_labeling_reach_set_cpp import \
-    CppSemanticLabelingReachableSet
-from commonroad_reach_semantic.data_structure.reach.semantic_labeling_reach_set_py import PySemanticLabelingReachableSet
 from commonroad_reach_semantic.data_structure.reach.semantic_reach_interface import SemanticReachableSetInterface
-from commonroad_reach_semantic.data_structure.reach.semantic_splitting_otf_reach_set_cpp import \
-    CppSemanticSplittingOTFReachableSet
-from commonroad_reach_semantic.data_structure.reach.semantic_splitting_otf_reach_set_py import \
-    PySemanticSplittingOTFReachableSet
 from commonroad_reach_semantic.data_structure.rule.traffic_rule_interface import TrafficRuleInterface
 from commonroad_reach_semantic.utility import visualization as util_visual
 
@@ -45,8 +37,6 @@ def benchmark_scenario(name: str, mode: int, repetitions: int = 5, cpp: bool = T
     util_logger.initialize_logger(config)
 
     semantic_model = SemanticModel(config)
-    semantic_model.determine_traffic_priorities(priorities.dict_traffic_sign_to_priorities)
-
     rule_interface = TrafficRuleInterface(config, semantic_model)
 
     otf_results = []
@@ -71,12 +61,8 @@ def run_prepared_labeling_scenario(config: SemanticConfiguration, semantic_model
                                    rule_interface: TrafficRuleInterface, cpp: bool = True) -> Tuple[
     ReachBenchmarkResults, float, float]:
     time_start = time.perf_counter()
+    config.reachable_set.mode_computation = 6 if cpp else 5
     reach_interface = SemanticReachableSetInterface(config, semantic_model, rule_interface)
-    if cpp:
-        reach = CppSemanticLabelingReachableSet(config, semantic_model, rule_interface)
-    else:
-        reach = PySemanticLabelingReachableSet(config, semantic_model, rule_interface)
-    reach_interface.set_reach(reach)
     reach_interface.compute_reachable_sets()
     overall_time = time.perf_counter() - time_start
     benchmark_result = reach_interface._reach.benchmark_result
@@ -96,12 +82,8 @@ def run_prepared_otf_scenario(config: SemanticConfiguration, semantic_model: Sem
                               rule_interface: TrafficRuleInterface, cpp: bool = True) -> Tuple[
     ReachBenchmarkResults, float]:
     time_start = time.perf_counter()
+    config.reachable_set.mode_computation = 8 if cpp else 7
     reach_interface = SemanticReachableSetInterface(config, semantic_model, rule_interface)
-    if cpp:
-        reach = CppSemanticSplittingOTFReachableSet(config, semantic_model, rule_interface)
-    else:
-        reach = PySemanticSplittingOTFReachableSet(config, semantic_model, rule_interface)
-    reach_interface.set_reach(reach)
     reach_interface.compute_reachable_sets()
     overall_time = time.perf_counter() - time_start
     benchmark_result = reach_interface._reach.benchmark_result
@@ -156,22 +138,20 @@ def run_scenario(name: str, draw: bool = False, interactive_viz: bool = False,
 
     # ==== initialize semantic model and traffic rules
     semantic_model = SemanticModel(config)
-    semantic_model.determine_traffic_priorities(priorities.dict_traffic_sign_to_priorities)
     rule_interface = TrafficRuleInterface(config, semantic_model)
     rule_interface.print_summary()
 
     # ==== compute reachable sets using reachability interface
+    match (otf, cpp):
+        case (True, True):
+            config.reachable_set.mode_computation = 8
+        case (True, False):
+            config.reachable_set.mode_computation = 7
+        case (False, True):
+            config.reachable_set.mode_computation = 6
+        case (False, False):
+            config.reachable_set.mode_computation = 5
     reach_interface = SemanticReachableSetInterface(config, semantic_model, rule_interface)
-    if not otf:
-        if cpp:
-            reach_interface.set_reach(CppSemanticLabelingReachableSet(config, semantic_model, rule_interface))
-        else:
-            reach_interface.set_reach(PySemanticLabelingReachableSet(config, semantic_model, rule_interface))
-    else:
-        if cpp:
-            reach_interface.set_reach(CppSemanticSplittingOTFReachableSet(config, semantic_model, rule_interface))
-        else:
-            reach_interface.set_reach(PySemanticSplittingOTFReachableSet(config, semantic_model, rule_interface))
     reach_interface.compute_reachable_sets()
 
     if not otf:
@@ -194,10 +174,11 @@ def run_scenario(name: str, draw: bool = False, interactive_viz: bool = False,
 
         util_visual.plot_reach_graph(reach_interface, node_to_group=node_to_group, path_output=output_path)
         util_visual.plot_scenario_with_regions(semantic_model, "CVLN", path_output=output_path)
-        util_visual.plot_scenario_with_reachable_sets(semantic_model, reach_interface, save_gif=False, path_output=output_path)
+        util_visual.plot_scenario_with_reachable_sets(reach_interface, save_gif=False, path_output=output_path)
 
         if not otf:
-            util_visual.plot_scenario_with_kripke_nodes(semantic_model, spot_interface, plot_accepting=True, save_gif=False, path_output=output_path)
+            util_visual.plot_scenario_with_kripke_nodes(spot_interface, plot_accepting=True, save_gif=False,
+                                                        path_output=output_path)
 
     if interactive_viz:
         # ==== show interactive visualization
