@@ -1,7 +1,6 @@
 #include "reach_semantic/data_structure/reach/predicates/predicate_factory.hpp"
 #include "reach_semantic/data_structure/reach/predicates/py_predicate.hpp"
 
-#include <regex>
 #include <spdlog/spdlog.h>
 
 using namespace semantic_reach;
@@ -14,37 +13,42 @@ PredicateFactory::PredicateFactory(std::unique_ptr<PredicateConfiguration> confi
             : std::nullopt;
 }
 
+constexpr std::string_view in_front_of = "InFrontOf_V";
+constexpr std::string_view behind = "Behind_V";
+constexpr std::string_view right_of = "RightOf_V";
+constexpr std::string_view left_of = "LeftOf_V";
+constexpr std::string_view safe_distance = "SafeDistance_V";
+
 std::unique_ptr<Predicate> PredicateFactory::predicate_from_proposition(const std::string &proposition,
                                                                         bool negated) const {
-    std::smatch match;
 
     // in front of predicate
-    if (std::regex_match(proposition, match, std::regex(R"(InFrontOf_V(\d+))"))) {
-        size_t obstacle_id{static_cast<size_t>(std::stoi(match[1]))};
+    if (proposition.rfind(in_front_of, 0) == 0) {
+        size_t obstacle_id{static_cast<size_t>(std::stoi(proposition.substr(in_front_of.size())))};
         return make_in_front_of_obstacle_predicate(negated, obstacle_id);
     }
 
     // behind predicate
-    if (std::regex_match(proposition, match, std::regex(R"(Behind_V(\d+))"))) {
-        size_t obstacle_id{static_cast<size_t>(std::stoi(match[1]))};
+    if (proposition.rfind(behind, 0) == 0) {
+        size_t obstacle_id{static_cast<size_t>(std::stoi(proposition.substr(behind.size())))};
         return make_behind_obstacle_predicate(negated, obstacle_id);
     }
 
     // right of predicate
-    if (std::regex_match(proposition, match, std::regex(R"(RightOf_V(\d+))"))) {
-        size_t obstacle_id{static_cast<size_t>(std::stoi(match[1]))};
+    if (proposition.rfind(right_of, 0) == 0) {
+        size_t obstacle_id{static_cast<size_t>(std::stoi(proposition.substr(right_of.size())))};
         return make_right_of_obstacle_predicate(negated, obstacle_id);
     }
 
     // left of predicate
-    if (std::regex_match(proposition, match, std::regex(R"(LeftOf_V(\d+))"))) {
-        size_t obstacle_id{static_cast<size_t>(std::stoi(match[1]))};
+    if (proposition.rfind(left_of, 0) == 0) {
+        size_t obstacle_id{static_cast<size_t>(std::stoi(proposition.substr(left_of.size())))};
         return make_left_of_obstacle_predicate(negated, obstacle_id);
     }
 
     // safe distance predicate
-    if (std::regex_match(proposition, match, std::regex(R"(SafeDistance_V(\d+))"))) {
-        size_t obstacle_id{static_cast<size_t>(std::stoi(match[1]))};
+    if (proposition.rfind(safe_distance, 0) == 0) {
+        size_t obstacle_id{static_cast<size_t>(std::stoi(proposition.substr(safe_distance.size())))};
         return make_safe_distance_prec_predicate(negated, obstacle_id);
     }
 
