@@ -21,11 +21,11 @@ SemanticReachableSet::SemanticReachableSet(SemanticConfigurationPtr config, Coll
 
 /// @note Computation of the reachable set of an LTI system requires the zero-state response of the system.
 void SemanticReachableSet::_initialize_zero_state_polygons() {
-    polygon_zero_state_lon = create_zero_state_polygon(config->planning().dt, config->vehicle().ego.a_lon_min,
-                                                       config->vehicle().ego.a_lon_max);
+    polygon_zero_state_lon = reach::create_zero_state_polygon(config->planning().dt, config->vehicle().ego.a_lon_min,
+                                                              config->vehicle().ego.a_lon_max);
 
-    polygon_zero_state_lat = create_zero_state_polygon(config->planning().dt, config->vehicle().ego.a_lat_min,
-                                                       config->vehicle().ego.a_lat_max);
+    polygon_zero_state_lat = reach::create_zero_state_polygon(config->planning().dt, config->vehicle().ego.a_lat_min,
+                                                              config->vehicle().ego.a_lat_max);
 }
 
 std::vector<reach::ReachNodePtr> SemanticReachableSet::_construct_initial_reachable_sets() {
