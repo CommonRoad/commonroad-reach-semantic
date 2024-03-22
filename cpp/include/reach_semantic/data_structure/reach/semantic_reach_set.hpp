@@ -5,8 +5,8 @@
 #include "reachset/data_structure/reach/reach_node.hpp"
 
 #include "collision/collision_checker.h"
-#include "reachset/data_structure/reach/reach_polygon.hpp"
 #include "reach_semantic/benchmark/benchmark_result.hpp"
+#include "reachset/data_structure/reach/reach_polygon.hpp"
 
 namespace semantic_reach {
 class SemanticReachableSet {

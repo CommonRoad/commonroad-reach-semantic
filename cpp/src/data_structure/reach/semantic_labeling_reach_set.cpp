@@ -18,18 +18,21 @@ SemanticLabelingReachableSet::SemanticLabelingReachableSet(SemanticConfiguration
 
     auto time_start = std::chrono::high_resolution_clock::now();
     map_step_to_reachable_set[step_start] = _construct_initial_reachable_sets();
-    benchmark_result.computation_times_per_step[step_start].propagation = std::chrono::duration_cast<std::chrono::microseconds>(
-            std::chrono::high_resolution_clock::now() - time_start).count();
+    benchmark_result.computation_times_per_step[step_start].propagation =
+        std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - time_start)
+            .count();
     time_start = std::chrono::high_resolution_clock::now();
-    map_step_to_drivable_area[step_start] = reach::project_base_sets_to_position_domain(
-            map_step_to_reachable_set[step_start]);
-    benchmark_result.computation_times_per_step[step_start].collision_check = std::chrono::duration_cast<std::chrono::microseconds>(
-            std::chrono::high_resolution_clock::now() - time_start).count();
+    map_step_to_drivable_area[step_start] =
+        reach::project_base_sets_to_position_domain(map_step_to_reachable_set[step_start]);
+    benchmark_result.computation_times_per_step[step_start].collision_check =
+        std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - time_start)
+            .count();
 
     time_start = std::chrono::high_resolution_clock::now();
     labeler->label_initial_state(map_step_to_reachable_set[step_start], step_start);
-    benchmark_result.computation_times_per_step[step_start].splitting = std::chrono::duration_cast<std::chrono::microseconds>(
-            std::chrono::high_resolution_clock::now() - time_start).count();
+    benchmark_result.computation_times_per_step[step_start].splitting =
+        std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - time_start)
+            .count();
 
     _vec_steps_computed.emplace_back(step_start);
 }
@@ -53,8 +56,9 @@ void SemanticLabelingReachableSet::_compute_drivable_area_at_step(int const &ste
     }
 
     auto vec_propagated_set = _propagate_reachable_set(reachable_set_previous);
-    benchmark_result.computation_times_per_step[step].propagation = std::chrono::duration_cast<std::chrono::microseconds>(
-            std::chrono::high_resolution_clock::now() - time_start).count();
+    benchmark_result.computation_times_per_step[step].propagation =
+        std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - time_start)
+            .count();
 
     time_start = std::chrono::high_resolution_clock::now();
     // split w.r.t regions and position intervals
@@ -62,7 +66,7 @@ void SemanticLabelingReachableSet::_compute_drivable_area_at_step(int const &ste
     vec_propagated_set = labeler->split_wrt_position_intervals(step, vec_propagated_set);
 
     // discard the ones colliding with vehicles
-//    vec_propagated_set = labeler->discard_colliding_nodes(vec_propagated_set);
+    //    vec_propagated_set = labeler->discard_colliding_nodes(vec_propagated_set);
 
     // examine whether the propagated sets satisfy TPL specifications
     vec_propagated_set =
@@ -70,8 +74,9 @@ void SemanticLabelingReachableSet::_compute_drivable_area_at_step(int const &ste
 
     // update traffic propositions of the propagated sets
     vec_propagated_set = labeler->label_traffic_propositions(step, vec_propagated_set);
-    benchmark_result.computation_times_per_step[step].splitting = std::chrono::duration_cast<std::chrono::microseconds>(
-            std::chrono::high_resolution_clock::now() - time_start).count();
+    benchmark_result.computation_times_per_step[step].splitting =
+        std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - time_start)
+            .count();
 
     // partition propagated sets by their propositions
     time_start = std::chrono::high_resolution_clock::now();
@@ -81,8 +86,9 @@ void SemanticLabelingReachableSet::_compute_drivable_area_at_step(int const &ste
         dict_propositions_to_propagated_set[labeler->reachable_set_to_propositions[propagated_set]].emplace_back(
             propagated_set);
     }
-    benchmark_result.computation_times_per_step[step].partitioning = std::chrono::duration_cast<std::chrono::microseconds>(
-            std::chrono::high_resolution_clock::now() - time_start).count();
+    benchmark_result.computation_times_per_step[step].partitioning =
+        std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - time_start)
+            .count();
 
     // merge, collision check, and repartition propagated sets partitioned by their propositions,
     // because we must not merge sets with different propositions
@@ -137,6 +143,7 @@ void SemanticLabelingReachableSet::_compute_reachable_set_at_step(int const &ste
         }
     }
     map_step_to_reachable_set[step] = new_reachable_sets;
-    benchmark_result.computation_times_per_step[step].node_creation = std::chrono::duration_cast<std::chrono::microseconds>(
-            std::chrono::high_resolution_clock::now() - time_start).count();
+    benchmark_result.computation_times_per_step[step].node_creation =
+        std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - time_start)
+            .count();
 }
