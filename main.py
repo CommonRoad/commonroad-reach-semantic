@@ -14,13 +14,14 @@ def main():
     # ==== specify scenario
     # name_scenario = "ZAM_Intersection-1_1_T-1"
     # name_scenario = "ZAM_Intersection-1_2_T-1"
-    # name_scenario = "ZAM_Merge-1_1_T-1"
+    name_scenario = "ZAM_Merge-1_1_T-1"
     # name_scenario = "ZAM_Yield-1_1_T-1"
     # name_scenario = "ESP_Monzon-2_2_T-1"
-    name_scenario = "USA_US101-6_1_T-1"
+    # name_scenario = "USA_US101-6_1_T-1"
+    # name_scenario = "ZAM_Over-1_1"
 
     # ==== build configuration
-    path_root = "/home/lercher/tum/commonroad/commonroad-reach-semantic-addon"
+    path_root = "/home/liny/repairverse/commonroad-reach-semantic"
     config = SemanticConfigurationBuilder(path_root=path_root).build_configuration(name_scenario)
     config.update()
     util_logger.initialize_logger(config)
@@ -45,9 +46,9 @@ def main():
         # no semantic information, so put all nodes in the same group
         node_to_group = defaultdict(lambda: 0)
 
-    util_visual.plot_reach_graph(reach_interface, node_to_group=node_to_group)
-    util_visual.plot_scenario_with_regions(semantic_model, "CVLN")
-    util_visual.plot_scenario_with_reachable_sets(reach_interface, save_gif=True)
+    # util_visual.plot_reach_graph(reach_interface, node_to_group=node_to_group)
+    # util_visual.plot_scenario_with_regions(semantic_model, "CVLN")
+    # util_visual.plot_scenario_with_reachable_sets(reach_interface, save_gif=True)
 
     # ==== show interactive visualization (can take a long time to plot if there are many nodes)
     # util_visual.show_interactive_reach_graph(reach_interface, use_images=True, node_to_group=node_to_group)
