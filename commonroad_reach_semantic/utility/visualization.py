@@ -2,7 +2,7 @@ import copy
 import logging
 import os
 from pathlib import Path
-from typing import List, Tuple, Union, Set, Dict, FrozenSet, Iterable
+from typing import List, Tuple, Union, Set, Dict, FrozenSet, Iterable, Optional
 
 import commonroad_reach.utility.logger as util_logger
 import commonroad_reach.utility.visualization as reach_visualization
@@ -13,6 +13,7 @@ import seaborn as sns
 # from commonroad_reach_semantic import pycrreachsem as reach
 from commonroad.geometry.shape import Polygon
 from commonroad.scenario.lanelet import LaneletNetwork
+from commonroad.scenario.traffic_sign import TrafficSign
 from commonroad.visualization.draw_params import MPDrawParams
 from commonroad.visualization.mp_renderer import MPRenderer
 from commonroad_reach.data_structure.reach.reach_interface import ReachableSetInterface
@@ -296,7 +297,8 @@ def plot_scenario_with_regions(semantic_model: SemanticModel, coordinate_system:
 
     # plot traffic signs
     for sign in scenario.lanelet_network.traffic_signs:
-        sign.draw(renderer, draw_params.traffic_sign)
+        if _is_traffic_sign_in_plot_limits(sign, plot_limits):
+            sign.draw(renderer, draw_params.traffic_sign)
 
     plt.rc("axes", axisbelow=True)
     ax = plt.gca()
@@ -562,7 +564,8 @@ def _draw_scenario_elements(config: SemanticConfiguration, renderer: MPRenderer,
     scenario = config.scenario
     scenario.draw(renderer, draw_params)
     for sign in scenario.lanelet_network.traffic_signs:
-        sign.draw(renderer, draw_params.traffic_sign)
+        if _is_traffic_sign_in_plot_limits(sign, renderer.plot_limits):
+            sign.draw(renderer, draw_params.traffic_sign)
 
     if config.debug.draw_planning_problem:
         config.planning_problem.draw(renderer, draw_params)
@@ -570,3 +573,11 @@ def _draw_scenario_elements(config: SemanticConfiguration, renderer: MPRenderer,
     ref_path = config.planning.reference_path
     if config.debug.draw_ref_path and ref_path is not None:
         renderer.ax.plot(ref_path[:, 0], ref_path[:, 1], color='g', marker='.', markersize=1, zorder=19, linewidth=2.0)
+
+
+def _is_traffic_sign_in_plot_limits(traffic_sign: TrafficSign, plot_limits: Optional[List]) -> bool:
+    if plot_limits is None:
+        return True
+
+    x, y = traffic_sign.position[0], traffic_sign.position[1]
+    return plot_limits[0] <= x <= plot_limits[1] and plot_limits[2] <= y <= plot_limits[3]
