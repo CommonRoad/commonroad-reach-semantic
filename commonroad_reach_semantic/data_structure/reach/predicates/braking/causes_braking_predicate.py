@@ -120,7 +120,7 @@ class CausesBrakingPredicate(predicate.Predicate):
         # ensure reach node is in front of vehicle
         # adding the vehicle length/2 is copied from vehicle.py without me fully understanding what it achieves
         p_lon_ego_min_reach_node = p_lon_ego_max_vehicle + \
-                                   semantic_model.config.vehicle.other.length / 2 - \
+                                   vehicle.shape.length / 2 - \
                                    semantic_model.config.vehicle.ego.radius_inflation
         return p_lon_ego_min_reach_node, p_lon_ego_max_reach_node
 
