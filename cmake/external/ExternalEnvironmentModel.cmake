@@ -6,8 +6,7 @@ set(EXTERNAL_CRDC_FORCE ON)
 FetchContent_Declare(
         EnvironmentModel
         GIT_REPOSITORY git@gitlab.lrz.de:commonroad-traffic-rules/environment-model.git
-        # TODO: Update this once the branch feature/reach-semantic-compatibility in the environment model is merged
-        GIT_TAG 52f6e03ee773f72f0233ab5d452020e3bf7b60bf
+        GIT_TAG 3030c8501ed9d7c48925ecb642d496a60bd431ec
         #    URL /home/lercher/tum/commonroad/environment-model
 )
 
