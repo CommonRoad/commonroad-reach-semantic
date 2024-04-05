@@ -24,15 +24,27 @@ void semantic_reach::resample_obstacle_states(const std::vector<std::shared_ptr<
         return;
     }
     for (const auto &obs : obstacles) {
-        obs->setTrajectoryPrediction(resample_trajectory(obs->getTrajectoryPrediction(), step_width));
-        obs->setTrajectoryHistory(resample_trajectory(obs->getTrajectoryHistory(), step_width));
         auto current_state = obs->getCurrentState();
-        if (current_state) {
-            if (current_state->getTimeStep() % step_width != 0) {
-                throw std::logic_error("Current state time step is not aligned with new dt");
+        auto prediction = obs->getTrajectoryPrediction();
+        if (current_state && current_state->getTimeStep() % step_width != 0) {
+            auto current_time_step = current_state->getTimeStep();
+            auto mod = current_time_step % step_width;
+            // Take the first state of the trajectory prediction that matches the step width as current state
+            current_state = nullptr;
+            for (auto timeStep = current_time_step + step_width - mod; timeStep <= obs->getFinalTimeStep();
+                 timeStep += step_width) {
+                if (prediction.count(timeStep) == 1) {
+                    current_state = prediction.at(timeStep);
+                    prediction.erase(timeStep);
+                    break;
+                }
             }
-            current_state->setTimeStep(current_state->getTimeStep() / step_width);
-            obs->setCurrentState(current_state);
         }
+        if (current_state) {
+            current_state->setTimeStep(current_state->getTimeStep() / step_width);
+        }
+        obs->setCurrentState(current_state);
+        obs->setTrajectoryPrediction(resample_trajectory(prediction, step_width));
+        obs->setTrajectoryHistory(resample_trajectory(obs->getTrajectoryHistory(), step_width));
     }
 }

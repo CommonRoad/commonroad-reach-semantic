@@ -10,7 +10,6 @@ namespace semantic_reach {
  * @param obstacle_dt Original time step size of the obstacle prediction
  * @param new_dt New time step size
  * @throws std::logic_error if the new time step size is not a multiple of the original time step size
- * @throws std::logic_error if the current state time step of an obstacle is not aligned with the new time step size
  */
 void resample_obstacle_states(const std::vector<std::shared_ptr<Obstacle>> &obstacles, double obstacle_dt,
                               double new_dt);
