@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<commonRoad timeStepSize="0.04" commonRoadVersion="2020a" author="Pinxue Shao" affiliation="RWTH Aachen University, Germany" source="exiD" benchmarkID="DEU_MerzenichRather-2_886600_T-6749" date="2023-07-05">
+<commonRoad timeStepSize="0.04" commonRoadVersion="2020a" author="Pinxue Shao" affiliation="RWTH Aachen University, Germany" source="exiD" benchmarkID="DEU_MerzenichRather-2_886600_T-6749" date="2024-04-05">
   <location>
     <geoNameId>-999</geoNameId>
     <gpsLatitude>50.84766353478928</gpsLatitude>
@@ -749,7 +749,7 @@
         <x>551.0624</x>
         <y>-205.6226</y>
       </point>
-      <lineMarking>dashed</lineMarking>
+      <lineMarking>solid</lineMarking>
     </leftBound>
     <rightBound>
       <point>
@@ -1484,15 +1484,16 @@
         <x>550.9235</x>
         <y>-202.1531</y>
       </point>
+      <lineMarking>dashed</lineMarking>
     </rightBound>
     <successor ref="2"/>
     <adjacentRight ref="3" drivingDir="same"/>
     <laneletType>mainCarriageWay</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
     <trafficSignRef ref="59"/>
   </lanelet>
   <lanelet id="3">
@@ -2964,16 +2965,17 @@
         <x>550.7832</x>
         <y>-198.6489</y>
       </point>
+      <lineMarking>dashed</lineMarking>
     </rightBound>
     <successor ref="4"/>
     <adjacentLeft ref="1" drivingDir="same"/>
     <adjacentRight ref="5" drivingDir="same"/>
     <laneletType>mainCarriageWay</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
     <trafficSignRef ref="60"/>
   </lanelet>
   <lanelet id="5">
@@ -3710,7 +3712,7 @@
         <x>550.7832</x>
         <y>-198.6489</y>
       </point>
-      <lineMarking>solid</lineMarking>
+      <lineMarking>dashed</lineMarking>
     </leftBound>
     <rightBound>
       <point>
@@ -4445,16 +4447,17 @@
         <x>550.6233</x>
         <y>-194.6562</y>
       </point>
+      <lineMarking>solid</lineMarking>
     </rightBound>
     <successor ref="6"/>
     <adjacentLeft ref="3" drivingDir="same"/>
     <adjacentRight ref="7" drivingDir="same"/>
     <laneletType>mainCarriageWay</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
     <trafficSignRef ref="61"/>
   </lanelet>
   <lanelet id="7">
@@ -5929,12 +5932,12 @@
     <successor ref="8"/>
     <adjacentLeft ref="5" drivingDir="same"/>
     <adjacentRight ref="9" drivingDir="same"/>
-    <laneletType>shoulder</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
+    <laneletType>shoulder</laneletType>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
     <trafficSignRef ref="62"/>
   </lanelet>
   <lanelet id="9">
@@ -7407,12 +7410,12 @@
       </point>
     </rightBound>
     <adjacentLeft ref="7" drivingDir="same"/>
-    <laneletType>shoulder</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
+    <laneletType>shoulder</laneletType>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
     <trafficSignRef ref="63"/>
   </lanelet>
   <lanelet id="10">
@@ -8593,6 +8596,7 @@
         <x>208.4083</x>
         <y>-176.824</y>
       </point>
+      <lineMarking>solid</lineMarking>
     </leftBound>
     <rightBound>
       <point>
@@ -9777,10 +9781,10 @@
     <adjacentRight ref="12" drivingDir="same"/>
     <laneletType>mainCarriageWay</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
     <trafficSignRef ref="64"/>
   </lanelet>
   <lanelet id="12">
@@ -12146,10 +12150,10 @@
     <adjacentRight ref="14" drivingDir="same"/>
     <laneletType>mainCarriageWay</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
     <trafficSignRef ref="65"/>
   </lanelet>
   <lanelet id="14">
@@ -14515,10 +14519,10 @@
     <adjacentRight ref="16" drivingDir="same"/>
     <laneletType>mainCarriageWay</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
     <trafficSignRef ref="66"/>
   </lanelet>
   <lanelet id="16">
@@ -16879,12 +16883,12 @@
       </point>
     </rightBound>
     <adjacentLeft ref="14" drivingDir="same"/>
-    <laneletType>shoulder</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
+    <laneletType>shoulder</laneletType>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
     <trafficSignRef ref="67"/>
   </lanelet>
   <lanelet id="11">
@@ -16937,6 +16941,7 @@
         <x>214.1778</x>
         <y>-178.2177</y>
       </point>
+      <lineMarking>solid</lineMarking>
     </leftBound>
     <rightBound>
       <point>
@@ -16994,10 +16999,10 @@
     <adjacentRight ref="13" drivingDir="same"/>
     <laneletType>mainCarriageWay</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
   </lanelet>
   <lanelet id="13">
     <leftBound>
@@ -17107,10 +17112,10 @@
     <adjacentRight ref="15" drivingDir="same"/>
     <laneletType>mainCarriageWay</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
   </lanelet>
   <lanelet id="15">
     <leftBound>
@@ -17219,10 +17224,10 @@
     <adjacentLeft ref="13" drivingDir="same"/>
     <laneletType>mainCarriageWay</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
   </lanelet>
   <lanelet id="20">
     <leftBound>
@@ -18442,7 +18447,7 @@
         <x>66.7914</x>
         <y>-127.4571</y>
       </point>
-      <lineMarking>dashed</lineMarking>
+      <lineMarking>solid</lineMarking>
     </leftBound>
     <rightBound>
       <point>
@@ -19666,10 +19671,10 @@
     <adjacentRight ref="22" drivingDir="same"/>
     <laneletType>mainCarriageWay</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
   </lanelet>
   <lanelet id="22">
     <leftBound>
@@ -22114,10 +22119,10 @@
     <adjacentRight ref="24" drivingDir="same"/>
     <laneletType>mainCarriageWay</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
   </lanelet>
   <lanelet id="24">
     <leftBound>
@@ -24562,10 +24567,10 @@
     <adjacentRight ref="26" drivingDir="same"/>
     <laneletType>mainCarriageWay</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
   </lanelet>
   <lanelet id="26">
     <leftBound>
@@ -27009,10 +27014,10 @@
     <adjacentLeft ref="24" drivingDir="same"/>
     <laneletType>exitRamp</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
   </lanelet>
   <lanelet id="28">
     <leftBound>
@@ -29366,12 +29371,12 @@
     </rightBound>
     <successor ref="29"/>
     <adjacentRight ref="30" drivingDir="same"/>
-    <laneletType>accessRamp</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
+    <laneletType>accessRamp</laneletType>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
     <trafficSignRef ref="68"/>
   </lanelet>
   <lanelet id="30">
@@ -31724,12 +31729,12 @@
       </point>
     </rightBound>
     <adjacentLeft ref="28" drivingDir="same"/>
-    <laneletType>shoulder</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
+    <laneletType>shoulder</laneletType>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
     <trafficSignRef ref="69"/>
   </lanelet>
   <lanelet id="31">
@@ -33210,6 +33215,7 @@
         <x>406.5566</x>
         <y>-208.3949</y>
       </point>
+      <lineMarking>solid</lineMarking>
     </leftBound>
     <rightBound>
       <point>
@@ -34695,10 +34701,10 @@
     <adjacentRight ref="33" drivingDir="same"/>
     <laneletType>mainCarriageWay</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
   </lanelet>
   <lanelet id="33">
     <leftBound>
@@ -37664,10 +37670,10 @@
     <adjacentRight ref="35" drivingDir="same"/>
     <laneletType>mainCarriageWay</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
   </lanelet>
   <lanelet id="35">
     <leftBound>
@@ -40633,10 +40639,10 @@
     <adjacentRight ref="37" drivingDir="same"/>
     <laneletType>mainCarriageWay</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
   </lanelet>
   <lanelet id="37">
     <leftBound>
@@ -43600,12 +43606,12 @@
     <successor ref="38"/>
     <successor ref="39"/>
     <adjacentLeft ref="35" drivingDir="same"/>
-    <laneletType>accessRamp</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
+    <laneletType>accessRamp</laneletType>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
   </lanelet>
   <lanelet id="40">
     <leftBound>
@@ -43621,7 +43627,7 @@
         <x>223.2849</x>
         <y>-175.3329</y>
       </point>
-      <lineMarking>dashed</lineMarking>
+      <lineMarking>solid</lineMarking>
     </leftBound>
     <rightBound>
       <point>
@@ -43642,10 +43648,10 @@
     <adjacentRight ref="42" drivingDir="same"/>
     <laneletType>mainCarriageWay</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
   </lanelet>
   <lanelet id="42">
     <leftBound>
@@ -43683,10 +43689,10 @@
     <adjacentRight ref="44" drivingDir="same"/>
     <laneletType>mainCarriageWay</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
   </lanelet>
   <lanelet id="44">
     <leftBound>
@@ -43724,10 +43730,10 @@
     <adjacentRight ref="46" drivingDir="same"/>
     <laneletType>mainCarriageWay</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
   </lanelet>
   <lanelet id="46">
     <leftBound>
@@ -43764,10 +43770,10 @@
     <adjacentLeft ref="44" drivingDir="same"/>
     <laneletType>exitRamp</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
   </lanelet>
   <lanelet id="41">
     <leftBound>
@@ -44243,7 +44249,7 @@
         <x>223.5276</x>
         <y>-175.3898</y>
       </point>
-      <lineMarking>dashed</lineMarking>
+      <lineMarking>solid</lineMarking>
     </leftBound>
     <rightBound>
       <point>
@@ -44724,10 +44730,10 @@
     <adjacentRight ref="43" drivingDir="same"/>
     <laneletType>mainCarriageWay</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
   </lanelet>
   <lanelet id="43">
     <leftBound>
@@ -45685,10 +45691,10 @@
     <adjacentRight ref="45" drivingDir="same"/>
     <laneletType>mainCarriageWay</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
   </lanelet>
   <lanelet id="45">
     <leftBound>
@@ -46646,10 +46652,10 @@
     <adjacentRight ref="47" drivingDir="same"/>
     <laneletType>mainCarriageWay</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
   </lanelet>
   <lanelet id="47">
     <leftBound>
@@ -47615,10 +47621,10 @@
     <adjacentRight ref="48" drivingDir="same"/>
     <laneletType>exitRamp</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
   </lanelet>
   <lanelet id="48">
     <leftBound>
@@ -48579,12 +48585,12 @@
     </rightBound>
     <predecessor ref="8"/>
     <adjacentLeft ref="47" drivingDir="same"/>
-    <laneletType>shoulder</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
+    <laneletType>shoulder</laneletType>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
   </lanelet>
   <lanelet id="32">
     <leftBound>
@@ -48964,6 +48970,7 @@
         <x>454.4843</x>
         <y>-211.0394</y>
       </point>
+      <lineMarking>solid</lineMarking>
     </leftBound>
     <rightBound>
       <point>
@@ -49349,10 +49356,10 @@
     <adjacentRight ref="34" drivingDir="same"/>
     <laneletType>mainCarriageWay</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
   </lanelet>
   <lanelet id="34">
     <leftBound>
@@ -50118,10 +50125,10 @@
     <adjacentRight ref="36" drivingDir="same"/>
     <laneletType>mainCarriageWay</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
   </lanelet>
   <lanelet id="36">
     <leftBound>
@@ -50887,10 +50894,10 @@
     <adjacentRight ref="38" drivingDir="same"/>
     <laneletType>mainCarriageWay</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
   </lanelet>
   <lanelet id="38">
     <leftBound>
@@ -51646,12 +51653,12 @@
     <successor ref="51"/>
     <adjacentLeft ref="36" drivingDir="same"/>
     <adjacentRight ref="39" drivingDir="same"/>
-    <laneletType>accessRamp</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
+    <laneletType>accessRamp</laneletType>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
   </lanelet>
   <lanelet id="39">
     <leftBound>
@@ -52405,12 +52412,12 @@
     <predecessor ref="37"/>
     <successor ref="52"/>
     <adjacentLeft ref="38" drivingDir="same"/>
-    <laneletType>shoulder</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
+    <laneletType>shoulder</laneletType>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
   </lanelet>
   <lanelet id="49">
     <leftBound>
@@ -53914,6 +53921,7 @@
         <x>642.7167</x>
         <y>-202.944</y>
       </point>
+      <lineMarking>solid</lineMarking>
     </leftBound>
     <rightBound>
       <point>
@@ -55422,10 +55430,10 @@
     <adjacentRight ref="50" drivingDir="same"/>
     <laneletType>mainCarriageWay</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
   </lanelet>
   <lanelet id="50">
     <leftBound>
@@ -58438,10 +58446,10 @@
     <adjacentRight ref="51" drivingDir="same"/>
     <laneletType>mainCarriageWay</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
   </lanelet>
   <lanelet id="51">
     <leftBound>
@@ -61455,10 +61463,10 @@
     <adjacentRight ref="52" drivingDir="same"/>
     <laneletType>mainCarriageWay</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
   </lanelet>
   <lanelet id="52">
     <leftBound>
@@ -64467,12 +64475,12 @@
     </rightBound>
     <predecessor ref="39"/>
     <adjacentLeft ref="51" drivingDir="same"/>
-    <laneletType>shoulder</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
+    <laneletType>shoulder</laneletType>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
   </lanelet>
   <lanelet id="2">
     <leftBound>
@@ -66612,7 +66620,7 @@
         <x>281.2517</x>
         <y>-187.4964</y>
       </point>
-      <lineMarking>dashed</lineMarking>
+      <lineMarking>solid</lineMarking>
     </leftBound>
     <rightBound>
       <point>
@@ -68757,10 +68765,10 @@
     <adjacentRight ref="4" drivingDir="same"/>
     <laneletType>mainCarriageWay</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
   </lanelet>
   <lanelet id="4">
     <leftBound>
@@ -73046,10 +73054,10 @@
     <adjacentRight ref="6" drivingDir="same"/>
     <laneletType>mainCarriageWay</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
   </lanelet>
   <lanelet id="6">
     <leftBound>
@@ -77336,10 +77344,10 @@
     <adjacentRight ref="8" drivingDir="same"/>
     <laneletType>mainCarriageWay</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
   </lanelet>
   <lanelet id="8">
     <leftBound>
@@ -81621,12 +81629,12 @@
     <predecessor ref="7"/>
     <successor ref="48"/>
     <adjacentLeft ref="6" drivingDir="same"/>
-    <laneletType>shoulder</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
+    <laneletType>shoulder</laneletType>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
   </lanelet>
   <lanelet id="25">
     <leftBound>
@@ -81775,10 +81783,10 @@
     <adjacentRight ref="27" drivingDir="same"/>
     <laneletType>mainCarriageWay</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
   </lanelet>
   <lanelet id="19">
     <leftBound>
@@ -81929,10 +81937,10 @@
     <adjacentRight ref="29" drivingDir="same"/>
     <laneletType>mainCarriageWay</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
   </lanelet>
   <lanelet id="27">
     <leftBound>
@@ -82080,10 +82088,10 @@
     <adjacentLeft ref="25" drivingDir="same"/>
     <laneletType>exitRamp</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
   </lanelet>
   <lanelet id="17">
     <leftBound>
@@ -82233,10 +82241,10 @@
     <adjacentRight ref="18" drivingDir="same"/>
     <laneletType>mainCarriageWay</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
   </lanelet>
   <lanelet id="23">
     <leftBound>
@@ -82385,10 +82393,10 @@
     <adjacentRight ref="25" drivingDir="same"/>
     <laneletType>mainCarriageWay</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
   </lanelet>
   <lanelet id="21">
     <leftBound>
@@ -82460,6 +82468,7 @@
         <x>215.3033</x>
         <y>-173.4675</y>
       </point>
+      <lineMarking>solid</lineMarking>
     </leftBound>
     <rightBound>
       <point>
@@ -82536,10 +82545,10 @@
     <adjacentRight ref="23" drivingDir="same"/>
     <laneletType>mainCarriageWay</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
   </lanelet>
   <lanelet id="18">
     <leftBound>
@@ -82690,10 +82699,10 @@
     <adjacentRight ref="19" drivingDir="same"/>
     <laneletType>mainCarriageWay</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
   </lanelet>
   <lanelet id="29">
     <leftBound>
@@ -82841,12 +82850,12 @@
     <predecessor ref="28"/>
     <successor ref="37"/>
     <adjacentLeft ref="19" drivingDir="same"/>
-    <laneletType>accessRamp</laneletType>
     <laneletType>interstate</laneletType>
-    <userOneWay>train</userOneWay>
-    <userOneWay>pedestrian</userOneWay>
+    <laneletType>accessRamp</laneletType>
     <userOneWay>vehicle</userOneWay>
+    <userOneWay>pedestrian</userOneWay>
     <userOneWay>bicycle</userOneWay>
+    <userOneWay>train</userOneWay>
   </lanelet>
   <trafficSign id="59">
     <trafficSignElement>
