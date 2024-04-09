@@ -5,7 +5,7 @@ planning:
   reference_point: "REAR"
 
 reachable_set:
-  mode_computation: 1
+  mode_computation: 8
   size_grid: 0.25
   size_grid_2nd: 0.1
   radius_terminal_split: 0.7
@@ -39,6 +39,7 @@ traffic_rules:
 #    - LTL G(F InFrontOf_V7)
 #    - LTL G(((InLanelet_2) | X(InLanelet_2)) -> X(X(G(InLanelet_1))))
     - LTL G[15..20](!InLanelet_47240)
+    - LTL G SafeDistance_V202
 #    - LTL G(!InLanelet_4)
 #     - LTL G[0..2](!InLanelet_2)
 #    - LTL F[10..15](InLanelet_4)
