@@ -19,35 +19,48 @@ from commonroad_reach_semantic.utility import visualization as util_visual
 
 def benchmark_with_progress(scenario_names: List[str], mode: int, repetitions: int = 5, cpp: bool = True,
                             path_root: str = "/home/lercher/tum/commonroad/commonroad-reach-semantic-addon/reproduction",
-                            output_dir: str = "benchmark"):
+                            output_dir: str = "benchmark") -> List[str]:
+    errors = []
     with alive_bar(len(scenario_names)) as bar:
         for name in scenario_names:
             print(f"Running benchmark for {name}")
             bar.text(name)
-            benchmark_scenario(name, mode, repetitions=repetitions, cpp=cpp, path_root=path_root, output_dir=output_dir)
+            success = benchmark_scenario(name, mode, repetitions=repetitions, cpp=cpp, path_root=path_root,
+                                         output_dir=output_dir)
+            if not success:
+                errors.append(name)
             bar()
+    if len(errors) > 0:
+        print(f"The following {len(errors)} scenarios were skipped due to errors:")
+        for error in errors:
+            print(f"\t{error}")
+    return errors
 
 
 def benchmark_scenario(name: str, mode: int, repetitions: int = 5, cpp: bool = True,
                        path_root: str = "/home/lercher/tum/commonroad/commonroad-reach-semantic-addon/reproduction",
-                       output_dir: str = "benchmark"):
+                       output_dir: str = "benchmark") -> bool:
     # modes: 0 = both, 1 = OTF, 2 = Labeling
-    config = SemanticConfigurationBuilder(path_root=path_root).build_configuration(name)
-    config.update()
-    util_logger.initialize_logger(config)
+    try:
+        config = SemanticConfigurationBuilder(path_root=path_root).build_configuration(name)
+        config.update()
+        util_logger.initialize_logger(config)
 
-    semantic_model = SemanticModel(config)
-    rule_interface = TrafficRuleInterface(config, semantic_model)
+        semantic_model = SemanticModel(config)
+        rule_interface = TrafficRuleInterface(config, semantic_model)
 
-    otf_results = []
-    labeling_results = []
-    for _ in range(repetitions):
-        if mode == 0 or mode == 1:
-            otf_res = run_prepared_otf_scenario(config, semantic_model, rule_interface, cpp)
-            otf_results.append(otf_res)
-        if mode == 0 or mode == 2:
-            labeling_res = run_prepared_labeling_scenario(config, semantic_model, rule_interface, cpp)
-            labeling_results.append(labeling_res)
+        otf_results = []
+        labeling_results = []
+        for _ in range(repetitions):
+            if mode == 0 or mode == 1:
+                otf_res = run_prepared_otf_scenario(config, semantic_model, rule_interface, cpp)
+                otf_results.append(otf_res)
+            if mode == 0 or mode == 2:
+                labeling_res = run_prepared_labeling_scenario(config, semantic_model, rule_interface, cpp)
+                labeling_results.append(labeling_res)
+    except Exception as e:
+        print(f"Error for {name}: {e}")
+        return False
 
     output_path = os.path.join(path_root, output_dir)
     os.makedirs(output_path, exist_ok=True)
@@ -55,6 +68,7 @@ def benchmark_scenario(name: str, mode: int, repetitions: int = 5, cpp: bool = T
         write_otf_benchmark_results_to_file(name, otf_results, os.path.join(path_root, output_dir))
     if mode == 0 or mode == 2:
         write_labeling_benchmark_results_to_file(name, labeling_results, os.path.join(path_root, output_dir))
+    return True
 
 
 def run_prepared_labeling_scenario(config: SemanticConfiguration, semantic_model: SemanticModel,
