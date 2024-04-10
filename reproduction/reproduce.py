@@ -6,16 +6,21 @@ from typing import Iterator, Tuple, List
 
 from analysis import otf_labeling_comparison, boxplot_computation_times_otf, boxplot_computation_times_labeling
 from benchmark import benchmark_with_progress, run_scenario
+from commonroad_reach_semantic.data_structure.config.semantic_configuration_builder import SemanticConfigurationBuilder
+from plot_exiD import plot_exid
 
 
-def main(figure_5: bool = True, table_1: bool = True, figure_6: bool = True, exid_offline: bool = True,
+def main(figure_5: bool = True, table_1: bool = True, figure_6: bool = True, figure_7: bool = True,
+         exid_offline: bool = True,
          regenerate_data: bool = False):
     if figure_5:
         reproduce_figure_5(regenerate_data=regenerate_data)
     if table_1:
         reproduce_table_1(regenerate_data=regenerate_data)
     if figure_6:
-        reproduce_figure_6(regenerate_data=regenerate_data)
+        reproduce_figure_6()
+    if figure_7:
+        reproduce_figure_7(regenerate_data=regenerate_data)
     if exid_offline:
         exid_boxplot_offline(regenerate_data=regenerate_data)
 
@@ -163,13 +168,28 @@ def reproduce_table_1(regenerate_data: bool = False):
     print(f"Table 1 written to {filename}")
 
 
-def reproduce_figure_6(regenerate_data: bool = False):
+def reproduce_figure_6():
+    scenario_name = "DEU_MerzenichRather-2_8814400_T-14549"
+    config = SemanticConfigurationBuilder(path_root=this_dir()).build_configuration(scenario_name)
+    config.update()
+    plot_exid(
+        config.scenario,
+        config.planning_problem,
+        "figure_6.svg",
+        ref_path=config.planning.reference_path,
+        figsize=(25, 15),
+        plot_limits=[155, 305, -215, -155],
+        draw_trajectories_for_ids=[10520, 10530, 10531, 10533],
+    )
+
+
+def reproduce_figure_7(regenerate_data: bool = False):
     scenario_names = list(scenarios_from_file("exiD.txt"))
 
-    output_dir = "data_figure_6"
+    output_dir = "data_figure_7"
 
     if not regenerate_data and not os.path.exists(os.path.join(this_dir(), output_dir)):
-        print(f"No data for Figure 6 found. Regenerating data...")
+        print(f"No data for Figure 7 found. Regenerating data...")
         regenerate_data = True
 
     if regenerate_data:
@@ -195,7 +215,7 @@ def reproduce_figure_6(regenerate_data: bool = False):
         f.write("\n")
         f.write(f"Average automaton creation time: {round(comp_times['automaton_creation'].mean() * 1000)} ms\n")
         f.write(f"Average pruning time: {round(comp_times['pruning'].mean() * 1000, 2)} ms\n")
-    print(f"Figure 6 written to {filename}")
+    print(f"Figure 7 written to {filename}")
 
 
 def exid_boxplot_offline(regenerate_data: bool = False):
@@ -285,12 +305,13 @@ if __name__ == "__main__":
     parser.add_argument("--figure-5", action="store_true", help="create Figure 5")
     parser.add_argument("--table-1", action="store_true", help="create Table 1")
     parser.add_argument("--figure-6", action="store_true", help="create Figure 6")
+    parser.add_argument("--figure-7", action="store_true", help="create Figure 7")
     parser.add_argument("--exid-offline", action="store_true", help="create boxplot for exiD with offline approach")
     parser.add_argument("--regenerate-data", action="store_true", help="force data regeneration")
     args = parser.parse_args()
     # if no switch is given, run all
-    if not any((args.figure_5, args.table_1, args.figure_6, args.exid_offline)):
+    if not any((args.figure_5, args.table_1, args.figure_6, args.figure_7, args.exid_offline)):
         main(regenerate_data=args.regenerate_data)
     else:
-        main(figure_5=args.figure_5, table_1=args.table_1, figure_6=args.figure_6, exid_offline=args.exid_offline,
-             regenerate_data=args.regenerate_data)
+        main(figure_5=args.figure_5, table_1=args.table_1, figure_6=args.figure_6, figure_7=args.figure_7,
+             exid_offline=args.exid_offline, regenerate_data=args.regenerate_data)

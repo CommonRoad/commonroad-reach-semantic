@@ -18,7 +18,7 @@ from commonroad_reach_semantic.utility import visualization as util_visual
 
 
 def benchmark_with_progress(scenario_names: List[str], mode: int, repetitions: int = 5, cpp: bool = True,
-                            path_root: str = "/home/lercher/datasets/exiD-commonroad-only6-merge",
+                            path_root: str = "/home/lercher/tum/commonroad/commonroad-reach-semantic-addon/reproduction",
                             output_dir: str = "benchmark"):
     with alive_bar(len(scenario_names)) as bar:
         for name in scenario_names:
@@ -29,7 +29,7 @@ def benchmark_with_progress(scenario_names: List[str], mode: int, repetitions: i
 
 
 def benchmark_scenario(name: str, mode: int, repetitions: int = 5, cpp: bool = True,
-                       path_root: str = "/home/lercher/datasets/exiD-commonroad-only6-merge",
+                       path_root: str = "/home/lercher/tum/commonroad/commonroad-reach-semantic-addon/reproduction",
                        output_dir: str = "benchmark"):
     # modes: 0 = both, 1 = OTF, 2 = Labeling
     config = SemanticConfigurationBuilder(path_root=path_root).build_configuration(name)
@@ -126,7 +126,7 @@ def write_labeling_benchmark_results_to_file(scenario_name: str,
 
 def run_scenario(name: str, draw: bool = False, interactive_viz: bool = False,
                  otf: bool = True, cpp: bool = False, prune: bool = True,
-                 path_root: str = "/home/lercher/datasets/exiD-commonroad-only6-merge") -> None:
+                 path_root: str = "/home/lercher/tum/commonroad/commonroad-reach-semantic-addon/reproduction") -> None:
     # ==== build configuration
     config = SemanticConfigurationBuilder(path_root=path_root).build_configuration(name)
     if not prune:
