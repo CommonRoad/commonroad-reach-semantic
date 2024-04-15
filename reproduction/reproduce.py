@@ -205,7 +205,7 @@ def reproduce_figure_7(regenerate_data: bool = False):
 
     latex = latex_plot(bp)
 
-    filename = os.path.join(this_dir(), "figure_6.tex")
+    filename = os.path.join(this_dir(), "figure_7.tex")
     with open(filename, "w") as f:
         f.write(latex)
         f.write("\n")
