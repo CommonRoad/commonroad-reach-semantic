@@ -8,19 +8,22 @@ from commonroad.planning.planning_problem import PlanningProblem
 from commonroad.scenario.scenario import Scenario
 from commonroad.visualization.draw_params import MPDrawParams
 from commonroad.visualization.mp_renderer import MPRenderer
+from commonroad_dc.geometry.geometry import CurvilinearCoordinateSystem
+from commonroad_reach.data_structure.reach.reach_node import ReachNode
 from matplotlib import pyplot as plt
 
 
 def plot_exid(
         scenario: Scenario,
         planning_problem: PlanningProblem,
-        output_path: str,
         ref_path: Optional[np.ndarray] = None,
         plot_limits: Optional[List[float]] = None,
         figsize: Optional[Tuple[float, float]] = None,
-        draw_trajectories_for_ids: Optional[List[int]] = None
-) -> None:
+        draw_trajectories_for_ids: Optional[List[int]] = None,
+        time_step: int = 0,
+) -> MPRenderer:
     draw_params = _create_draw_params()
+    draw_params.time_begin = time_step
 
     renderer = MPRenderer(plot_limits=plot_limits, figsize=figsize, draw_params=draw_params)
 
@@ -47,9 +50,8 @@ def plot_exid(
     ax = plt.gca()
     ax.set_aspect("equal")
     plt.margins(0, 0)
-    renderer.render()
 
-    plt.savefig(output_path, format="svg", bbox_inches="tight", transparent=False)
+    return renderer
 
 
 def _create_draw_params() -> MPDrawParams:

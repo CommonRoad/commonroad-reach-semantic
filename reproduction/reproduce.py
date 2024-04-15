@@ -4,9 +4,19 @@ import os
 import shutil
 from typing import Iterator, Tuple, List
 
+import commonroad_reach.utility.coordinate_system as util_coordinate_system
+import commonroad_reach.utility.logger as util_logger
+import numpy as np
+from commonroad.geometry.shape import Polygon
+from commonroad.visualization.draw_params import ShapeParams
+from matplotlib import pyplot as plt
+
 from analysis import otf_labeling_comparison, boxplot_computation_times_otf, boxplot_computation_times_labeling
 from benchmark import benchmark_with_progress, run_scenario
 from commonroad_reach_semantic.data_structure.config.semantic_configuration_builder import SemanticConfigurationBuilder
+from commonroad_reach_semantic.data_structure.environment_model.semantic_model import SemanticModel
+from commonroad_reach_semantic.data_structure.reach.semantic_reach_interface import SemanticReachableSetInterface
+from commonroad_reach_semantic.data_structure.rule.traffic_rule_interface import TrafficRuleInterface
 from plot_exiD import plot_exid
 
 
@@ -168,19 +178,87 @@ def reproduce_table_1(regenerate_data: bool = False):
     print(f"Table 1 written to {filename}")
 
 
-def reproduce_figure_6():
+def reproduce_figure_6(regenerate_data: bool = False):
     scenario_name = "DEU_MerzenichRather-2_8814400_T-14549"
     config = SemanticConfigurationBuilder(path_root=this_dir()).build_configuration(scenario_name)
     config.update()
-    plot_exid(
+    renderer = plot_exid(
         config.scenario,
         config.planning_problem,
-        "figure_6.svg",
         ref_path=config.planning.reference_path,
         figsize=(25, 15),
         plot_limits=[155, 305, -215, -155],
         draw_trajectories_for_ids=[10520, 10530, 10531, 10533],
     )
+    renderer.render()
+    plt.savefig("figure_6.svg", format="svg", bbox_inches="tight", transparent=False)
+
+    output_dir = os.path.join("output", f"{scenario_name}.video")
+
+    if not regenerate_data and (not os.path.exists(os.path.join(this_dir(), output_dir))):
+        print(f"No data for Figure 6 found. Regenerating data...")
+        regenerate_data = True
+
+    if regenerate_data:
+        if not delete_output_dir_if_exists(output_dir):
+            return
+
+        os.makedirs(output_dir)
+
+        util_logger.initialize_logger(config)
+        config.print_configuration_summary()
+        semantic_model = SemanticModel(config)
+        rule_interface = TrafficRuleInterface(config, semantic_model)
+        rule_interface.print_summary()
+
+        reach_interface = SemanticReachableSetInterface(config, semantic_model, rule_interface)
+        reach_interface.compute_reachable_sets()
+
+        config.traffic_rule.activated_rules.remove("EnteringVehiclesRule")
+        rule_interface = TrafficRuleInterface(config, semantic_model)
+        rule_interface.print_summary()
+        reach_interface_no_rules = SemanticReachableSetInterface(config, semantic_model, rule_interface)
+        reach_interface_no_rules.compute_reachable_sets()
+
+        for step in range(reach_interface.step_start, reach_interface.step_end + 1):
+            scenario_step = int(step * (config.planning.dt / config.scenario.dt))
+            renderer = plot_exid(
+                config.scenario,
+                config.planning_problem,
+                figsize=(25, 15),
+                plot_limits=[155, 305, -215, -155],
+                draw_trajectories_for_ids=[10520, 10522, 10528, 10530, 10531, 10533],
+                time_step=scenario_step,
+            )
+            for node in reach_interface.reachable_set_at_step(step):
+                position_rectangle = node.position_rectangle
+                list_polygons_cart = util_coordinate_system.convert_to_cartesian_polygons(position_rectangle,
+                                                                                          config.planning.CLCS, True)
+                for polygon in list_polygons_cart:
+                    Polygon(vertices=np.array(polygon.vertices)).draw(renderer)
+
+            shape_params = ShapeParams(facecolor="#ff477e", edgecolor="#ff195e", opacity=0.2)
+            for node in reach_interface_no_rules.reachable_set_at_step(step):
+                position_rectangle = node.position_rectangle
+                list_polygons_cart = util_coordinate_system.convert_to_cartesian_polygons(position_rectangle,
+                                                                                          config.planning.CLCS, True)
+                for polygon in list_polygons_cart:
+                    Polygon(vertices=np.array(polygon.vertices)).draw(renderer, shape_params)
+
+            renderer.render()
+            plt.savefig(os.path.join(output_dir, f"svgreach_{step:05d}.svg"), format="svg", bbox_inches="tight",
+                        transparent=False)
+
+        video_dir = os.path.join(this_dir(), "video")
+        if not os.path.exists(video_dir):
+            os.mkdir(video_dir)
+        section_dir = os.path.join(video_dir, "exid")
+        if not os.path.exists(section_dir):
+            os.mkdir(section_dir)
+        for frame in glob.glob(os.path.join(output_dir, "svgreach_*.svg")):
+            shutil.copy(frame, section_dir)
+        print(f"Video frames written to {video_dir}")
+        print("Run make_video.sh to create the video")
 
 
 def reproduce_figure_7(regenerate_data: bool = False):
