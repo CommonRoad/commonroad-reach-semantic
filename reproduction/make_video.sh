@@ -37,14 +37,17 @@ for i in "${!dirs[@]}"; do
 
   # check whether we are processing exid
   if [ $dir == "exid" ]; then
-    ffmpeg -framerate $svgs_per_second -pattern_type glob -width 3840 -i "${path}/*.svg" -c:v libx264 -r $FPS -pix_fmt yuv420p \
-        -vf "drawtext=text='${title}':fontcolor=black:fontsize=${fontsize}:x=(w-text_w)/2+40:y=${y_offset}, drawtext=text='k = %{eif\:n\:d\:2}':fontcolor=black:fontsize=${fontsize}:x=w-tw-40:y=${y_offset}, pad=3840:2160:(ow-iw)/2:(oh-ih)/2" \
+    ffmpeg -framerate $(($svgs_per_second * 2)) -pattern_type glob -width 3840 -i "${path}/*.svg" -c:v libx264 -r $FPS -pix_fmt yuv420p \
+        -vf "drawtext=text='k = %{eif\:n\:d\:2}':fontcolor=black:fontsize=${fontsize}:x=w-tw-40:y=${y_offset}, pad=3840:2160:(ow-iw)/2:(oh-ih)/2" \
         "${video_dir}/${dir}.mp4"
   else
     # create video
     ffmpeg -framerate $svgs_per_second -pattern_type glob -height 2160 -i "${path}/*.svg" -c:v libx264 -r $FPS -pix_fmt yuv420p \
-        -vf "drawtext=text='${title}':fontcolor=black:fontsize=${fontsize}:x=(w-text_w)/2+40:y=${y_offset}, drawtext=text='k = %{eif\:n\:d\:2}':fontcolor=black:fontsize=${fontsize}:x=w-tw-40:y=${y_offset}, pad=3840:2160:(ow-iw)/2:(oh-ih)/2" \
+        -vf "drawtext=text='k = %{eif\:n\:d\:2}':fontcolor=black:fontsize=${fontsize}:x=w-tw-40:y=${y_offset}, pad=3840:2160:(ow-iw)/2:(oh-ih)/2" \
         "${video_dir}/${dir}.mp4"
+    ffmpeg -framerate $svgs_per_second -pattern_type glob -height 2160 -i "${path}/*.svg" -c:v libx264 -r $FPS -pix_fmt yuv420p \
+            -vf "drawtext=text='k = %{eif\:n\:d\:2}':fontcolor=black:fontsize=${fontsize}:x=w-tw-40:y=${y_offset}" \
+            "${video_dir}/${dir}_no_pad.mp4"
   fi
 done
 
