@@ -192,6 +192,7 @@ def reproduce_figure_6(regenerate_data: bool = False):
     )
     renderer.render()
     plt.savefig("figure_6.svg", format="svg", bbox_inches="tight", transparent=False)
+    print(f"Figure 6 written to {this_dir()}/figure_6.svg")
 
     output_dir = os.path.join("output", f"{scenario_name}.video")
 
@@ -249,16 +250,16 @@ def reproduce_figure_6(regenerate_data: bool = False):
             plt.savefig(os.path.join(output_dir, f"svgreach_{step:05d}.svg"), format="svg", bbox_inches="tight",
                         transparent=False)
 
-        video_dir = os.path.join(this_dir(), "video")
-        if not os.path.exists(video_dir):
-            os.mkdir(video_dir)
-        section_dir = os.path.join(video_dir, "exid")
-        if not os.path.exists(section_dir):
-            os.mkdir(section_dir)
-        for frame in glob.glob(os.path.join(output_dir, "svgreach_*.svg")):
-            shutil.copy(frame, section_dir)
-        print(f"Video frames written to {video_dir}")
-        print("Run make_video.sh to create the video")
+    video_dir = os.path.join(this_dir(), "video")
+    if not os.path.exists(video_dir):
+        os.mkdir(video_dir)
+    section_dir = os.path.join(video_dir, "exid")
+    if not os.path.exists(section_dir):
+        os.mkdir(section_dir)
+    for frame in glob.glob(os.path.join(output_dir, "svgreach_*.svg")):
+        shutil.copy(frame, section_dir)
+    print(f"Video frames written to {video_dir}")
+    print("Run make_video.sh to create the video")
 
 
 def reproduce_figure_7(regenerate_data: bool = False):
