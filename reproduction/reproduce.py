@@ -28,7 +28,7 @@ def main(figure_5: bool = True, table_1: bool = True, figure_6: bool = True, fig
     if table_1:
         reproduce_table_1(regenerate_data=regenerate_data)
     if figure_6:
-        reproduce_figure_6()
+        reproduce_figure_6(regenerate_data=regenerate_data)
     if figure_7:
         reproduce_figure_7(regenerate_data=regenerate_data)
     if exid_offline:
