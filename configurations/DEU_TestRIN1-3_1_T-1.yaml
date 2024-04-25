@@ -10,6 +10,10 @@ planning:
   dt: 0.2
   steps_computation: 15
   coordinate_system: "CVLN"
+  uncertainty_p_lat: 0.2
+  uncertainty_p_lon: 0.2
+  uncertainty_v_lat: 0.01
+  uncertainty_v_lon: 0.01
 
 reachable_set:
   mode_computation: 8
@@ -28,12 +32,12 @@ vehicle:
     v_max: 30.0
 
     # acceleration in m/s^2
-    a_lon_min: -22
-    a_lon_max: 22
+    a_lon_min: -15
+    a_lon_max: 15
     a_lat_min: -8.0
     a_lat_max: 8.0
     # maximum engine power
-    a_max: 22.0
+    a_max: 15.0
 
 traffic_rules:
   activated_rules:
