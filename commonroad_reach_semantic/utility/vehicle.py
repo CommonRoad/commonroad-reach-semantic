@@ -158,9 +158,10 @@ def extract_lane_of_vehicle(obstacle: Union[DynamicObstacle, StaticObstacle], ro
     set_lanes_last_nonempty = set()
     # find the last nonempty set of lanes
     for step in reversed(range(step_final + 1)):
-        if dict_step_to_set_lanes[step]:
-            set_lanes_last_nonempty.update(dict_step_to_set_lanes[step])
-            break
+        if step in dict_step_to_set_lanes.keys():
+            if dict_step_to_set_lanes[step]:
+                set_lanes_last_nonempty.update(dict_step_to_set_lanes[step])
+                break
 
     # use anyone if there are multiple lanes
     if set_lanes_last_nonempty:
