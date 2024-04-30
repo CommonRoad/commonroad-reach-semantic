@@ -13,7 +13,7 @@ from commonroad.scenario.state import InitialState
 
 def main():
     # ==== specify scenario
-    name_scenario = "DEU_TestRIN1-3_1_T-1"
+    name_scenario = "DEU_AachenBendplatz-1_152460_T-2479"
     # name_scenario = "ZAM_Intersection-1_2_T-1"
     #name_scenario = "ZAM_Merge-1_1_T-1"
     # name_scenario = "ZAM_Yield-1_1_T-1"
@@ -31,16 +31,16 @@ def main():
     util_logger.initialize_logger(config)
     config.print_configuration_summary()
 
-    from commonroad.visualization.mp_renderer import MPRenderer
-    rnd = MPRenderer()
-    rnd.draw_params.time_begin = 24
-    config.scenario.draw(rnd)
-    config.scenario.obstacle_by_id(
-        31
-    ).draw(rnd)
-    rnd.render()
-    import matplotlib.pyplot as plt
-    plt.show()
+    # from commonroad.visualization.mp_renderer import MPRenderer
+    # rnd = MPRenderer()
+    # rnd.draw_params.time_begin = 0
+    # config.scenario.draw(rnd)
+    # config.scenario.obstacle_by_id(
+    #     31
+    # ).draw(rnd)
+    # rnd.render()
+    # import matplotlib.pyplot as plt
+    # plt.show()
 
     # target_veh = config.scenario.obstacle_by_id(200)
     # config.scenario.remove_obstacle(target_veh)
@@ -55,7 +55,7 @@ def main():
     # )
     # config.scenario.remove_obstacle(config.scenario.obstacles)
     # config.planning_problem.initial_state.position = [5, 0]
-    config.vehicle.ego.length = 5
+    # config.vehicle.ego.length = 5
     # from commonroad_reach.utility import configuration as util_configuration
     #
     # config.vehicle.ego.radius_disc, config.vehicle.ego.circle_distance = \
@@ -67,10 +67,10 @@ def main():
     #                                                                config.vehicle.ego.length, config.vehicle.ego.width,
     #                                                                config.vehicle.ego.radius_disc)
 
-    config.planning_problem.initial_state.time_step = 23
+    # config.planning_problem.initial_state.time_step = 23
     # config.update()
 
-    config.reachable_set.mode_computation = 8
+    config.reachable_set.mode_computation = 7
 
     # ==== initialize semantic model and traffic rules
     semantic_model = SemanticModel(config)
@@ -79,19 +79,20 @@ def main():
     reach_interface = SemanticReachableSetInterface(config, semantic_model, rule_interface)
     # config.vehicle.ego.wb_rear_axle = 2.0
 
-    config.planning.steps_computation = 15
-    config.planning_problem.initial_state.position = [17.2906,  0.]
-    config.planning_problem.initial_state.velocity = 3.1875
-    config.planning_problem.initial_state.acceleration = -1.875
-    # config.scenario.remove_obstacle(config.scenario.obstacles)
-    config.vehicle.ego.v_lon_min = 0
+    config.planning.steps_computation = 10
+    config.planning_problem.initial_state.time_step = 13
+    config.planning_problem.initial_state.position = [ 59.5627, -25.992 ]
+    config.planning_problem.initial_state.velocity = 1.597
+    config.planning_problem.initial_state.acceleration = -0.4830000000000001
+    config.scenario.remove_obstacle(config.scenario.obstacles)
+    # config.vehicle.ego.v_lon_min = 0
     # ==== compute reachable sets using reachability interface
     config.update(
         scenario=config.scenario,
         planning_problem=config.planning_problem,
         CLCS=config.planning.CLCS,
     )
-    rule_interface.list_traffic_rules_activated = ["LTL G[1..30](BehindStopLine)"]
+    rule_interface.list_traffic_rules_activated = ["LTL G[1..10](BehindStopLine)"] # "LTL G[3..30](BehindStopLine)"
     for item in rule_interface.list_traffic_rules_activated:
         rule_interface._parse_traffic_rule(item, allow_abstract_rules=True)
 
@@ -112,7 +113,7 @@ def main():
 
     util_visual.plot_reach_graph(reach_interface, node_to_group=node_to_group)
     util_visual.plot_scenario_with_regions(semantic_model, "CVLN")
-    util_visual.plot_scenario_with_reachable_sets(reach_interface, save_gif=True, plot_limits=[0, 55, -25, 25])
+    util_visual.plot_scenario_with_reachable_sets(reach_interface, save_gif=True)
 
     # # ==== show interactive visualization (can take a long time to plot if there are many nodes)
     #util_visual.show_interactive_reach_graph(reach_interface, use_images=True, node_to_group=node_to_group)
