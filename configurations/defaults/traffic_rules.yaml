@@ -23,10 +23,3 @@ dis_stop_line: 1.0
 # LTL: linear temporal logic, checked with Spot
 activated_rules:
   - NoBackwardDrivingRule
-  - NoOppositeDrivingRule
-  - LineMarkingRule
-  - TrafficLightRule
-  - PriorityRule
-  - RightBeforeLeftRule
-  - LeftTurningRule
-  - EnteringVehiclesRule

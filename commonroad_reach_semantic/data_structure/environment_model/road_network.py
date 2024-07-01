@@ -188,8 +188,10 @@ class RoadNetwork:
                 list_tuples_result.append((list_lanelets_merged[idx], list_ids_lanelets_merged[idx]))
 
         for (lanelet_merged, list_ids_lanelets_merged) in list_tuples_result:
-            list_lanes.append(Lane(lanelet_merged, list_ids_lanelets_merged))
-
+            try:
+                list_lanes.append(Lane(lanelet_merged, list_ids_lanelets_merged))
+            except Exception as e:
+                print(f"Error while creating lane: {e}")
         return list_lanes
 
     def find_lane_ids_by_obstacle(self, obstacle_id: int, time_step: int) -> Set[int]:
