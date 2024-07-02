@@ -3,8 +3,8 @@ from typing import List, Set
 import numpy as np
 from commonroad.scenario.lanelet import LaneletNetwork, Lanelet, LaneletType
 from commonroad_dc.pycrccosy import CurvilinearCoordinateSystem
-from commonroad_route_planner.utility.route import resample_polyline, chaikins_corner_cutting
-
+from commonroad_route_planner.utility.route_util import chaikins_corner_cutting
+from commonroad_route_planner.utility.polyline_operations.polyline_operations import resample_polyline
 
 class Lane:
     """Lane representation build from several lanelets."""

@@ -20,7 +20,7 @@ dependencies = [
     "commonroad-drivability-checker>=2023.1",
     "commonroad-io>=2023.2",
     "commonroad-reach>=2024.1",
-    "commonroad-route-planner",
+    "commonroad-route-planner>=2024.2.0",
     "cython>=0.29.28",
     "matplotlib>=3.3.3",
     "more-itertools>=9.1.0",
