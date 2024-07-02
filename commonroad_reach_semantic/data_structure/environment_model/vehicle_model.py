@@ -162,7 +162,7 @@ class VehicleModel:
 
         # position interval to be split w.r.t vehicles
         interval_lon_initial = PositionInterval(0 + length_ego / 2,
-                                                self.config.planning.route.path_length[-1] - length_ego / 2,
+                                                self.config.planning.route.path_length_per_point[-1] - length_ego / 2,
                                                 set())
         interval_lat_initial = PositionInterval(-self.config.semantic_model.p_lateral_max + width_ego / 2,
                                                 self.config.semantic_model.p_lateral_max - width_ego / 2, set())

@@ -177,7 +177,7 @@ class SemanticConfiguration(Configuration):
 
         config.semantic_model.is_intersection = self.semantic_model.incoming_element_route is not None
         config.semantic_model.ego_radius_inflation = self.vehicle.ego.radius_inflation
-        config.semantic_model.vec_route_lanelet_ids = self.planning.route.list_ids_lanelets
+        config.semantic_model.vec_route_lanelet_ids = self.planning.route.lanelet_ids
 
         return config
 
@@ -231,8 +231,8 @@ class SemanticModelConfiguration(ConfigurationBase):
 
         # ==== intersection-related attributes for routes passing through an intersection
         id_lanelet_incoming = id_lanelet_successor = None
-        for id_lanelet_pre, id_lanelet_suc in zip(planning_config.route.list_ids_lanelets[:-1],
-                                                  planning_config.route.list_ids_lanelets[1:]):
+        for id_lanelet_pre, id_lanelet_suc in zip(planning_config.route.lanelet_ids[:-1],
+                                                  planning_config.route.lanelet_ids[1:]):
             lanelet_pre = config.scenario.lanelet_network.find_lanelet_by_id(id_lanelet_pre)
             lanelet_suc = config.scenario.lanelet_network.find_lanelet_by_id(id_lanelet_suc)
 
