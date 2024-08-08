@@ -36,6 +36,8 @@ from commonroad_reach_semantic.data_structure.reach.predicates.position.right_of
     RightOfObstaclePredicate
 from commonroad_reach_semantic.data_structure.reach.predicates.regulatory.same_priority_predicate import \
     SamePriorityPredicate
+from commonroad_reach_semantic.data_structure.reach.predicates.regulatory.at_traffic_sign_stop_predicate import \
+    AtTrafficSignStopPredicate
 from commonroad_reach_semantic.data_structure.reach.predicates.ego_independent.vehicle_in_conflict_area_predicate import \
     VehicleInConflictAreaPredicate
 from commonroad_reach_semantic.data_structure.reach.predicates.ego_independent.vehicle_in_lanelet_predicate import \
@@ -83,6 +85,8 @@ def from_proposition(proposition: str, negated: bool):
         return BehindStopLinePredicate(negated)
     elif re.fullmatch(r"DrivesBackward", proposition):
         return DrivesBackwardPredicate(negated)
+    elif re.fullmatch(r"AtTrafficSignStop", proposition):
+        return AtTrafficSignStopPredicate(negated)
     elif matched := re.fullmatch(r"CausesBrakingFor_V(\d+)", proposition):
         return CausesBrakingPredicate(int(matched.group(1)), negated)
     elif matched := re.fullmatch(r"InConflictWith_V(\d+)", proposition):

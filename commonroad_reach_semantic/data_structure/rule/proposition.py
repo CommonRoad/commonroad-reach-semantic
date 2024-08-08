@@ -48,6 +48,10 @@ class Proposition:
         return "OnRightLane"
 
     @staticmethod
+    def at_traffic_sign_stop() -> str:
+        return "AtTrafficSignStop"
+
+    @staticmethod
     def vehicle_on_access_ramp(id_obstacle: int) -> str:
         return f"OnAccessRamp_V{id_obstacle}"
 
