@@ -48,6 +48,10 @@ class Proposition:
         return "OnRightLane"
 
     @staticmethod
+    def in_standstill() -> str:
+        return "InStandstill"
+
+    @staticmethod
     def at_traffic_sign_stop() -> str:
         return "AtTrafficSignStop"
 
