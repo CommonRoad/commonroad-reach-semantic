@@ -156,6 +156,10 @@ class LaneletModel:
             warnings.simplefilter("ignore")
             local_lanelet_network = LaneletNetwork.create_from_lanelet_network(self.config.scenario.lanelet_network)
 
+            # add missing intersections property
+            for intersection in self.config.scenario.lanelet_network.intersections:
+                local_lanelet_network.add_intersection(intersection)
+
             # First clear and then readd to keep traffic signs and traffic lights from the original network?
 
             # clear existing lanelets
