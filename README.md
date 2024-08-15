@@ -61,7 +61,12 @@ If you are using Ubuntu, you can install the spot headers with:
 wget -q -O - https://www.lrde.epita.fr/repo/debian.gpg | sudo tee /etc/apt/keyrings/lrde-spot.gpg
 echo 'deb [signed-by=/etc/apt/keyrings/lrde-spot.gpg] http://www.lrde.epita.fr/repo/debian/ stable/' | sudo tee -a /etc/apt/sources.list
 sudo apt-get update
-sudo apt-get install libspot-dev=2.11.6.0-1
+sudo apt-get install -y  \
+        libspot-dev=2.11.6.0-1  \
+        libbddx-dev=2.11.6.0-1  \
+        libspot0=2.11.6.0-1  \
+        libspotltsmin0=2.11.6.0-1  \
+        libbddx0=2.11.6.0-1
 ```
 
 3. Install C++ dependencies:
