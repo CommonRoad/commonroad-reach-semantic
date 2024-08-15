@@ -1,10 +1,16 @@
-from typing import Union, Dict, Set, Optional
+from typing import Union, Dict, Set, Optional, List
 
 from commonroad.scenario.intersection import IntersectionIncomingElement
 from commonroad.scenario.lanelet import Lanelet, LaneletType, LaneletNetwork
 from commonroad.scenario.obstacle import StaticObstacle, DynamicObstacle
+from commonroad.common.util import Interval, AngleInterval
+from commonroad.geometry.shape import Rectangle
+from commonroad.scenario.state import State, CustomState, InitialState
+from commonroad.planning.goal import GoalRegion
+from commonroad.planning.planning_problem import PlanningProblem
 
 from commonroad_reach.data_structure.configuration import Configuration
+from commonroad_route_planner.route_planner import RoutePlanner
 
 from commonroad_reach_semantic.data_structure.config.outgoing_direction import OutgoingDirection
 from commonroad_reach_semantic.data_structure.environment_model.road_network import RoadNetwork, Lane
@@ -269,3 +275,47 @@ def extract_oncomings_from_incoming(incoming_element: IntersectionIncomingElemen
         completed = not len(set_ids_lanelets_to_be_added)
 
     return set_ids_lanelets_oncoming
+
+def initialize_lanelets_dir(lanelet_network: LaneletNetwork,
+                            obstacle_states: List[Union[CustomState, State]]):
+    """Initializes the direction of lanelets."""
+    ini_state = obstacle_states[0]
+    end_state = obstacle_states[-1]
+
+    attributes = {
+        "time_step": Interval(start=end_state.time_step - 1, end=end_state.time_step + 1),
+        "position": Rectangle(length=1.0, width=1.0, center=end_state.position),
+        "velocity": Interval(start=end_state.velocity, end=end_state.velocity + 1),
+        "orientation": AngleInterval(
+            start=end_state.orientation - 0.1, end=end_state.orientation + 0.1
+        ),
+    }
+    route = _find_route_given_initial_goal(ini_state, attributes, lanelet_network)
+    return route.lanelet_ids
+
+
+def _find_route_given_initial_goal(initial_state: Union[CustomState, State],
+                                   goal_attribute: Optional[Dict],
+                                   lanelet_network: LaneletNetwork):
+    """
+    Finds a route given the initial state and goal attribute.
+    """
+    planning_problem = PlanningProblem(0,
+                                       InitialState(
+                                           position=initial_state.position,
+                                           velocity=initial_state.velocity,
+                                           orientation=initial_state.orientation,
+                                           yaw_rate=0.,
+                                           slip_angle=0.,
+                                           time_step=initial_state.time_step
+                                       ),
+                                       GoalRegion(state_list=[
+                                           CustomState(**goal_attribute)
+                                       ]))
+    route_planner = RoutePlanner(
+        lanelet_network=lanelet_network,
+        planning_problem=planning_problem
+    )
+    candidate_holder = route_planner.plan_routes()
+    route = candidate_holder.retrieve_shortetest_route_with_least_lane_changes()
+    return route
