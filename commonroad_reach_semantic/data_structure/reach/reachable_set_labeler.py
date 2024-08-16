@@ -149,7 +149,7 @@ class ReachableSetLabeler:
 
                 # iterate through lanelet ids of the route and lanelet ids of the vehicle
                 for id_lanelet_route, id_lanelet_vehicle in itertools.product(
-                        self.semantic_model.config.planning.route.list_ids_lanelets, vehicle.lanelet_ids_at_step(step)):
+                        self.semantic_model.config.planning.route.lanelet_ids, vehicle.lanelet_ids_at_step(step)):
                     if id_lanelet_vehicle in \
                             self.semantic_model.lanelet_model.dict_id_lanelet_to_set_ids_lanelets_intersecting[
                                 id_lanelet_route]:
