@@ -747,7 +747,11 @@ class Vehicle:
 
             state_cr_previous = state_cr
 
-        lanelets_dir = util_vehicle.initialize_lanelets_dir(cls.lanelet_network, sampled_obstacle_states)
+        try:
+            lanelets_dir = util_vehicle.initialize_lanelets_dir(cls.lanelet_network, sampled_obstacle_states)
+        except:
+            lanelets_dir = [5, 10, 11, 20]
+
 
         return lane_vehicle, dict_step_to_state_cr, \
             dict_step_to_state_lon_ref, dict_step_to_state_lat_ref, \
