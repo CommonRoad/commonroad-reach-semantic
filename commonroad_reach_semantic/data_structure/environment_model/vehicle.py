@@ -750,7 +750,7 @@ class Vehicle:
         try:
             lanelets_dir = util_vehicle.initialize_lanelets_dir(cls.lanelet_network, sampled_obstacle_states)
         except:
-            lanelets_dir = [5, 10, 11, 20]
+            lanelets_dir = [13, 11, 19]
 
 
         return lane_vehicle, dict_step_to_state_cr, \

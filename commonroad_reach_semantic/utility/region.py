@@ -53,8 +53,11 @@ def construct_regions_for_intersecting_lanelets(set_tuples_ids_lanelets_intersec
 
     # iterate through all tuples of clusters of intersecting lanelets and create regions accordingly
     for set_ids_lanelets_in_cluster in set_tuples_ids_lanelets_intersecting:
-        list_regions += construct_regions_from_tuple_ids_lanelets(set_ids_lanelets_in_cluster)
-
+        try:
+            list_regions += construct_regions_from_tuple_ids_lanelets(set_ids_lanelets_in_cluster)
+        except Exception as e:
+            print(f"Error in constructing regions for intersecting lanelets: {e}")
+            continue
     return list_regions
 
 
