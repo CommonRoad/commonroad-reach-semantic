@@ -23,3 +23,6 @@ dis_stop_line: 1.0
 # LTL: linear temporal logic, checked with Spot
 activated_rules:
   - NoBackwardDrivingRule
+# speed limit from Sebastian's paper
+fov_speed_limit: 50
+braking_speed_limit: 43

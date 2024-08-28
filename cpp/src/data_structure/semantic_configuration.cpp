@@ -23,6 +23,9 @@ TrafficRuleConfiguration::TrafficRuleConfiguration(const YAML::Node &node) {
     distance_braking = node_traffic_rule["distance_braking"].as<double>();
     acceleration_braking_hard = node_traffic_rule["acceleration_braking_hard"].as<double>();
     backward_driving_v_err = node_traffic_rule["backward_driving_v_err"].as<double>();
+    fov_speed_limit = node_traffic_rule["fov_speed_limit"].as<double>();
+    braking_speed_limit = node_traffic_rule["braking_speed_limit"].as<double>();
+
     activated_rules = node_traffic_rule["activated_rules"].as<std::vector<std::string>>();
     mode_spot = node_traffic_rule["mode_spot"].as<int>();
     mode_automata = node_traffic_rule["mode_automata"].as<int>();
