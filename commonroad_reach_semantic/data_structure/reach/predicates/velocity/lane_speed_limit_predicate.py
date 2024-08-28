@@ -20,13 +20,15 @@ class LaneSpeedLimitPredicate(predicate.Predicate):
     def _restrict_reach_node_mandatory(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel,
                                        _node_lanelet_ids: Optional[Set[int]] = None) -> List[ReachNode]:
         v_limit = self._obtain_lane_speed_limit(semantic_model, _node_lanelet_ids)
-        reach_node.intersect_in_velocity_domain(v_lon_max=v_limit)
+        if v_limit is not None:
+            reach_node.intersect_in_velocity_domain(v_lon_max=v_limit)
         return [reach_node]
 
     def _restrict_reach_node_forbidden(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel,
                                        _node_lanelet_ids: Optional[Set[int]] = None) -> List[ReachNode]:
         v_limit = self._obtain_lane_speed_limit(semantic_model, _node_lanelet_ids)
-        reach_node.intersect_in_velocity_domain(v_lon_min=v_limit)
+        if v_limit is not None:
+            reach_node.intersect_in_velocity_domain(v_lon_min=v_limit)
         return [reach_node]
 
     @staticmethod
