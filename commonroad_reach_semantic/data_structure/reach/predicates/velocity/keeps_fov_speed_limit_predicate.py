@@ -7,7 +7,7 @@ from commonroad_reach_semantic.data_structure.environment_model.semantic_model i
 from commonroad_reach_semantic.data_structure.rule.proposition import Proposition as Prop
 
 
-class FovSpeedLimitPredicate(predicate.Predicate):
+class KeepsFovSpeedLimitPredicate(predicate.Predicate):
     def __init__(self, negated: bool):
         super().__init__(negated)
 

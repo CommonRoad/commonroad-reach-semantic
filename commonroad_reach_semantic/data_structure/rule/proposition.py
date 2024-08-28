@@ -53,19 +53,19 @@ class Proposition:
 
     @staticmethod
     def lane_speed_limit() -> str:
-        return "LaneSpeedLimit"
+        return "KeepsLaneSpeedLimit"
 
     @staticmethod
     def fov_speed_limit() -> str:
-        return "FovSpeedLimit"
+        return "KeepsFovSpeedLimit"
 
     @staticmethod
     def brake_speed_limit() -> str:
-        return "BrakeSpeedLimit"
+        return "KeepsBrakeSpeedLimit"
 
     @staticmethod
     def type_speed_limit() -> str:
-        return "TypeSpeedLimit"
+        return "KeepsTypeSpeedLimit"
 
     @staticmethod
     def at_traffic_sign_stop() -> str:

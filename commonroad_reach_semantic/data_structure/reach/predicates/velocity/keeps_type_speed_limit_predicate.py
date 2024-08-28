@@ -7,23 +7,18 @@ from commonroad_reach_semantic.data_structure.environment_model.semantic_model i
 from commonroad_reach_semantic.data_structure.rule.proposition import Proposition as Prop
 
 
-class BrakeSpeedLimitPredicate(predicate.Predicate):
+class KeepsTypeSpeedLimitPredicate(predicate.Predicate):
     def __init__(self, negated: bool):
         super().__init__(negated)
 
     def to_proposition(self) -> str:
-        return Prop.brake_speed_limit()
+        return Prop.type_speed_limit()
 
     def _restrict_reach_node_mandatory(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel,
                                        _node_lanelet_ids: Optional[Set[int]] = None) -> List[ReachNode]:
-        v_limit = semantic_model.config.traffic_rule.braking_speed_limit
-        if v_limit is not None:
-            reach_node.intersect_in_velocity_domain(v_lon_max=v_limit)
+        # todo: add vehicle type to reach, now by default it is not truck
         return [reach_node]
 
     def _restrict_reach_node_forbidden(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel,
                                        _node_lanelet_ids: Optional[Set[int]] = None) -> List[ReachNode]:
-        v_limit = semantic_model.config.traffic_rule.braking_speed_limit
-        if v_limit is not None:
-            reach_node.intersect_in_velocity_domain(v_lon_min=v_limit)
         return [reach_node]
