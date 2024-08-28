@@ -27,6 +27,8 @@ struct TrafficRuleConfiguration : reach::ReachableSetConfiguration {
     double acceleration_braking_hard{};
     double backward_driving_v_err{};
     double dis_stop_line{};
+    double fov_speed_limit{};
+    double braking_speed_limit{};
     std::vector<std::string> activated_rules{};
     int mode_spot{};
     int mode_automata{};

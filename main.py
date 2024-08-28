@@ -30,18 +30,6 @@ def main():
     util_logger.initialize_logger(config)
     config.print_configuration_summary()
 
-    target_veh = config.scenario.obstacle_by_id(200)
-    config.scenario.remove_obstacle(target_veh)
-    target_state = target_veh.state_at_time(10)
-    config.planning_problem.initial_state = InitialState(
-        position=target_state.position,
-        velocity=target_state.velocity,
-        time_step=target_state.time_step,
-        yaw_rate=0,
-        slip_angle=0,
-        orientation=target_state.orientation
-    )
-
     # config.update()
     config.reachable_set.mode_computation = 8
 

@@ -174,6 +174,8 @@ class SemanticConfiguration(Configuration):
         config.traffic_rule.mode_spot = self.traffic_rule.mode_spot
         config.traffic_rule.mode_automata = self.traffic_rule.mode_automata
         config.traffic_rule.dis_stop_line = self.traffic_rule.dis_stop_line
+        config.traffic_rule.fov_speed_limit = self.traffic_rule.fov_speed_limit
+        config.traffic_rule.braking_speed_limit = self.traffic_rule.braking_speed_limit
 
         config.semantic_model.is_intersection = self.semantic_model.incoming_element_route is not None
         config.semantic_model.ego_radius_inflation = self.vehicle.ego.radius_inflation
@@ -279,3 +281,7 @@ class TrafficRuleConfiguration(ConfigurationBase):
         self.mode_spot = config_relevant.mode_spot
         self.mode_automata = config_relevant.mode_automata
         self.dis_stop_line = config_relevant.dis_stop_line
+
+        # speed limit
+        self.fov_speed_limit = config_relevant.fov_speed_limit
+        self.braking_speed_limit = config_relevant.braking_speed_limit

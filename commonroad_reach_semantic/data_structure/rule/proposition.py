@@ -52,6 +52,22 @@ class Proposition:
         return "InStandstill"
 
     @staticmethod
+    def lane_speed_limit() -> str:
+        return "KeepsLaneSpeedLimit"
+
+    @staticmethod
+    def fov_speed_limit() -> str:
+        return "KeepsFovSpeedLimit"
+
+    @staticmethod
+    def brake_speed_limit() -> str:
+        return "KeepsBrakeSpeedLimit"
+
+    @staticmethod
+    def type_speed_limit() -> str:
+        return "KeepsTypeSpeedLimit"
+
+    @staticmethod
     def at_traffic_sign_stop() -> str:
         return "AtTrafficSignStop"
 

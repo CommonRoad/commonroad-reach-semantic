@@ -30,3 +30,6 @@ activated_rules:
   - RightBeforeLeftRule
   - LeftTurningRule
   - EnteringVehiclesRule
+# speed limit from Sebastian's paper
+fov_speed_limit: 50
+braking_speed_limit: 43

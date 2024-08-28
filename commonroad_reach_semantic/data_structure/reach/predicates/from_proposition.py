@@ -13,6 +13,14 @@ from commonroad_reach_semantic.data_structure.reach.predicates.velocity.in_stand
     InStandstillPredicate
 from commonroad_reach_semantic.data_structure.reach.predicates.velocity.drives_backward_predicate import \
     DrivesBackwardPredicate
+from commonroad_reach_semantic.data_structure.reach.predicates.velocity.keeps_lane_speed_limit_predicate import \
+    KeepsLaneSpeedLimitPredicate
+from commonroad_reach_semantic.data_structure.reach.predicates.velocity.keeps_type_speed_limit_predicate import \
+    KeepsTypeSpeedLimitPredicate
+from commonroad_reach_semantic.data_structure.reach.predicates.velocity.keeps_fov_speed_limit_predicate import \
+    KeepsFovSpeedLimitPredicate
+from commonroad_reach_semantic.data_structure.reach.predicates.velocity.keeps_brake_speed_limit_predicate import \
+    KeepsBrakeSpeedLimitPredicate
 from commonroad_reach_semantic.data_structure.reach.predicates.regulatory.has_priority_predicate import \
     HasPriorityPredicate
 from commonroad_reach_semantic.data_structure.reach.predicates.position.in_conflict_area_of_vehicle_predicate import \
@@ -91,6 +99,14 @@ def from_proposition(proposition: str, negated: bool):
         return AtTrafficSignStopPredicate(negated)
     elif re.fullmatch(r"InStandstill", proposition):
         return InStandstillPredicate(negated)
+    elif re.fullmatch(r"KeepsLaneSpeedLimit", proposition):
+        return KeepsLaneSpeedLimitPredicate(negated)
+    elif re.fullmatch(r"KeepsTypeSpeedLimit", proposition):
+        return KeepsTypeSpeedLimitPredicate(negated)
+    elif re.fullmatch(r"KeepsFovSpeedLimit", proposition):
+        return KeepsFovSpeedLimitPredicate(negated)
+    elif re.fullmatch(r"KeepsBrakeSpeedLimit", proposition):
+        return KeepsBrakeSpeedLimitPredicate(negated)
     elif matched := re.fullmatch(r"CausesBrakingFor_V(\d+)", proposition):
         return CausesBrakingPredicate(int(matched.group(1)), negated)
     elif matched := re.fullmatch(r"InConflictWith_V(\d+)", proposition):
