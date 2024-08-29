@@ -13,6 +13,7 @@ from commonroad.scenario.traffic_sign import SupportedTrafficSignCountry
 class KeepsLaneSpeedLimitPredicate(predicate.Predicate):
     def __init__(self, negated: bool):
         super().__init__(negated)
+        self.needs_lanelets = True
 
     def to_proposition(self) -> str:
         return Prop.lane_speed_limit()
