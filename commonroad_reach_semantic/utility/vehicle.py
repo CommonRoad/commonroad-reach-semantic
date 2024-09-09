@@ -1,5 +1,8 @@
 from typing import Union, Dict, Set, Optional, List
 
+import numpy as np
+from shapely.geometry import Point
+
 from commonroad.scenario.intersection import IntersectionIncomingElement
 from commonroad.scenario.lanelet import Lanelet, LaneletType, LaneletNetwork
 from commonroad.scenario.obstacle import StaticObstacle, DynamicObstacle
@@ -277,10 +280,16 @@ def extract_oncomings_from_incoming(incoming_element: IntersectionIncomingElemen
     return set_ids_lanelets_oncoming
 
 def initialize_lanelets_dir(lanelet_network: LaneletNetwork,
-                            obstacle_states: List[Union[CustomState, State]]):
+                            obstacle_states: List[Union[CustomState, State]],
+                            obstacle: DynamicObstacle):
     """Initializes the direction of lanelets."""
     ini_state = obstacle_states[0]
     end_state = obstacle_states[-1]
+
+    goal_rect = Rectangle(length=1.0, width=1.0, center=end_state.position)
+    # if the initial state is within the goal rect, no lanelets dir
+    if goal_rect.shapely_object.contains(Point(ini_state.position)):
+        return []
 
     attributes = {
         "time_step": Interval(start=end_state.time_step - 1, end=end_state.time_step + 1),
@@ -290,7 +299,23 @@ def initialize_lanelets_dir(lanelet_network: LaneletNetwork,
             start=end_state.orientation - 0.1, end=end_state.orientation + 0.1
         ),
     }
-    route = _find_route_given_initial_goal(ini_state, attributes, lanelet_network)
+    try:
+        route = _find_route_given_initial_goal(ini_state, attributes, lanelet_network)
+    except ValueError:
+        lanelet_id_list = []
+        goal_lanelet_id = lanelet_network.find_lanelet_by_shape(goal_rect)[0]
+        while len(lanelet_id_list) <= 3:
+            lanelet_id_list.append(goal_lanelet_id)
+            goal_lanelet = lanelet_network.find_lanelet_by_id(goal_lanelet_id)
+            if goal_lanelet.predecessor:
+                ego_lanelet_ids = lanelet_network.find_lanelet_by_shape(obstacle.occupancy_at_time(0).shape)
+                if set(ego_lanelet_ids).intersection(set(goal_lanelet.predecessor)):
+                    goal_lanelet_id = list(set(goal_lanelet.predecessor).intersection(set(ego_lanelet_ids)))[0]
+                else:
+                    goal_lanelet_id = goal_lanelet.predecessor[0]
+            else:
+                break
+        return lanelet_id_list
     return route.lanelet_ids
 
 
