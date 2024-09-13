@@ -18,30 +18,31 @@ def detect_intersecting_lanelets(set_lanelets_related):
     Note that the intersection property is propagated to find clusters of intersecting lanelets.
     """
     set_tuples_ids_lanelets_intersecting = set()
-    # dict_id_lanelet_to_set_ids_intersecting = defaultdict(set)
-    #
-    # for lanelet_i in set_lanelets_related:
-    #     id_lanelet_i = lanelet_i.lanelet_id
-    #     set_ids_lanelet_intersecting = dict_id_lanelet_to_set_ids_intersecting[id_lanelet_i]
-    #     set_ids_lanelet_intersecting.add(id_lanelet_i)
-    #
-    #     for lanelet_j in set_lanelets_related:
-    #         id_lanelet_j = lanelet_j.lanelet_id
-    #
-    #         # cases where we skip detecting intersection
-    #         if id_lanelet_j == id_lanelet_i or id_lanelet_j in set_ids_lanelet_intersecting:
-    #             continue
-    #
-    #         if lanelet_i.polygon_cart.intersects(lanelet_j.polygon_cart):
-    #             set_ids_lanelet_intersecting.add(id_lanelet_j)
-    #
-    #     for lanelet_j in set_ids_lanelet_intersecting:
-    #         dict_id_lanelet_to_set_ids_intersecting[lanelet_j].update(set_ids_lanelet_intersecting)
-    #
-    # for set_ids_intersecting in dict_id_lanelet_to_set_ids_intersecting.values():
-    #     if len(set_ids_intersecting) > 1:
-    #         set_tuples_ids_lanelets_intersecting.add(frozenset(set_ids_intersecting))
-    set_tuples_ids_lanelets_intersecting.add(frozenset({14, 19, 11, 13, 0, 5}))
+    # Create a default dictionary where each key is a lanelet ID and the value is a set of intersecting lanelet IDs
+    dict_id_lanelet_to_set_ids_intersecting = defaultdict(set)
+
+    for lanelet_i in set_lanelets_related:
+        id_lanelet_i = lanelet_i.lanelet_id
+        set_ids_lanelet_intersecting = dict_id_lanelet_to_set_ids_intersecting[id_lanelet_i]
+        set_ids_lanelet_intersecting.add(id_lanelet_i)
+
+        for lanelet_j in set_lanelets_related:
+            id_lanelet_j = lanelet_j.lanelet_id
+
+            # cases where we skip detecting intersection
+            if id_lanelet_j == id_lanelet_i or id_lanelet_j in set_ids_lanelet_intersecting:
+                continue
+
+            if lanelet_i.polygon_cart.intersects(lanelet_j.polygon_cart):
+                set_ids_lanelet_intersecting.add(id_lanelet_j)
+
+        for lanelet_j in set_ids_lanelet_intersecting:
+            dict_id_lanelet_to_set_ids_intersecting[lanelet_j].update(set_ids_lanelet_intersecting)
+
+    for set_ids_intersecting in dict_id_lanelet_to_set_ids_intersecting.values():
+        if len(set_ids_intersecting) > 1:
+            set_tuples_ids_lanelets_intersecting.add(frozenset(set_ids_intersecting))
+    # set_tuples_ids_lanelets_intersecting.add(frozenset({14, 19, 11, 13, 0, 5}))
     return set_tuples_ids_lanelets_intersecting
 
 

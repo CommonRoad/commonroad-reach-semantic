@@ -55,11 +55,14 @@ class InConflictAreaOfVehiclePredicate(predicate.Predicate):
             convert_coords = (
                     semantic_model.config.planning.CLCS.convert_to_curvilinear_coords
                 )
-
-            start_s, end_s = [
-                convert_coords(*coord)[0] for coord in [(lanelet.right_vertices[0] + lanelet.right_vertices[-1])/2,
-                                                        (lanelet.left_vertices[0] + lanelet.left_vertices[-1])/2]
-            ]
+            try:
+                start_s, end_s = [
+                    convert_coords(*coord)[0] for coord in [(lanelet.right_vertices[0] + lanelet.right_vertices[-1])/2,
+                                                            (lanelet.left_vertices[0] + lanelet.left_vertices[-1])/2]
+                ]
+            # if fails, then just do not split
+            except:
+                continue
             conflict_s = min(start_s, end_s)
 
             # Additional consideration of the vehicle length
