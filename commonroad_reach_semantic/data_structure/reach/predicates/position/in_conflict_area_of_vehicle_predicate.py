@@ -20,26 +20,69 @@ class InConflictAreaOfVehiclePredicate(predicate.Predicate):
     @predicate.needs_lanelets_set
     def _restrict_reach_node_mandatory(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel,
                                        node_lanelet_ids: Set[int]) -> List[ReachNode]:
-        if intersecting_lanelet_ids := self._get_vehicle_intersecting_lanelet_ids(semantic_model):
-            return [reach_node] if node_lanelet_ids.intersection(intersecting_lanelet_ids) else []
+        # Retrieve the vehicle object using its ID
+        vehicle = semantic_model.vehicle_model.find_vehicle_by_id(self.vehicle_id)
+
+        # Get the lanelet IDs for the ego vehicle and the other vehicle
+        lanelets_dir_ego = set(semantic_model.config.planning.route.lanelet_ids)
+        lanelets_dir_other = set(vehicle.lanelets_dir)
+
+        # Determine the lanelets that are in the other vehicle's path but not in the ego vehicle's path
+        disjoint_other = list(lanelets_dir_other - lanelets_dir_ego)
+        if not disjoint_other or node_lanelet_ids.isdisjoint(disjoint_other):
+            return []
         else:
-            raise RuntimeError(f"Vehicle {self.vehicle_id} not found")
+            return [reach_node]
 
     @predicate.needs_lanelets_set
     def _restrict_reach_node_forbidden(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel,
                                        node_lanelet_ids: Set[int]) -> List[ReachNode]:
-        if intersecting_lanelet_ids := self._get_vehicle_intersecting_lanelet_ids(semantic_model):
-            return [reach_node] if node_lanelet_ids.isdisjoint(intersecting_lanelet_ids) else []
-        else:
-            raise RuntimeError(f"Vehicle {self.vehicle_id} not found")
+        # Retrieve the vehicle object using its ID
+        vehicle = semantic_model.vehicle_model.find_vehicle_by_id(self.vehicle_id)
 
-    def _get_vehicle_intersecting_lanelet_ids(self, semantic_model: SemanticModel) -> Optional[Set[int]]:
-        if vehicle := semantic_model.vehicle_model.find_vehicle_by_id(self.vehicle_id):
-            return {
-                intersecting
-                for lanelet_id in vehicle.lane.list_ids_lanelets
-                for intersecting in
-                semantic_model.lanelet_model.dict_id_lanelet_to_set_ids_lanelets_intersecting[lanelet_id]
-            }
-        else:
-            return None
+        # Get the lanelet IDs for the ego vehicle and the other vehicle
+        lanelets_dir_ego = set(semantic_model.config.planning.route.lanelet_ids)
+        lanelets_dir_other = set(vehicle.lanelets_dir)
+
+        # Determine the lanelets that are in the other vehicle's path but not in the ego vehicle's path
+        disjoint_other = list(lanelets_dir_other - lanelets_dir_ego)
+        if not disjoint_other:
+            return [reach_node]
+        for lanelet_id in disjoint_other:
+            lanelet = semantic_model.config.scenario.lanelet_network.find_lanelet_by_id(
+                        lanelet_id
+                    )
+            convert_coords = (
+                    semantic_model.config.planning.CLCS.convert_to_curvilinear_coords
+                )
+            try:
+                start_s, end_s = [
+                    convert_coords(*coord)[0] for coord in [(lanelet.right_vertices[0] + lanelet.right_vertices[-1])/2,
+                                                            (lanelet.left_vertices[0] + lanelet.left_vertices[-1])/2]
+                ]
+            # if fails, then just do not split
+            except:
+                continue
+            conflict_s = min(start_s, end_s)
+
+            # Additional consideration of the vehicle length
+            vehicle_length_add = semantic_model.config.vehicle.ego.length / 3 - semantic_model.config.vehicle.ego.wheelbase/ 2
+            # if semantic_model.config.planning.reference_point == "REAR":
+            #     vehicle_length_add += semantic_model.config.vehicle.ego.wb_rear_axle
+
+            reach_node.intersect_in_position_domain(p_lon_max=conflict_s - vehicle_length_add)
+        return [reach_node]
+
+
+    # def _get_vehicle_intersecting_lanelet_ids(self, step, semantic_model: SemanticModel) -> Optional[Set[int]]:
+    #     if vehicle := semantic_model.vehicle_model.find_vehicle_by_id(self.vehicle_id):
+    #         return {
+    #             intersecting
+    #             for lanelet_id in vehicle.lanelet_ids_at_step(step)
+    #             for intersecting in
+    #             semantic_model.lanelet_model.dict_id_lanelet_to_set_ids_lanelets_intersecting[lanelet_id]
+    #         }
+    #     else:
+    #         return None
+
+

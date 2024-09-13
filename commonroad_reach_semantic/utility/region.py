@@ -18,6 +18,7 @@ def detect_intersecting_lanelets(set_lanelets_related):
     Note that the intersection property is propagated to find clusters of intersecting lanelets.
     """
     set_tuples_ids_lanelets_intersecting = set()
+    # Create a default dictionary where each key is a lanelet ID and the value is a set of intersecting lanelet IDs
     dict_id_lanelet_to_set_ids_intersecting = defaultdict(set)
 
     for lanelet_i in set_lanelets_related:
@@ -41,7 +42,7 @@ def detect_intersecting_lanelets(set_lanelets_related):
     for set_ids_intersecting in dict_id_lanelet_to_set_ids_intersecting.values():
         if len(set_ids_intersecting) > 1:
             set_tuples_ids_lanelets_intersecting.add(frozenset(set_ids_intersecting))
-
+    # set_tuples_ids_lanelets_intersecting.add(frozenset({14, 19, 11, 13, 0, 5}))
     return set_tuples_ids_lanelets_intersecting
 
 
@@ -53,8 +54,11 @@ def construct_regions_for_intersecting_lanelets(set_tuples_ids_lanelets_intersec
 
     # iterate through all tuples of clusters of intersecting lanelets and create regions accordingly
     for set_ids_lanelets_in_cluster in set_tuples_ids_lanelets_intersecting:
-        list_regions += construct_regions_from_tuple_ids_lanelets(set_ids_lanelets_in_cluster)
-
+        try:
+            list_regions += construct_regions_from_tuple_ids_lanelets(set_ids_lanelets_in_cluster)
+        except Exception as e:
+            print(f"Error in constructing regions for intersecting lanelets: {e}")
+            continue
     return list_regions
 
 

@@ -137,6 +137,7 @@ class Vehicle:
                  set_ids_lanelets_outgoing_straight: Set[int],
                  set_ids_lanelets_outgoing_right: Set[int],
                  set_ids_lanelets_oncoming: Set[int],
+                 lanelets_dir: List[int] = None,
                  dict_step_to_state_signal: Dict[int, SignalState] = None,
                  use_sonia: bool = False,
                  dict_step_to_sonia_prediction_occupancy: Dict = None,
@@ -162,6 +163,7 @@ class Vehicle:
         self.set_ids_lanelets_oncoming = set_ids_lanelets_oncoming
         self.dict_step_to_priorities = defaultdict()
         self.dict_id_lanelet_to_priorities = defaultdict(dict)
+        self.lanelets_dir = lanelets_dir
 
         # sonia-related
         self.use_sonia = use_sonia
@@ -593,6 +595,7 @@ class Vehicle:
                 set_ids_lanelets_outgoing_straight, set_ids_lanelets_outgoing_right, set_ids_lanelets_oncoming, \
                 dict_step_to_sonia_prediction_occupancy = \
                 attrs
+            lanelets_dir = None
 
         # extract properties for dynamic obstacles
         elif isinstance(obstacle, DynamicObstacle):
@@ -605,7 +608,7 @@ class Vehicle:
                 dict_step_to_state_signal, dict_step_to_list_ids_lanelets, \
                 incoming_element, direction_outgoing, set_ids_lanelets_outgoing_left, \
                 set_ids_lanelets_outgoing_straight, set_ids_lanelets_outgoing_right, set_ids_lanelets_oncoming, \
-                dict_step_to_sonia_prediction_occupancy = \
+                dict_step_to_sonia_prediction_occupancy, lanelets_dir = \
                 attrs
             if use_sonia:
                 dict_step_to_sonia_extrema = \
@@ -624,7 +627,7 @@ class Vehicle:
                           dict_step_to_list_ids_lanelets, incoming_element, direction_outgoing,
                           set_ids_lanelets_outgoing_left, set_ids_lanelets_outgoing_straight,
                           set_ids_lanelets_outgoing_right, set_ids_lanelets_oncoming,
-                          dict_step_to_state_signal, use_sonia,
+                          lanelets_dir, dict_step_to_state_signal, use_sonia,
                           dict_step_to_sonia_prediction_occupancy, dict_step_to_sonia_extrema)
 
         return vehicle
@@ -744,13 +747,16 @@ class Vehicle:
 
             state_cr_previous = state_cr
 
+        lanelets_dir = util_vehicle.initialize_lanelets_dir(cls.lanelet_network, sampled_obstacle_states, obstacle)
+
+
         return lane_vehicle, dict_step_to_state_cr, \
             dict_step_to_state_lon_ref, dict_step_to_state_lat_ref, \
             dict_step_to_state_lon_ego, dict_step_to_state_lat_ego, \
             dict_step_to_state_signal, dict_step_to_list_ids_lanelets, \
             incoming_element, direction_outgoing, set_ids_lanelets_outgoing_left, \
             set_ids_lanelets_outgoing_straight, set_ids_lanelets_outgoing_right, set_ids_lanelets_oncoming, \
-            dict_step_to_sonia_prediction_occupancy
+            dict_step_to_sonia_prediction_occupancy, lanelets_dir
 
     @staticmethod
     def convert_to_curvilinear_state(state_cr: State, state_cr_previous: State, dt: float,
