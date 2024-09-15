@@ -76,10 +76,15 @@ class InConflictAreaOfVehiclePredicate(predicate.Predicate):
         # Assuming convert_to_curvilinear_vertices returns coordinates, convert them back to a polygon
         conflict_region_enl_clcs_polygon = shapely.Polygon(conflict_region_enl_clcs)
 
-        non_conflict_poly = reach_node.position_rectangle.shapely_object - conflict_region_enl_clcs_polygon
+        if not hasattr(reach_node.position_rectangle, "shapely_object"):
+            # todo: error handling
+            node_position_rectangle = shapely.Polygon(reach_node.position_rectangle.vertices)
+        else:
+            node_position_rectangle = reach_node.position_rectangle.shapely_object
+        non_conflict_poly = node_position_rectangle - conflict_region_enl_clcs_polygon
         if non_conflict_poly.is_empty:
             return []
-        reach_node.position_rectangle = ReachPolygon.from_polygon(non_conflict_poly)
+        resulting_position_rectangle = ReachPolygon.from_polygon(non_conflict_poly)
         # import matplotlib.pyplot as plt
         # # Plotting
         #
@@ -120,10 +125,10 @@ class InConflictAreaOfVehiclePredicate(predicate.Predicate):
         #
         # # Show plot
         # plt.show()
-        reach_node.intersect_in_position_domain(p_lon_max=reach_node.position_rectangle.p_lon_max,
-                                                p_lon_min=reach_node.position_rectangle.p_lon_min,
-                                                p_lat_max=reach_node.position_rectangle.p_lat_max,
-                                                p_lat_min=reach_node.position_rectangle.p_lat_min)
+        reach_node.intersect_in_position_domain(p_lon_max=resulting_position_rectangle.p_lon_max,
+                                                p_lon_min=resulting_position_rectangle.p_lon_min,
+                                                p_lat_max=resulting_position_rectangle.p_lat_max,
+                                                p_lat_min=resulting_position_rectangle.p_lat_min)
         return [reach_node]
 
 
