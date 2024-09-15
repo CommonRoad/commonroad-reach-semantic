@@ -12,6 +12,7 @@ from commonroad_reach_semantic.data_structure.rule.proposition import Propositio
 import commonroad_reach.utility.coordinate_system as util_cosy
 
 class InConflictAreaOfVehiclePredicate(predicate.Predicate):
+    _cached_conflict_region_enl_clcs_polygon = None  # Cache storage
 
     def __init__(self, vehicle_id: int, negated: bool):
         super().__init__(negated)
@@ -24,6 +25,7 @@ class InConflictAreaOfVehiclePredicate(predicate.Predicate):
     @predicate.needs_lanelets_set
     def _restrict_reach_node_mandatory(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel,
                                        node_lanelet_ids: Set[int]) -> List[ReachNode]:
+
         # Retrieve the vehicle object using its ID
         vehicle = semantic_model.vehicle_model.find_vehicle_by_id(self.vehicle_id)
 
@@ -33,6 +35,7 @@ class InConflictAreaOfVehiclePredicate(predicate.Predicate):
 
         # Determine the lanelets that are in the other vehicle's path but not in the ego vehicle's path
         disjoint_other = list(lanelets_dir_other - lanelets_dir_ego)
+        # todo: need to be fixed
         if not disjoint_other or node_lanelet_ids.isdisjoint(disjoint_other):
             return []
         else:
@@ -65,83 +68,39 @@ class InConflictAreaOfVehiclePredicate(predicate.Predicate):
         if semantic_model.config.planning.reference_point == "REAR":
             vehicle_length_add += semantic_model.config.vehicle.ego.wb_rear_axle
 
-        conflict_region_enlarged = shapely.offset_curve(
-            conflict_region, vehicle_length_add
-        )
-        conflict_region_enl_polygon = shapely.Polygon(conflict_region_enlarged)
+        # Only compute conflict_region_enl_clcs_polygon once and reuse it
+        if self._cached_conflict_region_enl_clcs_polygon is None:
+            conflict_region_enlarged = shapely.offset_curve(
+                conflict_region, vehicle_length_add
+            )
+            conflict_region_enl_polygon = shapely.Polygon(conflict_region_enlarged)
 
-        conflict_region_enl_clcs = util_cosy.convert_to_curvilinear_vertices(
-            conflict_region_enl_polygon.exterior.coords, semantic_model.config.planning.CLCS
-        )
-        # Assuming convert_to_curvilinear_vertices returns coordinates, convert them back to a polygon
-        conflict_region_enl_clcs_polygon = shapely.Polygon(conflict_region_enl_clcs)
+            conflict_region_enl_clcs = util_cosy.convert_to_curvilinear_vertices(
+                conflict_region_enl_polygon.exterior.coords, semantic_model.config.planning.CLCS
+            )
+            # Assuming convert_to_curvilinear_vertices returns coordinates, convert them back to a polygon
+            self._cached_conflict_region_enl_clcs_polygon = shapely.Polygon(conflict_region_enl_clcs)
+
+        # Use the cached polygon
+        conflict_region_enl_clcs_polygon = self._cached_conflict_region_enl_clcs_polygon
 
         if not hasattr(reach_node.position_rectangle, "shapely_object"):
             # todo: error handling
             node_position_rectangle = shapely.Polygon(reach_node.position_rectangle.vertices)
         else:
             node_position_rectangle = reach_node.position_rectangle.shapely_object
+
         non_conflict_poly = node_position_rectangle - conflict_region_enl_clcs_polygon
         if non_conflict_poly.is_empty:
             return []
+
         resulting_position_rectangle = ReachPolygon.from_polygon(non_conflict_poly)
-        # import matplotlib.pyplot as plt
-        # # Plotting
-        #
-        # fig, ax = plt.subplots()
-        #
-        # # Plot the original conflict region (assuming it's a Polygon or MultiPolygon)
-        # if conflict_region_enl_clcs_polygon.geom_type == 'Polygon':
-        #     x, y = conflict_region_enl_clcs_polygon.exterior.xy
-        #     ax.fill(x, y, alpha=0.5, fc='lightblue', label="Original Conflict Region")
-        # elif conflict_region_enl_clcs_polygon.geom_type == 'MultiPolygon':
-        #     for polygon in conflict_region_enl_clcs_polygon:
-        #         x, y = polygon.exterior.xy
-        #         ax.fill(x, y, alpha=0.5, fc='lightblue', label="Original Conflict Region")
-        #
-        # # Plot the enlarged conflict region
-        # if conflict_region_enlarged.geom_type == 'Polygon':
-        #     x, y = conflict_region_enlarged.exterior.xy
-        #     ax.fill(x, y, alpha=0.5, fc='red', label="Enlarged Conflict Region")
-        # elif conflict_region_enlarged.geom_type == 'MultiPolygon':
-        #     for polygon in conflict_region_enlarged:
-        #         x, y = polygon.exterior.xy
-        #         ax.fill(x, y, alpha=0.5, fc='red', label="Enlarged Conflict Region")
-        #
-        # # Plot the position rectangle after difference operation
-        # position_rectangle_polygon = reach_node.position_rectangle.shapely_object - conflict_region_enl_clcs_polygon
-        # if position_rectangle_polygon.geom_type == 'Polygon':
-        #     x, y = position_rectangle_polygon.exterior.xy
-        #     ax.fill(x, y, alpha=0.5, fc='green', label="Position Rectangle After Difference")
-        # elif position_rectangle_polygon.geom_type == 'MultiPolygon':
-        #     for polygon in position_rectangle_polygon:
-        #         x, y = polygon.exterior.xy
-        #         ax.fill(x, y, alpha=0.5, fc='green', label="Position Rectangle After Difference")
-        #
-        # # Add labels and legend
-        # ax.set_xlabel('X')
-        # ax.set_ylabel('Y')
-        # ax.legend()
-        #
-        # # Show plot
-        # plt.show()
+
         reach_node.intersect_in_position_domain(p_lon_max=resulting_position_rectangle.p_lon_max,
                                                 p_lon_min=resulting_position_rectangle.p_lon_min,
                                                 p_lat_max=resulting_position_rectangle.p_lat_max,
                                                 p_lat_min=resulting_position_rectangle.p_lat_min)
         return [reach_node]
-
-
-    # def _get_vehicle_intersecting_lanelet_ids(self, step, semantic_model: SemanticModel) -> Optional[Set[int]]:
-    #     if vehicle := semantic_model.vehicle_model.find_vehicle_by_id(self.vehicle_id):
-    #         return {
-    #             intersecting
-    #             for lanelet_id in vehicle.lanelet_ids_at_step(step)
-    #             for intersecting in
-    #             semantic_model.lanelet_model.dict_id_lanelet_to_set_ids_lanelets_intersecting[lanelet_id]
-    #         }
-    #     else:
-    #         return None
 
     @staticmethod
     def get_intersection_lanelets(lanelet_network, lanelet_ids):
