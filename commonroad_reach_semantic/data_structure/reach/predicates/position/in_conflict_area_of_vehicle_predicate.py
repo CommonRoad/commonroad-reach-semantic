@@ -94,12 +94,20 @@ class InConflictAreaOfVehiclePredicate(predicate.Predicate):
         if non_conflict_poly.is_empty:
             return []
 
-        resulting_position_rectangle = ReachPolygon.from_polygon(non_conflict_poly)
+        if isinstance(non_conflict_poly, shapely.geometry.MultiPolygon):
+            for unit_poly in list(non_conflict_poly.geoms):
+                resulting_position_rectangle = ReachPolygon.from_polygon(unit_poly)
+                reach_node.intersect_in_position_domain(p_lon_max=resulting_position_rectangle.p_lon_max,
+                                                        p_lon_min=resulting_position_rectangle.p_lon_min,
+                                                        p_lat_max=resulting_position_rectangle.p_lat_max,
+                                                        p_lat_min=resulting_position_rectangle.p_lat_min)
 
-        reach_node.intersect_in_position_domain(p_lon_max=resulting_position_rectangle.p_lon_max,
-                                                p_lon_min=resulting_position_rectangle.p_lon_min,
-                                                p_lat_max=resulting_position_rectangle.p_lat_max,
-                                                p_lat_min=resulting_position_rectangle.p_lat_min)
+        else:
+            resulting_position_rectangle = ReachPolygon.from_polygon(non_conflict_poly)
+            reach_node.intersect_in_position_domain(p_lon_max=resulting_position_rectangle.p_lon_max,
+                                                    p_lon_min=resulting_position_rectangle.p_lon_min,
+                                                    p_lat_max=resulting_position_rectangle.p_lat_max,
+                                                    p_lat_min=resulting_position_rectangle.p_lat_min)
         return [reach_node]
 
     @staticmethod
