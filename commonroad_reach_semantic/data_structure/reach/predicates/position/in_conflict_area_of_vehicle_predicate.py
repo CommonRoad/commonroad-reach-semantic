@@ -43,6 +43,9 @@ class InConflictAreaOfVehiclePredicate(predicate.Predicate):
     @predicate.needs_lanelets_set
     def _restrict_reach_node_forbidden(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel,
                                        node_lanelet_ids: Set[int]) -> List[ReachNode]:
+        # driving direction of the ego vehicle
+        if node_lanelet_ids.isdisjoint(semantic_model.config.planning.route.lanelet_ids):
+            return []
         # Use the cached polygon
         conflict_region_enl_clcs_polygon = semantic_model.vehicle_model.dict_vehicle_id_to_conflict_region[self.vehicle_id]
 
