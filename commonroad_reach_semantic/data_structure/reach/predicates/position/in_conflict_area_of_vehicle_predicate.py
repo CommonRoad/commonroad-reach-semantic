@@ -13,8 +13,6 @@ from commonroad_reach_semantic.data_structure.rule.proposition import Propositio
 import commonroad_reach.utility.coordinate_system as util_cosy
 
 class InConflictAreaOfVehiclePredicate(predicate.Predicate):
-    _cached_conflict_region_enl_clcs_polygon = None  # Cache storage
-
     def __init__(self, vehicle_id: int, negated: bool):
         super().__init__(negated)
         self.vehicle_id = vehicle_id
@@ -45,47 +43,12 @@ class InConflictAreaOfVehiclePredicate(predicate.Predicate):
     @predicate.needs_lanelets_set
     def _restrict_reach_node_forbidden(self, step: int, reach_node: ReachNode, semantic_model: SemanticModel,
                                        node_lanelet_ids: Set[int]) -> List[ReachNode]:
-        # Retrieve the vehicle object using its ID
-        vehicle = semantic_model.vehicle_model.find_vehicle_by_id(self.vehicle_id)
-
-        # Get the lanelet IDs for the ego vehicle and the other vehicle
-        lanelets_dir_ego = set(semantic_model.config.planning.route.lanelet_ids)
-        lanelets_dir_other = set(vehicle.lanelets_dir)
-
-        lanelet_network = semantic_model.config.scenario.lanelet_network
-        lanelets_ego_intersection = self.get_intersection_lanelets(lanelet_network, lanelets_dir_ego)
-        lanelets_other_intersection = self.get_intersection_lanelets(lanelet_network, lanelets_dir_other)
-
-        # if set(lanelets_ego_intersection).isdisjoint(set(lanelets_other_intersection)):
-        #     return [reach_node]
-
-        # Only compute conflict_region_enl_clcs_polygon once and reuse it
-        if self._cached_conflict_region_enl_clcs_polygon is None:
-            time_start = time.time()
-
-            # Calculate the union of the ego lanelets and other vehicle's lanelets at intersections
-            ego_intersection_region = self.get_lanelet_union(lanelets_ego_intersection)
-            other_intersection_region = self.get_lanelet_union(lanelets_other_intersection)
-
-            # Find the intersection of the two regions
-            conflict_region = ego_intersection_region.intersection(other_intersection_region)
-
-            vehicle_length_add = semantic_model.config.vehicle.ego.radius_disc * 2
-
-            conflict_region_enlarged = shapely.offset_curve(
-                conflict_region, vehicle_length_add
-            )
-            conflict_region_enl_polygon = shapely.Polygon(conflict_region_enlarged)
-
-            conflict_region_enl_clcs = util_cosy.convert_to_curvilinear_vertices(
-                conflict_region_enl_polygon.exterior.coords, semantic_model.config.planning.CLCS
-            )
-            # Assuming convert_to_curvilinear_vertices returns coordinates, convert them back to a polygon
-            self._cached_conflict_region_enl_clcs_polygon = shapely.Polygon(conflict_region_enl_clcs)
-            print(f"Time used for conflict region enlargement: {time.time() - time_start:.5f}s")
-
         # Use the cached polygon
-        conflict_region_enl_clcs_polygon = self._cached_conflict_region_enl_clcs_polygon
+        conflict_region_enl_clcs_polygon = semantic_model.vehicle_model.dict_vehicle_id_to_conflict_region[self.vehicle_id]
+
+        if conflict_region_enl_clcs_polygon is None:
+            # no conflict region exists
+            return [reach_node]
 
         if not hasattr(reach_node.position_rectangle, "shapely_object"):
             # todo: error handling

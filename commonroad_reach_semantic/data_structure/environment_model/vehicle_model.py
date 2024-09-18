@@ -5,13 +5,17 @@ from functools import lru_cache
 from typing import List, Union, Set, Dict, Optional
 
 import numpy as np
-from commonroad.scenario.lanelet import LaneletType
+import shapely
+from commonroad.scenario.lanelet import LaneletType, Lanelet
 from commonroad.scenario.obstacle import DynamicObstacle, Obstacle, StaticObstacle, EnvironmentObstacle, PhantomObstacle
 
 from commonroad_reach_semantic.data_structure.config.semantic_configuration import SemanticConfiguration
 from commonroad_reach_semantic.data_structure.environment_model.lanelet_model import LaneletModel
 from commonroad_reach_semantic.data_structure.environment_model.position_interval import PositionInterval
 from commonroad_reach_semantic.data_structure.environment_model.vehicle import Vehicle
+
+import commonroad_reach.utility.coordinate_system as util_cosy
+
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +45,71 @@ class VehicleModel:
 
         self._create_vehicles()
         self._create_position_intervals()
+
+        self.dict_vehicle_id_to_conflict_region = dict()
+        self.determine_enlarged_conflict_region()
+
+    def determine_enlarged_conflict_region(self):
+        lanelet_network = self.config.scenario.lanelet_network
+        ego_route_lanelets = set(self.config.planning.route.lanelet_ids)
+        # todo: there are also other options
+        vehicle_add_on = self.config.vehicle.ego.radius_disc * 2
+
+        for veh in self.list_vehicles:
+            other_vehicle_lanelets = set(veh.lanelets_dir)
+
+            # Skip processing if the other vehicle has no lanelet direction information
+            if not other_vehicle_lanelets:
+                self.dict_vehicle_id_to_conflict_region[veh.id_vehicle] = None
+                continue
+
+            # Get intersection lanelets for ego and other vehicle
+            ego_intersection_lanelets = self.get_intersection_lanelets(lanelet_network, ego_route_lanelets)
+            other_intersection_lanelets = self.get_intersection_lanelets(lanelet_network, other_vehicle_lanelets)
+
+            # Compute the conflict region by finding intersection of the lanelet regions
+            ego_intersection_region = self.get_lanelet_union(ego_intersection_lanelets)
+            other_intersection_region = self.get_lanelet_union(other_intersection_lanelets)
+
+            conflict_region = ego_intersection_region.intersection(other_intersection_region)
+
+            # If no conflict region exists, skip to the next vehicle
+            if conflict_region.is_empty:
+                self.dict_vehicle_id_to_conflict_region[veh.id_vehicle] = None
+                continue
+
+            # Enlarge conflict region based on vehicle dimensions
+            enlarged_conflict_region = shapely.offset_curve(conflict_region, vehicle_add_on)
+
+            # Check if the enlargement succeeded
+            if not enlarged_conflict_region.is_valid:
+                print(f"Invalid enlarged conflict region for vehicle {veh.id_vehicle}")
+                self.dict_vehicle_id_to_conflict_region[veh.id_vehicle] = None
+                continue
+
+            # Convert to curvilinear coordinates and handle potential conversion errors
+            try:
+                conflict_region_enl_polygon = shapely.Polygon(enlarged_conflict_region)
+                conflict_region_enl_clcs = util_cosy.convert_to_curvilinear_vertices(
+                    conflict_region_enl_polygon.exterior.coords, self.config.planning.CLCS
+                )
+                self.dict_vehicle_id_to_conflict_region[veh.id_vehicle] = shapely.Polygon(conflict_region_enl_clcs)
+            except ValueError as e:
+                print(f"Error converting to curvilinear vertices for vehicle {veh.id_vehicle}: {e}")
+                self.dict_vehicle_id_to_conflict_region[veh.id_vehicle] = None
+
+    @staticmethod
+    def get_lanelet_union(lanelets: List[Lanelet]) -> shapely.geometry.base.BaseGeometry:
+        # Create a union of all lanelet geometries
+        return shapely.unary_union([lanelet.polygon.shapely_object for lanelet in lanelets])
+
+    @staticmethod
+    def get_intersection_lanelets(lanelet_network, lanelet_ids):
+        return [
+            lanelet_network.find_lanelet_by_id(lanelet_id)
+            for lanelet_id in lanelet_ids
+            if LaneletType.INTERSECTION in lanelet_network.find_lanelet_by_id(lanelet_id).lanelet_type
+        ]
 
     def determine_traffic_priorities(self, dict_traffic_sign_to_priorities: Dict):
         """
