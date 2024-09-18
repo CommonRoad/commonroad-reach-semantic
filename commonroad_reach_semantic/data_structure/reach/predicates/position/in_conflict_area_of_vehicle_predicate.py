@@ -1,3 +1,4 @@
+import time
 from typing import List, Optional, Set
 
 import shapely
@@ -55,21 +56,22 @@ class InConflictAreaOfVehiclePredicate(predicate.Predicate):
         lanelets_ego_intersection = self.get_intersection_lanelets(lanelet_network, lanelets_dir_ego)
         lanelets_other_intersection = self.get_intersection_lanelets(lanelet_network, lanelets_dir_other)
 
-        # Calculate the union of the ego lanelets and other vehicle's lanelets at intersections
-        ego_intersection_region = self.get_lanelet_union(lanelets_ego_intersection)
-        other_intersection_region = self.get_lanelet_union(lanelets_other_intersection)
-
-        # Find the intersection of the two regions
-        conflict_region = ego_intersection_region.intersection(other_intersection_region)
-        if conflict_region.is_empty:
-            return [reach_node]
-
-        vehicle_length_add = semantic_model.config.vehicle.ego.length / 2
-        if semantic_model.config.planning.reference_point == "REAR":
-            vehicle_length_add += semantic_model.config.vehicle.ego.wb_rear_axle
+        # if set(lanelets_ego_intersection).isdisjoint(set(lanelets_other_intersection)):
+        #     return [reach_node]
 
         # Only compute conflict_region_enl_clcs_polygon once and reuse it
         if self._cached_conflict_region_enl_clcs_polygon is None:
+            time_start = time.time()
+
+            # Calculate the union of the ego lanelets and other vehicle's lanelets at intersections
+            ego_intersection_region = self.get_lanelet_union(lanelets_ego_intersection)
+            other_intersection_region = self.get_lanelet_union(lanelets_other_intersection)
+
+            # Find the intersection of the two regions
+            conflict_region = ego_intersection_region.intersection(other_intersection_region)
+
+            vehicle_length_add = semantic_model.config.vehicle.ego.radius_disc * 2
+
             conflict_region_enlarged = shapely.offset_curve(
                 conflict_region, vehicle_length_add
             )
@@ -80,6 +82,7 @@ class InConflictAreaOfVehiclePredicate(predicate.Predicate):
             )
             # Assuming convert_to_curvilinear_vertices returns coordinates, convert them back to a polygon
             self._cached_conflict_region_enl_clcs_polygon = shapely.Polygon(conflict_region_enl_clcs)
+            print(f"Time used for conflict region enlargement: {time.time() - time_start:.5f}s")
 
         # Use the cached polygon
         conflict_region_enl_clcs_polygon = self._cached_conflict_region_enl_clcs_polygon
