@@ -69,6 +69,27 @@ sudo apt-get install -y  \
         libbddx0=2.11.6.0-1
 ```
 
+If you do not have the sudo rights, you can install spot in your home directory.
+```bash
+# download and install spot locally
+wget https://www.lrde.epita.fr/dload/spot/spot-2.11.6.tar.gz
+tar -xzf spot-2.11.6.tar.gz
+cd spot-2.11.6
+# Choose a local installation prefix
+./configure --prefix=$HOME/.local
+make
+make install
+# Add the Spot bin and lib directories to your PATH and LD_LIBRARY_PATH to ensure the system recognizes the installation:
+export PATH="$HOME/.local/bin:$PATH"
+export LD_LIBRARY_PATH="$HOME/.local/lib:$LD_LIBRARY_PATH"
+# To make these changes permanent
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+echo 'export LD_LIBRARY_PATH="$HOME/.local/lib:$LD_LIBRARY_PATH"' >> ~/.bashrc
+source ~/.bashrc
+# Check that Spot is installed correctly:
+spot --version
+```
+
 3. Install C++ dependencies:
 
 ```bash
@@ -76,6 +97,18 @@ sudo apt-get update
 sudo apt-get install libomp-dev libboost-all-dev libeigen3-dev libyaml-cpp-dev libspdlog-dev pybind11-dev libgtest-dev libgmock-dev
 ```
 
+You can also check whether the dependencies are installed correctly by running the following commands:
+```bash
+dpkg -l | grep libomp-dev
+dpkg -l | grep libboost-all-dev
+dpkg -l | grep libeigen3-dev
+dpkg -l | grep libyaml-cpp-dev
+dpkg -l | grep libspdlog-dev
+```
+If the package is installed, you'll see output like:
+```angular2html
+ii  libomp-dev                             1:10.0-50~exp1                        amd64        LLVM OpenMP runtime - dev package
+```
 4. Build the C++ extension and install the Python package:
 ```bash
 pip install -v .
