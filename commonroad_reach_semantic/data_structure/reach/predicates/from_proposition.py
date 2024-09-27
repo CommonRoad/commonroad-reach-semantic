@@ -34,6 +34,8 @@ from commonroad_reach_semantic.data_structure.reach.predicates.position.behind_s
 from commonroad_reach_semantic.data_structure.reach.predicates.position.in_lanelet_predicate import InLaneletPredicate
 from commonroad_reach_semantic.data_structure.reach.predicates.position.in_straight_successor_predicate import \
     InStraightSuccessorPredicate
+from commonroad_reach_semantic.data_structure.reach.predicates.position.in_same_lane_predicate import \
+    InSameLanePredicate
 from commonroad_reach_semantic.data_structure.reach.predicates.position.left_of_obstacle_predicate import \
     LeftOfObstaclePredicate
 from commonroad_reach_semantic.data_structure.reach.predicates.regulatory.no_priority_predicate import \
@@ -111,6 +113,8 @@ def from_proposition(proposition: str, negated: bool):
         return CausesBrakingPredicate(int(matched.group(1)), negated)
     elif matched := re.fullmatch(r"InConflictWith_V(\d+)", proposition):
         return InConflictAreaOfVehiclePredicate(int(matched.group(1)), negated)
+    elif matched := re.fullmatch(r"InSameLane_V(\d+)", proposition):
+        return InSameLanePredicate(int(matched.group(1)), negated)
     elif matched := re.fullmatch(r"InConflictBy_V(\d+)", proposition):
         return VehicleInConflictAreaPredicate(int(matched.group(1)), negated)
     elif matched := re.fullmatch(r"Has_(left|straight|right)_(left|straight|right)_PriorityOver_V(\d+)", proposition):
