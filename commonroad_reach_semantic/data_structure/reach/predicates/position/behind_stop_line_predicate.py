@@ -37,9 +37,9 @@ class BehindStopLinePredicate(predicate.Predicate):
         # Find lanelet IDs that are both in stop_line_lanelet_ids and node_lanelet_ids
         occupied_lanelet_ids = stop_line_lanelet_ids & node_lanelet_ids
 
-        # Return empty list if no occupied lanelets with stop lines are found
+        # Return empty list if no occupied lanelets with stop lines are found, so do not REMOVE
         if not occupied_lanelet_ids:
-            return []
+            return [reach_node]
 
         result_nodes = []
         for lanelet_id in occupied_lanelet_ids:
