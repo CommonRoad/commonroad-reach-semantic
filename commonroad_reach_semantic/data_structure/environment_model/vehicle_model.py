@@ -87,14 +87,19 @@ class VehicleModel:
                 self.dict_vehicle_id_to_conflict_region[veh.id_vehicle] = None
                 continue
 
-            # Convert to curvilinear coordinates and handle potential conversion errors
             try:
                 conflict_region_enl_polygon = shapely.Polygon(enlarged_conflict_region)
                 conflict_region_enl_clcs = util_cosy.convert_to_curvilinear_vertices(
                     conflict_region_enl_polygon.exterior.coords, self.config.planning.CLCS
                 )
+
+                # Check if the result is a MultiLineString and convert to a list of coordinates
+                if isinstance(conflict_region_enl_clcs, shapely.geometry.MultiLineString):
+                    conflict_region_enl_clcs = [coord for line in conflict_region_enl_clcs for coord in line.coords]
+
                 self.dict_vehicle_id_to_conflict_region[veh.id_vehicle] = shapely.Polygon(conflict_region_enl_clcs)
-            except ValueError as e:
+
+            except (ValueError, TypeError) as e:
                 print(f"Error converting to curvilinear vertices for vehicle {veh.id_vehicle}: {e}")
                 self.dict_vehicle_id_to_conflict_region[veh.id_vehicle] = None
 
