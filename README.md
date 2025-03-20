@@ -10,7 +10,7 @@ The software is written in Python 3.10, and was tested on Ubuntu 20.04 & 22.04.
 > version 11.4).
 > A workaround until this is fixed is to use an older version of GCC (we suggest GCC 10).
 > To do so, indicate the path to the older version of GCC in the `CXX` environment variable before building the code (
-> e.g. `export CXX=/usr/bin/g++-10` (or g++-9)).
+> e.g. `export CXX=/usr/bin/g++-10` (or g++-9, but you have to compile drivability checker locally as well)).
 
 > **Note:** The build process automatically includes other internal repositories via Git.
 > Thus, an SSH key in your LRZ GitLab account is required.
