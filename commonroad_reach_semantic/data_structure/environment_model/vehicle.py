@@ -710,7 +710,10 @@ class Vehicle:
         set_ids_lanelets_oncoming = util_vehicle.extract_oncomings_from_incoming(incoming_element, cls.lanelet_network)
 
         state_cr_previous = None
-        list_states_obstacle_all = [obstacle.initial_state] + obstacle.prediction.trajectory.state_list
+        if hasattr(obstacle.prediction, "trajectory"):
+            list_states_obstacle_all = [obstacle.initial_state] + obstacle.prediction.trajectory.state_list
+        else:
+            list_states_obstacle_all = [obstacle.initial_state]
         # we know that planning config dt is a multiple of scenario dt
         # --> divide planning dt by scenario dt to determine how many scenario time steps are in one planning time step
         numeric_scaling = 100

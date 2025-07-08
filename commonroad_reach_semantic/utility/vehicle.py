@@ -148,7 +148,7 @@ def extract_lane_of_vehicle(obstacle: Union[DynamicObstacle, StaticObstacle], ro
     dict_step_to_set_lanes = {}
     set_lanes_initial = set()
     list_states_obstacle = [obstacle.initial_state]
-    if isinstance(obstacle, DynamicObstacle):
+    if isinstance(obstacle, DynamicObstacle) and hasattr(obstacle.prediction, "trajectory"):
         list_states_obstacle += obstacle.prediction.trajectory.state_list
 
     for state_cr in list_states_obstacle:
