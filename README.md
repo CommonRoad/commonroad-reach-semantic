@@ -12,10 +12,6 @@ The software is written in Python 3.10, and was tested on Ubuntu 20.04 & 22.04.
 > To do so, indicate the path to the older version of GCC in the `CXX` environment variable before building the code (
 > e.g. `export CXX=/usr/bin/g++-10` (or g++-9, but you have to compile drivability checker locally as well)).
 
-> **Note:** The build process automatically includes other internal repositories via Git.
-> Thus, an SSH key in your LRZ GitLab account is required.
-> See [here](https://docs.gitlab.com/ee/ssh/) for instructions on how to add an SSH key.
-
 #### Third-Party Dependencies
 
 While most of these dependencies are added automatically during the build process, you can install them manually via
